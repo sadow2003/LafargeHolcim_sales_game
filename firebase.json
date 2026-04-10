@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "salesgameapp-cb5f8",
+          "appId": "1:85284658322:android:f11008b0e3cfbc59031a4b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "salesgameapp-cb5f8",
+          "configurations": {
+            "android": "1:85284658322:android:f11008b0e3cfbc59031a4b",
+            "ios": "1:85284658322:ios:e522e73359da393b031a4b",
+            "web": "1:85284658322:web:8d413764940cf52a031a4b"
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": {}
+  }
+}
