@@ -37,7 +37,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'web_LHM_Project',
+    apiKey: 'Web_LHM_Project',
     appId: '1:85284658322:web:8d413764940cf52a031a4b',
     messagingSenderId: '85284658322',
     projectId: 'salesgameapp-cb5f8',
