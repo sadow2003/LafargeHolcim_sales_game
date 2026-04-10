@@ -24,10 +24,6 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -41,7 +37,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD1JPPfJnUJo-BsfgMBAO1dqbE-FRqARLU',
+    apiKey: 'web_LHM_Project',
     appId: '1:85284658322:web:8d413764940cf52a031a4b',
     messagingSenderId: '85284658322',
     projectId: 'salesgameapp-cb5f8',
@@ -51,7 +47,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA9JJY0doa1I-5dOR6n4mphUHgM4NWuXgg',
+    apiKey: 'Android_LHM_Project',
     appId: '1:85284658322:android:f11008b0e3cfbc59031a4b',
     messagingSenderId: '85284658322',
     projectId: 'salesgameapp-cb5f8',
@@ -59,7 +55,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDEHj2aXBwJsd6O5kw9SmivctqMd5pA_as',
+    apiKey: 'IOS_LHM_Project',
     appId: '1:85284658322:ios:e522e73359da393b031a4b',
     messagingSenderId: '85284658322',
     projectId: 'salesgameapp-cb5f8',
@@ -67,22 +63,7 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.lafargeholcimSalesGame',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDEHj2aXBwJsd6O5kw9SmivctqMd5pA_as',
-    appId: '1:85284658322:ios:e522e73359da393b031a4b',
-    messagingSenderId: '85284658322',
-    projectId: 'salesgameapp-cb5f8',
-    storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-    iosBundleId: 'com.example.lafargeholcimSalesGame',
-  );
+  
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyD1JPPfJnUJo-BsfgMBAO1dqbE-FRqARLU',
-    appId: '1:85284658322:web:d0ed51b2d35e538b031a4b',
-    messagingSenderId: '85284658322',
-    projectId: 'salesgameapp-cb5f8',
-    authDomain: 'salesgameapp-cb5f8.firebaseapp.com',
-    storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-    measurementId: 'G-4S1JZBD13X',
-  );
+  
 }
