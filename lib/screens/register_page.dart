@@ -10,16 +10,21 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
+
+
 class _RegisterPageState extends State<RegisterPage> {
+  // Controllers for form fields
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+
+
   // Form key for validation
-  final _formKey = GlobalKey<FormState>(); 
-  bool _passwordVisible = false; 
-  bool _isLoading = false; // State variable for loading indicator
+  final formKey = GlobalKey<FormState>(); 
+  bool passwordVisible = false; 
+  bool Loading = false; // State variable for loading indicator
 
   // Dispose controllers to free memory
   @override
@@ -31,6 +36,8 @@ class _RegisterPageState extends State<RegisterPage> {
     _lastNameController.dispose();
     super.dispose();
   }
+
+
 
   // Add user details to Firestore
   Future<void> addUserDetails({
@@ -51,7 +58,11 @@ class _RegisterPageState extends State<RegisterPage> {
       throw Exception('Failed to save user details: $e');
     }
   }
-// Validation functions
+
+
+
+
+// Validation email
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your email';
@@ -63,7 +74,10 @@ class _RegisterPageState extends State<RegisterPage> {
     }
     return null;
   }
-// Validation functions
+
+
+
+// Validation password
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
@@ -73,7 +87,10 @@ class _RegisterPageState extends State<RegisterPage> {
     }
     return null;
   }
-// Validation functions
+
+
+
+// Validation confirm password
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please confirm your password';
@@ -84,13 +101,21 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
+
+
+
+
   // Firebase Registration Logic
   Future<void> _registerUser() async {
-    if (!_formKey.currentState!.validate()) return;//
+    if (!formKey.currentState!.validate()) return;// Validate form fields
 
+
+// Show loading indicator while processing
     setState(() {
-      _isLoading = true;
+      Loading = true;
     });
+
+
 
     try {
       // Create user in Firebase
@@ -98,6 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
 
       // Add user details to Firestore with the user ID
       await addUserDetails(
@@ -107,8 +133,10 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text.trim(),
       );
 
-      if (!mounted) return;
+      if (!mounted) return;// Check if widget is still mounted before showing snackbar or navigating
 
+
+// Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Registration Successful!'),
@@ -119,6 +147,8 @@ class _RegisterPageState extends State<RegisterPage> {
       // Navigate to Login or Home after success
       Navigator.pushNamed(context, "/login");
 
+
+// Handle Firebase registration errors
     } on FirebaseAuthException catch (e) {
       String message;
       if (e.code == 'email-already-in-use') {
@@ -129,7 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
         message = 'Registration failed. Please try again.';
       }
 
-      if (mounted) {
+      if (mounted) {// Check if widget is still mounted before showing snackbar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -146,34 +176,50 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
+    } finally {// Hide loading indicator after processing
+      if (mounted) {// Check if widget is still mounted before updating state
         setState(() {
-          _isLoading = false;
+          Loading = false;
         });
       }
     }
   }
 
+
+
+
+// Build method to render the registration form
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      // AppBar with title
       appBar: AppBar(
         title: const Text('Register'),
         centerTitle: true,
         backgroundColor: Colors.teal,
         elevation: 0,
       ),
+
+
+      // Body with form fields and registration button
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Form(
-          key: _formKey,// Wrap form fields in a Form widget for validation 
+          key: formKey,// Wrap form fields in a Form widget for validation
+          child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,// Center the form vertically
             crossAxisAlignment: CrossAxisAlignment.stretch,// Stretch the form fields to fill horizontal space
             children: [
-              // Logo at the top
+
+
+
+
               const SizedBox(height: 30),// Add spacing above the logo
+
+
+// First Name Text Field with validation
               TextFormField(
                 controller: _firstNameController,
                 decoration: InputDecoration(
@@ -191,7 +237,16 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
+
+
+
+
+
               const SizedBox(height: 20),
+
+
+
+// Last Name Text Field with validation
               TextFormField(
                 controller: _lastNameController,
                 decoration: InputDecoration(
@@ -209,7 +264,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
+
+
+
+
+
+
+
               const SizedBox(height: 20),
+
+
+// Email Text Field with validation
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -222,10 +287,19 @@ class _RegisterPageState extends State<RegisterPage> {
                 keyboardType: TextInputType.emailAddress,
                 validator: _validateEmail,
               ),
+
+
+
+
+
               const SizedBox(height: 20),
+
+
+
+// Password Text Field with visibility toggle and validation
               TextFormField(
                 controller: _passwordController,
-                obscureText: !_passwordVisible, 
+                obscureText: !passwordVisible, 
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(
@@ -234,23 +308,32 @@ class _RegisterPageState extends State<RegisterPage> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _passwordVisible
+                      passwordVisible
                           ? Icons.visibility
                           : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
-                        _passwordVisible = !_passwordVisible; 
+                        passwordVisible = !passwordVisible; 
                       });
                     },
                   ),
                 ),
                 validator: _validatePassword,
               ),
+
+
+
+
+
               const SizedBox(height: 20),
+
+
+
+// Confirm Password field with visibility toggle and validation
               TextFormField(
                 controller: _confirmPasswordController,
-                obscureText: !_passwordVisible, 
+                obscureText: !passwordVisible, 
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
                   border: OutlineInputBorder(
@@ -259,22 +342,32 @@ class _RegisterPageState extends State<RegisterPage> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _passwordVisible
+                      passwordVisible
                           ? Icons.visibility
                           : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
-                        _passwordVisible = !_passwordVisible; 
+                        passwordVisible = !passwordVisible; 
                       });
                     },
                   ),
                 ),
                 validator: _validateConfirmPassword, 
               ),
+
+
+
+
+
+
               const SizedBox(height: 20),
+
+
+
+// Registration button with loading state
               ElevatedButton(
-                onPressed: _isLoading ? null : _registerUser, // Disable button while loading
+                onPressed: Loading ? null : _registerUser, // Disable button while loading
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
@@ -282,7 +375,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   backgroundColor: Colors.teal,
                 ),
-                child: _isLoading 
+                child: Loading 
                   ? const SizedBox(
                       height: 20, 
                       width: 20, 
@@ -293,6 +386,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: TextStyle(fontSize: 18),
                     ),
               ),
+
+
+
+
+
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () {
@@ -304,6 +402,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

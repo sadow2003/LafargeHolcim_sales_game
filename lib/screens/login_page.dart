@@ -11,9 +11,11 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>(); 
-  bool _passwordVisible = false; 
-  bool _isLoading = false; // State variable for loading indicator
+  final formKey = GlobalKey<FormState>(); 
+  bool passwordVisible = false; 
+  bool Loading = false; // State variable for loading indicator
+
+
 
   // Dispose controllers to free memory
   @override
@@ -23,6 +25,8 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+
+// Validation Email
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your email';
@@ -35,6 +39,7 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
+// Validation Password
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
@@ -45,12 +50,15 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
+
+
+
   // Firebase Login Logic
   Future<void> _loginUser() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!formKey.currentState!.validate()) return;
 
     setState(() {
-      _isLoading = true;
+      Loading = true;
     });
 
     try {
@@ -67,6 +75,8 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.green,
         ),
       );
+
+
 
       // Navigate to Home page
       Navigator.pushReplacementNamed(context, "/home");
@@ -89,38 +99,40 @@ class _LoginPageState extends State<LoginPage> {
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          Loading = false;
         });
       }
     }
   }
 
+
+// Build method to render the login form
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      // AppBar with title
       appBar: AppBar(
         title: const Text('Login'),
         centerTitle: true,
         backgroundColor: Colors.teal,
         elevation: 0,
       ),
+
+
+// Body with form fields and login button
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Form(
-          key: _formKey, 
-          child: Column(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset(
-                'assets/images/emsi.jpg',
-                height: 100,
-                errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.school, size: 100, color: Colors.teal); 
-                },
-              ),
+              Icon(Icons.business, size: 100, color: Colors.teal),
               const Text(
-                'Welcome Back!',
+                'LafargeHolcim Sales Game',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
@@ -128,7 +140,12 @@ class _LoginPageState extends State<LoginPage> {
                   color: Colors.teal,
                 ),
               ),
+
+
               const SizedBox(height: 30),
+
+
+// Email Text Field with validation
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -141,10 +158,17 @@ class _LoginPageState extends State<LoginPage> {
                 keyboardType: TextInputType.emailAddress,
                 validator: _validateEmail, 
               ),
+
+
+
+
               const SizedBox(height: 20),
+
+
+// Password Text Field with visibility toggle and validation
               TextFormField(
                 controller: _passwordController,
-                obscureText: !_passwordVisible, 
+                obscureText: !passwordVisible, 
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(
@@ -153,22 +177,30 @@ class _LoginPageState extends State<LoginPage> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _passwordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                      //if password is visible show visibility icon else show visibility off icon
+                      passwordVisible ? Icons.visibility : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
-                        _passwordVisible = !_passwordVisible; 
+                        //what happens when user clicks on the icon, change the state of password visibility
+                        passwordVisible = !passwordVisible; 
                       });
                     },
                   ),
                 ),
                 validator: _validatePassword, 
               ),
+
+
+
               const SizedBox(height: 20),
+
+
+
+
+// Login button with loading state
               ElevatedButton(
-                onPressed: _isLoading ? null : _loginUser, // Disable while loading
+                onPressed: Loading ? null : _loginUser, // Disable while loading
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
@@ -176,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   backgroundColor: Colors.teal,
                 ),
-                child: _isLoading 
+                child: Loading 
                   ? const SizedBox(
                       height: 20, 
                       width: 20, 
@@ -187,7 +219,16 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(fontSize: 18),
                     ),
               ),
+
+
+
+
               const SizedBox(height: 10),
+
+
+
+
+// Registration link
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, "/register");
@@ -198,6 +239,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

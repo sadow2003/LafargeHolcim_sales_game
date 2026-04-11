@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
+// Home Page with Drawer and Logout Functionality
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -8,19 +10,34 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+
+
+
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+
+      // AppBar with title and styling
       appBar: AppBar(
         title: const Text('Home Page'),
         centerTitle: true,
         backgroundColor: Colors.teal,
       ),
+
+
+
+      // Drawer with user info and logout option
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
+
+
+
+
+
             DrawerHeader(
               decoration: const BoxDecoration(
                 color: Colors.teal,
@@ -28,6 +45,9 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+
+
+
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.white,
@@ -42,36 +62,57 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+
+
+
                   SizedBox(height: 10),
+
+
+
                   Text(
-                    FirebaseAuth.instance.currentUser?.email ?? 'No email',
+                    FirebaseAuth.instance.currentUser?.email ?? 'anonymous@domain.com',
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                     ),
                   ),
+                  //add User first name and last ane here if you want to display it in the drawer header
+                  
+
                 ],
               ),
             ),
-            
-            Divider(color: Colors.grey),
             ListTile(
-              leading: const Icon(Icons.account_circle),
-              title: const Text('Profile'),
+              leading: const Icon(Icons.production_quantity_limits),
+              title: const Text('Products'),
               onTap: () {
                 // Navigate to Profile Page
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              trailing: const Icon(Icons.arrow_forward),
-              title: const Text('Settings'),
+              leading: const Icon(Icons.leaderboard),
+              title: const Text('Rankings'),
               onTap: () {
-                // Navigate to Settings Page
+                // Navigate to Profile Page
                 Navigator.pop(context);
               },
             ),
+
+
+            Divider(color: Colors.grey),
+
+
+
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Profile'),
+              onTap: () {
+                // Navigate to Profile Page
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            
             ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
@@ -86,32 +127,36 @@ class _HomePageState extends State<HomePage> {
                   child: CircularProgressIndicator(),
                 ),
               );
-    
-    try {
-      // Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
-      
-      // Navigate to login screen (replace current screen)
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login', // or your login screen route
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed: $e')),
-        );
-      }
-    }
-  },
-),
+// Perform logout
+              try {
+                // Sign out from Firebase
+                await FirebaseAuth.instance.signOut();
+                
+                // Navigate to login screen (replace current screen)
+                if (mounted) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login', // or your login screen route
+                    (route) => false,
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Logout failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
           ],
         ),
-      ),
-      body: const Center(
+    ),
+
+
+
+// Main content of the Home Page
+      body: Center(
         child: Text(
           'Welcome to the Home Page!',
           style: TextStyle(fontSize: 24),
@@ -120,5 +165,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-// uvicorn main:app --host 127.0.0.1 --port 8000 
