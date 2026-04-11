@@ -76,6 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 final lastName = userData['lastName'] ?? 'Unknown';
                 final email = userData['email'] ?? 'Unknown';
                 final points = userData['points'] ?? 0;
+                final rank = userData['rank'] ?? '--';
 
 
 // Display user profile information in a card with styling
@@ -173,6 +174,17 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
 
 
+                                const Divider(height: 20),
+
+// Rank
+                                _buildInfoRow(
+                                  label: 'Rank',
+                                  value: rank.toString(),
+                                  icon: Icons.military_tech_outlined,
+                                  valueColor: Colors.amber,
+                                ),
+
+
 
                               ],
                             ),
@@ -198,12 +210,209 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 30),
+
+
+// Products History Section
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Sales History',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+
+
+
+                        _buildProductsHistory(),
                       ],
                     ),
                   ),
                 );
               },
             ),
+    );
+  }
+
+
+// Widget to display products/sales history
+  Widget _buildProductsHistory() {
+    if (currentUser == null) {
+      return const Center(child: Text('User not authenticated'));
+    }
+
+
+// Listen to Firestore collection for user's sales history and display it in a list
+    return StreamBuilder<QuerySnapshot>(
+      stream: firestore
+          .collection('users')
+          .doc(currentUser!.uid)
+          .collection('sales')
+          .orderBy('soldDate', descending: true)
+          .snapshots(),
+
+
+
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+// Handle errors and empty state
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+
+
+// Handle case where there are no sales history documents
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40.0),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.shopping_bag,
+                    size: 60,
+                    color: Colors.grey[300],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No sales history yet',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+
+
+// Build list of sales history items
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            final sale = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+            final productName = sale['productName'] ?? 'Unknown Product';
+            final quantity = sale['quantity'] ?? 0;
+            final price = sale['price'] ?? 0;
+            final soldDate = sale['soldDate'] != null
+                ? (sale['soldDate'] as Timestamp).toDate()
+                : DateTime.now();
+            final total = (price * quantity).toStringAsFixed(2);
+
+
+
+
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12.0),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+
+
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_bag,
+                          color: Colors.teal,
+                          size: 24,
+                        ),
+
+                        const SizedBox(width: 12),
+
+
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                productName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${soldDate.day}/${soldDate.month}/${soldDate.year}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+
+
+
+                        Text(
+                          '\$$total',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+
+
+
+
+                    const SizedBox(height: 12),
+
+
+
+
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Qty: $quantity',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        Text(
+                          'Unit Price: \$$price',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -215,6 +424,9 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     Color? valueColor,
   }) {
+
+
+
     return Row(
       children: [
         Icon(icon, color: Colors.teal, size: 24),
@@ -223,6 +435,8 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+
 
 
               // Label for the information (e.g., "Email", "Points")
@@ -235,7 +449,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
 
-              
+
+
+
               // Value of the information (e.g., user's email or points)
               const SizedBox(height: 4),
               Text(

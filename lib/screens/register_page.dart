@@ -52,6 +52,8 @@ class _RegisterPageState extends State<RegisterPage> {
         'firstName': firstName,
         'lastName': lastName,
         'email': email,
+        'points': 0,
+        'rank': '--',
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
