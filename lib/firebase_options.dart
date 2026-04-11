@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -36,34 +37,48 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'Web_LHM_Project',
-    appId: '1:85284658322:web:8d413764940cf52a031a4b',
-    messagingSenderId: '85284658322',
-    projectId: 'salesgameapp-cb5f8',
-    authDomain: 'salesgameapp-cb5f8.firebaseapp.com',
-    storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-    measurementId: 'G-JJYNGLWG7K',
-  );
+  static FirebaseOptions get web {
+    final webApiKey = dotenv.env['WEBSITE_LHM_PROJECT'] ?? '';
+    if (webApiKey.isEmpty) {
+      throw Exception('WEBSITE_LHM_PROJECT not found in .env');
+    }
+    return FirebaseOptions(
+      apiKey: webApiKey,
+      appId: '1:85284658322:web:8d413764940cf52a031a4b',
+      messagingSenderId: '85284658322',
+      projectId: 'salesgameapp-cb5f8',
+      authDomain: 'salesgameapp-cb5f8.firebaseapp.com',
+      storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
+      measurementId: 'G-JJYNGLWG7K',
+    );
+  }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'Android_LHM_Project',
-    appId: '1:85284658322:android:f11008b0e3cfbc59031a4b',
-    messagingSenderId: '85284658322',
-    projectId: 'salesgameapp-cb5f8',
-    storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-  );
+  static FirebaseOptions get android {
+    final androidApiKey = dotenv.env['ANDROID_LHM_PROJECT'] ?? '';
+    if (androidApiKey.isEmpty) {
+      throw Exception('ANDROID_LHM_PROJECT not found in .env');
+    }
+    return FirebaseOptions(
+      apiKey: androidApiKey,
+      appId: '1:85284658322:android:f11008b0e3cfbc59031a4b',
+      messagingSenderId: '85284658322',
+      projectId: 'salesgameapp-cb5f8',
+      storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
+    );
+  }
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'IOS_LHM_Project',
-    appId: '1:85284658322:ios:e522e73359da393b031a4b',
-    messagingSenderId: '85284658322',
-    projectId: 'salesgameapp-cb5f8',
-    storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-    iosBundleId: 'com.example.lafargeholcimSalesGame',
-  );
-
-  
-
-  
+  static FirebaseOptions get ios {
+    final iosApiKey = dotenv.env['IOS_LHM_Project'] ?? '';
+    if (iosApiKey.isEmpty) {
+      throw Exception('IOS_LHM_Project not found in .env');
+    }
+    return FirebaseOptions(
+      apiKey: iosApiKey,
+      appId: '1:85284658322:ios:e522e73359da393b031a4b',
+      messagingSenderId: '85284658322',
+      projectId: 'salesgameapp-cb5f8',
+      storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
+      iosBundleId: 'com.example.lafargeholcimSalesGame',
+    );
+  }
 }
