@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
+
+
 
 
 class ProfilePage extends StatefulWidget {
@@ -9,6 +12,9 @@ class ProfilePage extends StatefulWidget {
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
+
+
+
 
 class _ProfilePageState extends State<ProfilePage> {
 // Declare variables for current user and Firestore instance
@@ -22,24 +28,27 @@ class _ProfilePageState extends State<ProfilePage> {
     firestore = FirebaseFirestore.instance;
   }
 
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
 
 // AppBar with title and styling
       appBar: AppBar(
-        //add going back button
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushNamed(context,'/home');
-          },
-        ),
         title: const Text('Profile'),
         centerTitle: true,
         backgroundColor: Colors.teal,
         elevation: 0,
       ),
+
+
+
+//Building drawer for profile page
+      drawer: const AppDrawer(),
+
+
 
 // Body with user profile information and logout button
       body: currentUser == null
@@ -70,6 +79,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Text('User data not found'),
                   );
                 }
+
+
 // Extract user data from Firestore document
                 final userData =snapshot.data!.data() as Map<String, dynamic>;
                 final firstName = userData['firstName'] ?? 'Unknown';
@@ -86,7 +97,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-
 
 
 // User avatar and name
@@ -190,27 +200,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                         ),
-
-
-
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              FirebaseAuth.instance.signOut();
-                              Navigator.pushReplacementNamed(context,'/login',);
-                            },
-                            icon: const Icon(Icons.logout),
-                            label: const Text('Sign Out'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
+                      
+                      
+                      const SizedBox(height: 30),
 
 
 // Products History Section
@@ -225,9 +217,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         const SizedBox(height: 15),
-
-
-
                         _buildProductsHistory(),
                       ],
                     ),

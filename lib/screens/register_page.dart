@@ -201,6 +201,8 @@ class _RegisterPageState extends State<RegisterPage> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         elevation: 0,
+        // Remove back button on registration page
+        automaticallyImplyLeading: false,
       ),
 
 

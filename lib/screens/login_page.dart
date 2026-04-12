@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
+
+
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
+
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
@@ -26,6 +31,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 
+
+
 // Validation Email
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -38,6 +45,9 @@ class _LoginPageState extends State<LoginPage> {
     }
     return null;
   }
+
+
+
 
 // Validation Password
   String? _validatePassword(String? value) {
@@ -78,8 +88,11 @@ class _LoginPageState extends State<LoginPage> {
 
 
 
+
+
+
       // Navigate to Home page
-      Navigator.pushReplacementNamed(context, "/home");
+      Navigator.pushReplacementNamed(context, "/profile");
     } on FirebaseAuthException catch (e) {
       String message;
       if (e.code == 'user-not-found') {
@@ -117,6 +130,8 @@ class _LoginPageState extends State<LoginPage> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         elevation: 0,
+// Remove back button on login page
+        automaticallyImplyLeading: false,
       ),
 
 

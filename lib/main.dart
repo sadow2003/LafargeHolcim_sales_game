@@ -9,6 +9,8 @@ import 'screens/login_page.dart';
 import 'screens/home_page.dart';
 import 'screens/register_page.dart';
 import 'screens/profile_page.dart';
+//import 'screens/products_page.dart';
+//import 'screens/ranking_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +46,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(),
         '/register': (context) => RegisterPage(),
         '/profile': (context) => ProfilePage(),
+        //'/products': (context) => ProductsPage(),
+        //'/ranking': (context) => RankingPage(),
       },
     );
   }
