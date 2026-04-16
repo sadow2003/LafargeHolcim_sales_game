@@ -1,18 +1,119 @@
-rules_version='2'
+// firestore.rules — Controls WHO can read and write WHAT in Firestore.
+//
+// RULES SUMMARY:
+//   users     collection → Any logged-in user can READ (needed for leaderboard).
+//                          Users can only WRITE their own document.
+//                          Admins can WRITE any user document (e.g. updating rank).
+//
+//   products  collection → Any logged-in user can READ (product catalog).
+//                          Only ADMINS can create/update/delete products.
+//
+//   sales     collection → Users can READ only their own sales.
+//                          Admins can READ all sales.
+//                          Any logged-in user can CREATE a sale (with their own userId).
+//                          Only ADMINS can UPDATE a sale (approve/reject).
+//                          Nobody can DELETE a sale (audit trail).
+
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 5, 10);
+
+    // ── Helper Functions ──────────────────────────────────────────────────
+    // These functions are reused in the rules below to keep things readable.
+
+    // Is the request coming from a logged-in user?
+    function isAuthenticated() {
+      return request.auth != null;
     }
+
+    // Is the logged-in user the same as the given userId?
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Is the logged-in user an admin?
+    // This reads the user's own Firestore document to check their role.
+    // Note: get() costs one Firestore read per rule evaluation.
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── users collection ──────────────────────────────────────────────────
+    // Path: /users/{userId}
+    match /users/{userId} {
+
+      // READ: Any logged-in user can read any user profile.
+      // This is needed so the leaderboard can show all salespeople's names and points.
+      allow read: if isAuthenticated();
+
+      // CREATE: A user can create their own document (registration),
+      //         OR an admin can create any user document (admin user management).
+      allow create: if isAuthenticated() && (isOwner(userId) || isAdmin());
+
+      // UPDATE: A user can update their own document (e.g. profile changes),
+      //         OR an admin can update any user document (e.g. updating rank).
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+
+      // DELETE: Only admins can delete user documents.
+      allow delete: if isAdmin() && !isOwner(userId); // Prevent self-deletion
+    }
+
+    // ── products collection ───────────────────────────────────────────────
+    // Path: /products/{productId}
+    match /products/{productId} {
+
+      // READ: Any logged-in user can view the product catalog.
+      allow read: if isAuthenticated();
+
+      // WRITE (create/update/delete): Only admins can manage products.
+      allow write: if isAdmin();
+    }
+
+    // ── sales collection ──────────────────────────────────────────────────
+    // Path: /sales/{saleId}
+    match /sales/{saleId} {
+
+      // READ: A salesperson can only read their own sales.
+      //       Admins can read ALL sales (needed for the approval screen).
+      allow read: if isAuthenticated() &&
+        (isAdmin() || resource.data.userId == request.auth.uid);
+
+      // CREATE: Any logged-in user can submit a sale,
+      //         BUT the userId in the document MUST match their own UID.
+      //         This prevents a user from submitting sales under someone else's name.
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // UPDATE: Only admins can update a sale (to approve or reject it).
+      //         Salespeople cannot modify submitted claims.
+      allow update: if isAdmin();
+
+      // DELETE: Nobody can delete sales — they serve as an audit trail.
+      allow delete: if false;
+    }
+
+    // ── notifications collection ──────────────────────────────────────────
+    // Path: /notifications/{notificationId}
+    match /notifications/{notificationId} {
+
+      // READ: A user can only read their own notifications.
+      allow read: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+
+      // CREATE: Only admins can create notifications (sent on approve/reject).
+      allow create: if isAdmin();
+
+      // UPDATE: A user can only mark their own notifications as read.
+      //         They cannot change any other field.
+      allow update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+
+      // DELETE: Not allowed.
+      allow delete: if false;
+    }
+
   }
 }

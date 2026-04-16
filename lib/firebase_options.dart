@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -25,6 +24,16 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
+      case TargetPlatform.macOS:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.windows:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -44,13 +53,13 @@ class DefaultFirebaseOptions {
     }
     return FirebaseOptions(
       apiKey: webApiKey,
-      appId: '1:85284658322:web:8d413764940cf52a031a4b',
-      messagingSenderId: '85284658322',
-      projectId: 'salesgameapp-cb5f8',
-      authDomain: 'salesgameapp-cb5f8.firebaseapp.com',
-      storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-      measurementId: 'G-JJYNGLWG7K',
-    );
+    appId: '1:864449112171:web:dd85015a25036b87e0e92e',
+    messagingSenderId: '864449112171',
+    projectId: 'salesquest-c24e6',
+    authDomain: 'salesquest-c24e6.firebaseapp.com',
+    storageBucket: 'salesquest-c24e6.firebasestorage.app',
+    measurementId: 'G-0573R9RQYT',
+  );
   }
 
   static FirebaseOptions get android {
@@ -60,25 +69,25 @@ class DefaultFirebaseOptions {
     }
     return FirebaseOptions(
       apiKey: androidApiKey,
-      appId: '1:85284658322:android:f11008b0e3cfbc59031a4b',
-      messagingSenderId: '85284658322',
-      projectId: 'salesgameapp-cb5f8',
-      storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-    );
+    appId: '1:864449112171:android:bfe51af132df602ae0e92e',
+    messagingSenderId: '864449112171',
+    projectId: 'salesquest-c24e6',
+    storageBucket: 'salesquest-c24e6.firebasestorage.app',
+  );
   }
-
   static FirebaseOptions get ios {
+    // Variable name must match exactly what is in the .env file (IOS_LHM_Project with lowercase 'p')
     final iosApiKey = dotenv.env['IOS_LHM_Project'] ?? '';
     if (iosApiKey.isEmpty) {
-      throw Exception('IOS_LHM_Project not found in .env');
+      throw Exception('IOS_LHM_PROJECT not found in .env');
     }
     return FirebaseOptions(
       apiKey: iosApiKey,
-      appId: '1:85284658322:ios:e522e73359da393b031a4b',
-      messagingSenderId: '85284658322',
-      projectId: 'salesgameapp-cb5f8',
-      storageBucket: 'salesgameapp-cb5f8.firebasestorage.app',
-      iosBundleId: 'com.example.lafargeholcimSalesGame',
-    );
-  }
+      appId: '1:864449112171:ios:5fdc1a42884554aae0e92e',
+      messagingSenderId: '864449112171',
+      projectId: 'salesquest-c24e6',
+    storageBucket: 'salesquest-c24e6.firebasestorage.app',
+    iosBundleId: 'com.example.lafargeholcimSalesGame',
+  );
+}
 }

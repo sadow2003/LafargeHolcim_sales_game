@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lafargeholcim_sales_game/main.dart';
+
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -9,85 +11,119 @@ class AppDrawer extends StatefulWidget {
   State<AppDrawer> createState() => _AppDrawerState();
 }
 
-class _AppDrawerState extends State<AppDrawer> {
-  late final User? currentUser;
-  late final FirebaseFirestore firestore;
 
-  @override
-  void initState() {
-    super.initState();
-    currentUser = FirebaseAuth.instance.currentUser;
-    firestore = FirebaseFirestore.instance;
-  }
+
+
+
+class _AppDrawerState extends State<AppDrawer> {
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          // Drawer Header with User Info
+          // ── Drawer Header ───────────────────────────────────────────────
           FutureBuilder<DocumentSnapshot>(
-            future: firestore.collection('users').doc(currentUser!.uid).get(),
+            future: FirebaseFirestore.instance
+                .collection('users')
+                .doc(_currentUser?.uid)
+                .get(),
             builder: (context, snapshot) {
+              // Loading until all the information is extracted
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return DrawerHeader(
-                  decoration: const BoxDecoration(
-                    color: Colors.teal,
-                  ),
-                  child: const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                return const DrawerHeader(
+                  decoration: BoxDecoration(color: kPrimaryColor),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.white),
                   ),
                 );
               }
 
-              String userName = 'User';
-              String userEmail = currentUser?.email ?? 'Unknown';
+              String userName  = 'User';
+              String userEmail = _currentUser?.email ?? '';
+              String userRole  = 'salesperson';
 
               if (snapshot.hasData && snapshot.data!.exists) {
-                final userData =
-                    snapshot.data!.data() as Map<String, dynamic>;
-                final firstName = userData['firstName'] ?? '';
-                final lastName = userData['lastName'] ?? '';
-                userName = '$firstName $lastName'.trim();
+                final data      = snapshot.data!.data() as Map<String, dynamic>;
+                final firstName = data['firstName'] ?? '';
+                final lastName  = data['lastName']  ?? '';
+                userName  = '$firstName $lastName'.trim();
+                userRole  = data['role'] ?? 'salesperson';
               }
 
+
+
+
               return DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.teal,
-                ),
+                decoration: const BoxDecoration(color: kPrimaryColor),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Avatar circle shows the first letter of the user's name.
                     CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.white,
+                      radius: 36,
+                      backgroundColor:
+                          Colors.white.withValues(alpha: 0.25),
                       child: Text(
                         userName.isNotEmpty
                             ? userName[0].toUpperCase()
-                            : userEmail[0].toUpperCase(),
+                            : userEmail.isNotEmpty
+                                ? userEmail[0].toUpperCase()
+                                : '?',
                         style: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.teal,
+                          fontSize: 26,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
+
+
+
+
+                    // Full name.
                     Text(
                       userName.isNotEmpty ? userName : userEmail,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+
+                    // Email address in smaller text.
                     Text(
                       userEmail,
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
+                          fontSize: 11, color: Colors.white70),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+
+
+
+                    const SizedBox(height: 6),
+
+                    // Role badge pill 
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: kSecondaryColor.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: kSecondaryColor.withValues(alpha: 0.6)),
+                      ),
+                      child: Text(
+                        userRole[0].toUpperCase() + userRole.substring(1),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -96,102 +132,137 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
 
-          // Home Menu Item
-          ListTile(
-            leading: const Icon(Icons.home, color: Colors.teal),
-            title: const Text('Home'),
-            onTap: () {
-              Navigator.pushNamed(context, '/home');
-            },
-          ),
-
-          // Profile Menu Item
-          ListTile(
-            leading: const Icon(Icons.person, color: Colors.teal),
-            title: const Text('Profile'),
-            onTap: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
-
-// Products Menu Item
-           ListTile(
-            leading: const Icon(Icons.shopping_cart, color: Colors.teal),
-            title: const Text('Products'),
-            onTap: () {
-              Navigator.pushNamed(context, '/home');
-            },
-          ),
-
-
-// Ranking Menu Item
-           ListTile(
-            leading: const Icon(Icons.star, color: Colors.teal),
-            title: const Text('Ranking'),
-            onTap: () {
-              Navigator.pushNamed(context, '/home');
-            },
-          ),
-
-          const Divider(),
 
 
 
-
-          // Logout Menu Item
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout'),
-            textColor: Colors.red,
-            onTap: () {
-              _showLogoutDialog(context);
-            },
+          // ── Menu Items ──────────────────────────────────────────────────
+          Expanded(
+            child: FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(_currentUser?.uid)
+                  .get(),
+              builder: (context, snapshot) {
+                  // ── Salesperson menu items ─────────────────────────────
+                  return ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _drawerItem(
+                        context,
+                        icon:  Icons.home_outlined,
+                        label: 'Dashboard',
+                        route: '/home',
+                      ),
+                      _drawerItem(
+                        context,
+                        icon:  Icons.inventory_2_outlined,
+                        label: 'Products',
+                        route: '/products', 
+                      ),
+                      _drawerItem(
+                        context,
+                        icon:  Icons.leaderboard_outlined,
+                        label: 'Ranking',
+                        route: '/home',
+                      ),
+                      _drawerItem(
+                        context,
+                        icon:  Icons.person_outline,
+                        label: 'My Profile',
+                        route: '/profile',
+                      ),
+                      _drawerItem(
+                        context,
+                        icon:  Icons.add_shopping_cart,
+                        label: 'Submit Sale',
+                        route: '/saleclaim', 
+                        iconColor: kSecondaryColor,
+                      ),
+                      const Divider(),
+                      _logoutItem(context),
+                    ],
+                  );
+                }
+            ),
           ),
         ],
       ),
     );
   }
 
+  // ── Helper: Single Drawer Item ────────────────────────────────────────────
+  Widget _drawerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String   label,
+    required String   route,
+    Color? iconColor,
+  }) {
+    // Check if this item is currently the active 
+    final isActive =
+        ModalRoute.of(context)?.settings.name == route;
 
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isActive ? kPrimaryColor : (iconColor ?? Colors.grey.shade700),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          color:      isActive ? kPrimaryColor : Colors.black87,
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      // Navy left border when this is the current page.
+      tileColor: isActive
+          ? kPrimaryColor.withValues(alpha: 0.06)
+          : null,
+      onTap: () {
+        // Close the drawer first
+        Navigator.pop(context);
+        // then navigate towards the route chosen
+        Navigator.pushReplacementNamed(context, route);
+      },
+    );
+  }
 
+  // ── Helper: Logout Item ───────────────────────────────────────────────────
+  Widget _logoutItem(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.logout, color: Colors.red),
+      title:   const Text('Logout', style: TextStyle(color: Colors.red)),
+      //show the confirmation dialogue
+      onTap:   () => _showLogoutDialog(context),
+    );
+  }
 
-  // Logout confirmation dialog
+  //confirmation of log out
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-                // Close the dialog
-                Navigator.pop(context);
-                // Close the drawer
-                Navigator.pop(context);
-                // Navigate to login and clear all previous routes
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
-              },
-              child: const Text(
-                'Logout',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
+      builder: (_) => AlertDialog(
+        title:   const Text('Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (!context.mounted) return;
+              // Navigate to login and clear the entire navigation stack.
+              Navigator.pushNamedAndRemoveUntil(
+                context, '/login', (route) => false,
+              );
+            },
+            child: const Text('Logout',
+                style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }
