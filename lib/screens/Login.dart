@@ -1,4 +1,4 @@
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
@@ -11,17 +11,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
+  //it extract the input text from the application to manipulate in the code
   final TextEditingController _emailController    = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-
+//this create a unique key that links to the form widget allowing us to manipulate it
   final _formKey = GlobalKey<FormState>();
 
+//we can control if the password id visible or not
   bool _passwordVisible = false; 
+  //we can control if the the screenn is the the state of loading
   bool _isLoading       = false; 
 
 
+//we empty the variables to that the memory is not full and it crashes the app
   @override
   void dispose() {
     _emailController.dispose();
@@ -29,15 +32,12 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your email';
     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
     return null; // null means "no error"
   }
-
-
 
 
   String? _validatePassword(String? value) {
@@ -51,26 +51,53 @@ class _LoginPageState extends State<LoginPage> {
 
   // ── Login Logic ──────────────────────────────────────────────────────────
   Future<void> _loginUser() async {
+    //it checks if all the forms are validated if there not it gives a error meassage and does nothing
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true); 
-
-
 
     try {
 
-
-      await FirebaseAuth.instance
+//it checks the firebase auth if the user is registerd
+      UserCredential credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
         email:    _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      final uid =credential.user!.uid;
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
 
-
-
+//safety check for the application, if it see the user not connected to widget it return to new widget to not crash the application
       if (!mounted) return;
 
-      Navigator.pushReplacementNamed(context, '/home');
+
+      // check if the user is in the fireStore database
+      if (!doc.exists) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your account has been deactivated'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      //see the role of the user id it salesperson or admin, if the anwser is null it will just be salesperson
+      final role = doc.data()?['role'] ?? 'salesperson';
+
+      if (role == 'admin') {
+        // Admins go to the admin dashboard 
+        Navigator.pushReplacementNamed(context, '/admin/dashboard');
+      } else {
+        // Salespeople go to the home/dashboard screen.
+        Navigator.pushReplacementNamed(context, '/home');
+      }
 
 
     } on FirebaseAuthException catch (e) {
@@ -92,12 +119,15 @@ class _LoginPageState extends State<LoginPage> {
         default:
           message = 'Login failed. Please try again. (${e.code})';
       }
+
       if (!mounted) return;
+      //shows the error message below the screen
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
+      //no matter what happend before this code it will always run the code here
     } finally {
-
+      //if the widejet still exists then you can get out of the loading state
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -233,6 +263,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
-
 }

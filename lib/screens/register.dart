@@ -3,13 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 
-const String _kadminScreat = 'admin123';  
+const String _kadminScreat = 'admin123';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
+
+
 
 // The _RegisterPageState class holds all the state and logic for the registration page.
 class _RegisterScreenState extends State<RegisterScreen> {
@@ -20,10 +22,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController         = TextEditingController();
   final _confirmPasswordController  = TextEditingController();
   final _adminSecretController      = TextEditingController();
-
-  final _formKey = GlobalKey<FormState>(); // Used to trigger validation
+// Used to trigger validation
+  final _formKey = GlobalKey<FormState>(); 
 
   bool _passwordVisible     = false;
+  //admin secret password input text is hidden
   bool _adminSecretVisible  = false;
   bool _isLoading           = false;
 
@@ -57,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
 
-    // Company policy: only official LafargeHolcim emails are allowed.
+    //only official LafargeHolcim emails are allowed.
     if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
       return 'Only @lafargeholcim.com emails are allowed';
     }
@@ -86,10 +89,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'firstName':   firstName,
       'lastName':    lastName,
       'email':       email,
-      'role':        role,         // NEW: store the selected role
-      'totalPoints': 0,            // NEW: spec field name is totalPoints
-      'rank':        0,            // Will be updated when leaderboard is calculated
-      'createdAt':   FieldValue.serverTimestamp(), // Firestore server time
+      'role':        role,         
+      'totalPoints': 0,            
+      'rank':        0,            
+      'createdAt':   FieldValue.serverTimestamp(), 
     });
   }
 
@@ -207,7 +210,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // ── Role Dropdown  ────────────────────────────────────
                 // DropdownButtonFormField shows a list of options when tapped.
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedRole, // 'value' was deprecated — use initialValue instead
+                  initialValue: _selectedRole, 
                   decoration: const InputDecoration(
                     labelText: 'Role',
                     prefixIcon: Icon(Icons.work_outline),
@@ -254,7 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           (value == null || value.trim().isEmpty)) {
                         return 'Admin access code is required';
                       }
-                      return null;
+                      return null;//null means no errors
                     },
                   ),
                 ],

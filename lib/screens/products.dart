@@ -11,9 +11,12 @@ class ProductsPage extends StatefulWidget {
   State<ProductsPage> createState() => _ProductsPageState();
 }
 
-class _ProductsPageState extends State<ProductsPage> {
 
+
+class _ProductsPageState extends State<ProductsPage> {
+  //variable of the search bar 
   String _searchQuery = '';
+
   String _selectedCategory = 'All';
 
   final List<String> _categories = [
@@ -24,6 +27,7 @@ class _ProductsPageState extends State<ProductsPage> {
     'Aggregates',
   ];
 
+//________UI______________________________
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,13 +52,16 @@ class _ProductsPageState extends State<ProductsPage> {
                         onPressed: () => setState(() => _searchQuery = ''),
                       )
                     : null,
+                  //fill the text field with the color
                 filled: true,
                 fillColor: Colors.grey.shade100,
+                //manipulates the border
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
               ),
+
               // every time the user types a lettre the screen changes to show the results
               onChanged: (value) => setState(() => _searchQuery = value),
             ),
@@ -66,10 +73,12 @@ class _ProductsPageState extends State<ProductsPage> {
 
           // ── Category Filter Chips ───────────────────────────────────────
           SizedBox(
-            height: 52,
+            height: 52,//52px
+            //horisantal scrolling list with seperators
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              //number of item on the list ,each item with it own sizebox
               itemCount: _categories.length,
               separatorBuilder: (_, i) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
@@ -107,7 +116,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-
+                //the doument of produts we got from firestore
                 final allDocs = snapshot.data?.docs ?? [];
 
                 // Apply search and category

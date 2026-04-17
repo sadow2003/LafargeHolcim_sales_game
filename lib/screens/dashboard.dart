@@ -45,10 +45,6 @@ class _HomePageState extends State<HomePage> {
           }
 
 
-
-
-
-
           // If something went wrong, show the error message.
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -85,7 +81,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         'Welcome back,',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white,
                           fontSize: 14,
                         ),
                       ),
@@ -191,8 +187,8 @@ class _HomePageState extends State<HomePage> {
                       child: _quickActionButton(
                         context,
                         icon: Icons.leaderboard,
-                        label: 'Leaderboard',
-                        route: '/home',
+                        label: 'Rankings',
+                        route: '/rankings',
                         color: kPrimaryColor,
                       ),
                     ),

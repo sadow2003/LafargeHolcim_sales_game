@@ -5,11 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart'; // Camera / gallery picker
+import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
 import '../main.dart'; 
 
 
 
-
+//start the screen sales claim
 class SaleClaimPage extends StatefulWidget {
   const SaleClaimPage({super.key});
 
@@ -22,8 +23,11 @@ class SaleClaimPage extends StatefulWidget {
 
 
 class _SaleClaimPageState extends State<SaleClaimPage> {
+//this create a unique key that links to the form widget allowing us to manipulate it
   final _formKey        = GlobalKey<FormState>();
+
   final _quantityCtrl   = TextEditingController();
+
   final _imagePicker    = ImagePicker(); //image and camera 
 
   final User? _currentUser = FirebaseAuth.instance.currentUser;
@@ -33,27 +37,27 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
 
-  // State variables.
+  // Start variables.
   bool    _isLoading       = false;
-  Uint8List? _proofImage;     // The image bytes picked by the user (web-safe)
+  Uint8List? _proofImage;     // The image bytes picked by the user, uint8list(Unit int 8 bytes List)
   String? _selectedProductId; // Firestore document ID of the chosen product
   String? _selectedProductName;
   int     _productPoints   = 0; // Points per unit for the selected product
   int     _estimatedPoints = 0; // Live preview: productPoints × quantity
 
 
-
+//it collects the documents of products
   @override
   void initState() {
     super.initState();
     _productsFuture = FirebaseFirestore.instance
-        .collection('products')
-        .orderBy('name')
-        .get();
+      .collection('products')
+      .orderBy('name')
+      .get();
   }
 
 
-
+//delete the memory contained in the input text 
   @override
   void dispose() {
     _quantityCtrl.dispose();
@@ -81,10 +85,10 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
     final XFile? picked = await _imagePicker.pickImage(
       source:     source,
       imageQuality: 70, // compress image to 70% quality for a small file size 5mb
-      maxWidth:   1280,
+      maxWidth:   1280, //the maximum width of the image 1280 pixels
     );
     if (picked != null) {
-      final bytes = await picked.readAsBytes();
+      final bytes = await picked.readAsBytes();//it transfomes the file image into byte code for Uint8list
       setState(() {
         _proofImage = bytes;
       });
@@ -94,42 +98,38 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
   void _showImageSourceSheet() {
+    //it creates a window at the bottom of the screen 
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
 
-
-
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
 
-
-
             const SizedBox(height: 8),
 
-
-
+            //the camera option
             ListTile(
               leading: const Icon(Icons.camera_alt, color: kPrimaryColor),
               title: const Text('Take a Photo'),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage(ImageSource.camera);
+                _pickImage(ImageSource.camera);//specify the camera option
               },
             ),
 
 
-
+            //the galery option
             ListTile(
               leading: const Icon(Icons.photo_library, color: kPrimaryColor),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
+                _pickImage(ImageSource.gallery);//specify the galery option
               },
             ),
 
@@ -148,12 +148,8 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
   // ── Submit Sale ───────────────────────────────────────────────────────────
   Future<void> _submitSale() async {
 
-
-
     // Validate all text fields first.
     if (!_formKey.currentState!.validate()) return;
-
-
 
 
     // Check that a product was selected.
@@ -183,9 +179,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
       return;
     }
 
-
-
-
+    //set the state of the widjet into the loading state
     setState(() => _isLoading = true);
 
 
@@ -196,15 +190,12 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
       final quantity = int.parse(_quantityCtrl.text.trim());
 
 
-
-
       // ── Step 1: Upload the proof photo to Firebase Storage ──────────────
       final fileName   = '${uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storageRef = FirebaseStorage.instance
-          .ref()
+          .ref()//start from the root of the storage '/'
           .child('sales_proofs') // A folder called 'sales_proofs'
           .child(fileName);
-
 
 
 
@@ -217,7 +208,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
 
-      // getDownloadURL() gives us a an HTTP TO PUT IN FIRESTORE
+      // getDownloadURL() gives us the url of the image to better store it 
       final proofImageUrl = await storageRef.getDownloadURL();
 
 
@@ -244,20 +235,18 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
         'productId':     _selectedProductId,
         'productName':   _selectedProductName,
         'quantity':      quantity,
-        'status':        'pending',     // Starts as pending; admin changes it
-        'pointsAwarded': 0,             // 0 until admin approves
+        'status':        'pending',     
+        'pointsAwarded': 0,             
         'proofImageUrl': proofImageUrl,
         'createdAt':     FieldValue.serverTimestamp(),
       });
 
 
-
-
+      //if the widget is destoryed , return to original page withou changing anything, so that it doesnt crash tha application
       if (!mounted) return;
 
 
-
-
+      //message of confirmation
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Sale submitted! Waiting for admin approval.'),
@@ -273,18 +262,18 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
       Navigator.pop(context);
 
 
-
-
-
     } catch (e) {
       if (!mounted) return;
+      //gives an error message if it fails at any pint in the application
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Submission failed: $e'),
           backgroundColor: Colors.red,
         ),
       );
+      //no matter what happens before, this code will always run
     } finally {
+      //if the widget id not destroyed we can change the state from dowloading
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -299,10 +288,8 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
   Widget build(BuildContext context) {
     return Scaffold(
 
-
-
       appBar: AppBar(title: const Text('Submit Sale Claim')),
-
+      drawer: const AppDrawer(),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -323,8 +310,6 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
               ),
               const SizedBox(height: 8),
 
-
-
               // FutureBuilder loads the product list once when the page opens.
               FutureBuilder<QuerySnapshot>(
                 future: _productsFuture,
@@ -334,7 +319,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
                     return const LinearProgressIndicator();
                   }
 
-
+                  
                   final docs = snapshot.data?.docs ?? [];
 
 
@@ -596,7 +581,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
               const Text(
-                'Youe sale is going to be reviewed by an admin after submitting, please wait until then',
+                'Your sale is going to be reviewed by an admin after submitting, please wait until then',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../main.dart';       // kPrimaryColor, kAccentColor
+import '../main.dart';       
 import '_buildDrawer.dart'; 
 
 
@@ -18,7 +18,7 @@ class _ProfilePageState extends State<ProfilePage>{
   
   @override
   Widget build(BuildContext context) {
-
+    //check if the user is login or not throws an error message if not
     if(_currentUser == null){
       return const Scaffold(
         body:Center(child:Text('no authentication, please log in')),
@@ -60,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage>{
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                                // ── Avatar ───────────────────────────────────────────────
+              // ── Avatar ───────────────────────────────────────────────
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: kPrimaryColor,
@@ -77,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage>{
 
                 const SizedBox(height: 12),
 
-//____Name and Role____________________
+              //____Name________________
                 Text(
                   '$firstName $lastName',
                   style: const TextStyle(
@@ -88,12 +88,11 @@ class _ProfilePageState extends State<ProfilePage>{
                 ),
 
                 const SizedBox(height: 6),
-
+              //____Role____________________
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: kSecondaryColor.withValues(alpha: 0.15),
+                    color: const Color.fromARGB(255, 238, 195, 120),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: kSecondaryColor),
                   ),
@@ -110,7 +109,7 @@ class _ProfilePageState extends State<ProfilePage>{
 
                 const SizedBox(height: 24),
 
-
+                //the info card____________________________
                 Card(
                   elevation: 3,
                   shape: RoundedRectangleBorder(
@@ -120,14 +119,23 @@ class _ProfilePageState extends State<ProfilePage>{
                     child: Column(
                       children: [
                         _infoRow(Icons.email_outlined, 'Email', email),
+
+
                         const Divider(height: 24),
+
                         _infoRow(
                           Icons.star_outline,
                           'Total Points',
                           totalPoints.toString(),
                           valueColor: kSecondaryColor,
                         ),
+
+
+
                         const Divider(height: 24),
+
+
+
                         _infoRow(
                           Icons.military_tech_outlined,
                           'Rank',
@@ -169,9 +177,6 @@ class _ProfilePageState extends State<ProfilePage>{
   Widget _buildSalesHistory() {
     return StreamBuilder<QuerySnapshot>(
 
-
-      // CHANGED: read from the TOP-LEVEL 'sales' collection, filtered by userId.
-      // Old code read from 'users/{uid}/sales' subcollection.
       stream: FirebaseFirestore.instance
           .collection('sales')
           .where('userId', isEqualTo: _currentUser!.uid)
@@ -214,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage>{
 
         // Build one card per sale.
         return ListView.builder(
-          shrinkWrap: true, // Let the parent ScrollView control the height
+          shrinkWrap: true, //let the upper container (parent) control the height
           physics: const NeverScrollableScrollPhysics(), // Disable inner scroll
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
@@ -366,9 +371,6 @@ class _ProfilePageState extends State<ProfilePage>{
         bg = Colors.orange.shade50;
         fg = Colors.orange.shade700;
     }
-
-
-
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

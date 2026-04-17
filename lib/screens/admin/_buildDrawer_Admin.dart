@@ -56,7 +56,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
 
 
-             return Container(
+              return Container(
                 decoration: const BoxDecoration(color: kPrimaryColor),
                 padding: EdgeInsets.fromLTRB(
                   16,
@@ -69,11 +69,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-
-
-
-
-                    // Avatar circle showing first letter of the user's name.
+                    // Avatar circle shows the first letter of the user's name.
                     CircleAvatar(
                       radius: 32,
                       backgroundColor:
@@ -92,11 +88,6 @@ class _AppDrawerState extends State<AppDrawer> {
                       ),
                     ),
                     const SizedBox(height: 6),
-
-
-
-
-
 
                     // Full name.
                     Text(
@@ -117,12 +108,9 @@ class _AppDrawerState extends State<AppDrawer> {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-
-
-
                     const SizedBox(height: 6),
 
-                    // Role badge pill 
+                    // Role badge pill
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 2),
@@ -158,40 +146,33 @@ class _AppDrawerState extends State<AppDrawer> {
                   .doc(_currentUser?.uid)
                   .get(),
               builder: (context, snapshot) {
-                  // ── Salesperson menu items ─────────────────────────────
+                  // ── Admin menu items ───────────────────────────────────
                   return ListView(
                     padding: EdgeInsets.zero,
                     children: [
                       _drawerItem(
                         context,
-                        icon:  Icons.home_outlined,
-                        label: 'Dashboard',
-                        route: '/home',
+                        icon:  Icons.dashboard_outlined,
+                        label: 'Admin Dashboard',
+                        route: '/admin/dashboard',
                       ),
                       _drawerItem(
                         context,
                         icon:  Icons.inventory_2_outlined,
-                        label: 'Products',
-                        route: '/products', 
+                        label: 'Product Management',
+                        route: '/admin/products',
                       ),
                       _drawerItem(
                         context,
-                        icon:  Icons.leaderboard_outlined,
-                        label: 'Ranking',
-                        route: '/rankings',
+                        icon:  Icons.fact_check_outlined,
+                        label: 'Sale Management',
+                        route: '/admin/sales',
                       ),
                       _drawerItem(
                         context,
-                        icon:  Icons.person_outline,
-                        label: 'My Profile',
-                        route: '/profile',
-                      ),
-                      _drawerItem(
-                        context,
-                        icon:  Icons.add_shopping_cart,
-                        label: 'Submit Sale',
-                        route: '/saleclaim', 
-                        iconColor: kSecondaryColor,
+                        icon:  Icons.people_outline,
+                        label: 'User Management',
+                        route: '/admin/users',
                       ),
                       const Divider(),
                       _logoutItem(context),
