@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../main.dart'; 
+import '../../main.dart';
+import '../../widgets/gradient_app_bar.dart';
 import '_buildDrawer_Admin.dart';
 
 
@@ -10,8 +11,10 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+
+
+      appBar: GradientAppBar(
+        title: 'Admin Dashboard',
         // The back arrow is hidden — admins should use the Logout button in the drawer.
         automaticallyImplyLeading: false,
         leading: Builder(
@@ -21,8 +24,14 @@ class AdminDashboard extends StatelessWidget {
           ),
         ),
       ),
+
+
+
       //Drawer of admin
       drawer: const AppDrawer(),
+
+
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -38,9 +47,13 @@ class AdminDashboard extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
+
+
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+
                   Text(
                     'Admin Panel',
                     style: TextStyle(
@@ -50,6 +63,8 @@ class AdminDashboard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 4),
+
+
                   Text(
                     'Manage products, users, and sales claims.',
                     style: TextStyle(color: Colors.white70, fontSize: 13),
@@ -60,6 +75,8 @@ class AdminDashboard extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── Live Stats ──────────────────────────────────────────────
+            
+            
             const Text(
               'Overview',
               style: TextStyle(
@@ -73,6 +90,8 @@ class AdminDashboard extends StatelessWidget {
             // Row of 3 stat cards (Users / Pending / Total Sales).
             Row(
               children: [
+
+
                 Expanded(child: _StatCard(
                   label: 'Users',
                   icon:  Icons.people,
@@ -83,7 +102,12 @@ class AdminDashboard extends StatelessWidget {
                       .where('role', isEqualTo: 'salesperson')
                       .snapshots(),
                 )),
+
+
                 const SizedBox(width: 10),
+
+
+
                 Expanded(child: _StatCard(
                   label: 'Pending',
                   icon:  Icons.hourglass_top,
@@ -93,7 +117,12 @@ class AdminDashboard extends StatelessWidget {
                       .where('status', isEqualTo: 'pending')
                       .snapshots(),
                 )),
+
+
                 const SizedBox(width: 10),
+
+
+
                 Expanded(child: _StatCard(
                   label: 'All Sales',
                   icon:  Icons.receipt_long,
@@ -130,8 +159,8 @@ class AdminDashboard extends StatelessWidget {
             // Approve Sales tile.
             _NavTile(
               icon:     Icons.fact_check_outlined,
-              title:    'Approve Sales',
-              subtitle: 'Review pending sale claims and award points',
+              title:    'Manage Sales',
+              subtitle: 'Manage the sales of salespeople',
               color:    Colors.green.shade700,
               onTap:    () => Navigator.pushNamed(context, '/admin/sales'),
             ),
@@ -166,7 +195,7 @@ class _StatCard extends StatelessWidget {
     required this.color,
     required this.stream,
   });
-
+//______Ui_______________________________________________________
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(

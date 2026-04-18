@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lafargeholcim_sales_game/screens/admin/_buildDrawer_Admin.dart';
 import '../../firebase_options.dart';
-import '../../main.dart'; 
+import '../../main.dart';
+import '../../widgets/gradient_app_bar.dart';
 
 class AdminUsersPage extends StatefulWidget {
   const AdminUsersPage({super.key});
@@ -19,19 +21,32 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Users'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1),
-            tooltip: 'Add User',
-            onPressed: () => _showUserDialog(context, existing: null),
+
+
+
+      appBar: GradientAppBar(
+        title: 'Manage Users',
+        automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-        ],
+        ),
       ),
+
+
+
+      //Drawer of admin
+      drawer: const AppDrawer(),
+
+
 
       body: Column(
         children: [
+
+
+
           // ── Role Filter ────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -46,6 +61,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             ),
           ),
 
+
+
           // ── User List ──────────────────────────────────────────────────
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -55,14 +72,20 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   ? FirebaseFirestore.instance
                       .collection('users')
                       .snapshots()
+                      //get it base on the role of the user
                   : FirebaseFirestore.instance
                       .collection('users')
                       .where('role', isEqualTo: _roleFilter)
                       .snapshots(),
+
+
+                    
               builder: (context, snapshot) {
+                //shows the lading circal
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                //shows error message
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
@@ -74,6 +97,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     final bName = (b.data() as Map)['firstName'] as String? ?? '';
                     return aName.toLowerCase().compareTo(bName.toLowerCase());
                   });
+
+
 
                 if (docs.isEmpty) {
                   return Center(
@@ -92,6 +117,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   );
                 }
 
+
+
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: docs.length,
@@ -107,12 +134,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     );
                   },
                 );
+
+
               },
             ),
           ),
         ],
       ),
-
+      //floating action button for adding users
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUserDialog(context, existing: null),
         icon:  const Icon(Icons.person_add_alt_1),
@@ -120,6 +149,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       ),
     );
   }
+
+
 
   // ── Filter Chip ───────────────────────────────────────────────────────────
   Widget _filterChip(String label, String value) {
@@ -135,6 +166,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       onSelected: (_) => setState(() => _roleFilter = value),
     );
   }
+
+
 
   // ── Add / Edit Dialog ─────────────────────────────────────────────────────
   void _showUserDialog(BuildContext context, {required QueryDocumentSnapshot? existing}) {
@@ -152,14 +185,20 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 
     showDialog(
       context: context,
+      //builds the dialog widget itself, providing the dialog's BuildContext
       builder: (ctx) => StatefulBuilder(
+        //adds local state management inside the dialog. Without it, calling setState wouldn't rebuild the dialog's contents, only the page behind it
         builder: (ctx, setDialogState) {
+
           return AlertDialog(
             title: Text(isEdit ? 'Edit User' : 'Add New User'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+
+
+
                   // First Name
                   TextField(
                     controller: firstNameCtrl,
@@ -171,6 +210,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   ),
                   const SizedBox(height: 12),
 
+
+
+
                   // Last Name
                   TextField(
                     controller: lastNameCtrl,
@@ -181,6 +223,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     textCapitalization: TextCapitalization.words,
                   ),
                   const SizedBox(height: 12),
+
+
 
                   // Email — read-only when editing
                   TextField(
@@ -197,6 +241,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 12),
+
+
+
+
 
                   // Password — only shown when adding
                   if (!isEdit) ...[
@@ -218,6 +266,11 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     const SizedBox(height: 12),
                   ],
 
+
+
+
+
+
                   // Role Dropdown
                   DropdownButtonFormField<String>(
                     initialValue: selectedRole,
@@ -236,6 +289,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   ),
                   const SizedBox(height: 12),
 
+
+
+
+
                   // Total Points — editable by admin (e.g. corrections)
                   TextField(
                     controller: pointsCtrl,
@@ -248,6 +305,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 ],
               ),
             ),
+
+
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
@@ -284,6 +343,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       ),
     );
   }
+
+
+
 
   // ── Create User ───────────────────────────────────────────────────────────
   // Uses a secondary FirebaseApp so the admin stays signed in.
@@ -355,6 +417,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     }
   }
 
+
+
+
+
   // ── Update User ───────────────────────────────────────────────────────────
   Future<void> _updateUser({
     required String uid,
@@ -385,6 +451,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       if (mounted) _snack(context, 'Error updating user: $e', Colors.red);
     }
   }
+
+
+
+
 
   // ── Delete Confirmation ───────────────────────────────────────────────────
   void _confirmDelete(
@@ -424,10 +494,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
           ],
         ),
         actions: [
+
+
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
+
+
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
@@ -436,10 +510,15 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             },
             child: const Text('Delete'),
           ),
+
+
         ],
       ),
     );
   }
+
+
+
 
   // ── Delete User ───────────────────────────────────────────────────────────
   Future<void> _deleteUser(
@@ -455,6 +534,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     }
   }
 
+
+
+
+
   // ── Recalculate Ranks ─────────────────────────────────────────────────────
   Future<void> _recalculateRanks() async {
     final snap = await FirebaseFirestore.instance
@@ -469,6 +552,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     }
     await batch.commit();
   }
+
+
+
+
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   void _snack(BuildContext context, String msg, Color color) {
@@ -487,10 +574,15 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   }
 }
 
+
+
+
+
 // ── User Card ─────────────────────────────────────────────────────────────────
 class _UserCard extends StatelessWidget {
   final String               uid;
   final Map<String, dynamic> data;
+  //save the action of the user 
   final VoidCallback         onEdit;
   final VoidCallback         onDelete;
 
@@ -511,11 +603,16 @@ class _UserCard extends StatelessWidget {
     final rank        = data['rank']        ?? 0;
     final isAdmin     = role == 'admin';
 
+
+
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+
       child: ListTile(
         contentPadding:
+
             const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: isAdmin
@@ -529,16 +626,30 @@ class _UserCard extends StatelessWidget {
             ),
           ),
         ),
+
+
+
         title: Text(
           '$firstName $lastName'.trim(),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
+
+
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+
             Text(email, style: const TextStyle(fontSize: 12)),
+
+
             const SizedBox(height: 4),
-            Row(
+
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 // Role badge
                 Container(
@@ -559,31 +670,46 @@ class _UserCard extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 if (!isAdmin) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.star, size: 13, color: Colors.amber.shade600),
-                  const SizedBox(width: 2),
-                  Text('$totalPoints pts',
-                      style: const TextStyle(fontSize: 12)),
-                  const SizedBox(width: 8),
-                  Icon(Icons.military_tech,
-                      size: 13, color: Colors.blueGrey.shade400),
-                  const SizedBox(width: 2),
-                  Text(rank == 0 ? '—' : '#$rank',
-                      style: const TextStyle(fontSize: 12)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, size: 13, color: Colors.amber.shade600),
+                      const SizedBox(width: 2),
+                      Text('$totalPoints pts',
+                          style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.military_tech,
+                          size: 13, color: Colors.blueGrey.shade400),
+                      const SizedBox(width: 2),
+                      Text(rank == 0 ? '—' : '#$rank',
+                          style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
                 ],
               ],
             ),
           ],
         ),
+
+
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+
+
             IconButton(
               icon: const Icon(Icons.edit_outlined, color: kPrimaryColor),
               tooltip: 'Edit',
               onPressed: onEdit,
             ),
+
+
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               tooltip: 'Delete',

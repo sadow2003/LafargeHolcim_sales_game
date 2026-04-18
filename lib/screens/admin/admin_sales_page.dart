@@ -1,18 +1,10 @@
-// admin/admin_sales_page.dart — Lets the admin review, approve, or reject sales.
-//
-// How approving a sale works (no Cloud Functions — done client-side by admin):
-//   1. Admin taps "Approve" on a pending sale.
-//   2. The app calculates points = productPoints × quantity.
-//   3. It updates the sale document: status → 'approved', pointsAwarded → points.
-//   4. It increments the salesperson's totalPoints in their user document.
-//   5. It recalculates ranks for ALL salespeople and updates their rank fields.
-//
-// Rejecting simply sets status → 'rejected' with no points change.
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../main.dart'; // kPrimaryColor, kAccentColor
-import '../../services/notification_service.dart';
+import 'package:lafargeholcim_sales_game/screens/admin/_buildDrawer_Admin.dart';
+import '../../main.dart';
+import '../../widgets/gradient_app_bar.dart';
+
+
 
 class AdminSalesPage extends StatefulWidget {
   const AdminSalesPage({super.key});
@@ -21,6 +13,7 @@ class AdminSalesPage extends StatefulWidget {
   State<AdminSalesPage> createState() => _AdminSalesPageState();
 }
 
+
 class _AdminSalesPageState extends State<AdminSalesPage> {
   // Filter: show 'pending', 'approved', 'rejected', or 'all'.
   String _filter = 'pending'; // Default to pending so admin sees what needs action
@@ -28,12 +21,34 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Approve Sales')),
+
+
+
+      //the app bar gradiant
+      appBar: GradientAppBar(
+        title: 'Approve Sales',
+        automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+
+
+
+
+      //Drawer of admin
+      drawer: const AppDrawer(),
+
+
 
       body: Column(
         children: [
           // ── Status Filter Tabs ─────────────────────────────────────────
-          Padding(
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
@@ -48,25 +63,35 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
             ),
           ),
 
+
+
+
           // ── Sales List ─────────────────────────────────────────────────
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
+
+
               stream: _filter == 'all'
+
                   // 'All' tab: no status filter, order by newest first.
                   ? FirebaseFirestore.instance
                       .collection('sales')
                       .orderBy('createdAt', descending: true)
                       .snapshots()
+
                   // Other tabs: filter by the selected status.
                   : FirebaseFirestore.instance
                       .collection('sales')
                       .where('status', isEqualTo: _filter)
                       .orderBy('createdAt', descending: true)
                       .snapshots(),
+
               builder: (context, snapshot) {
+                //shows the loading circle 
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                //show a message error
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
@@ -78,9 +103,12 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+
                         Icon(Icons.receipt_long,
                             size: 64, color: Colors.grey.shade300),
+
                         const SizedBox(height: 12),
+
                         Text(
                           'No $_filter sales claims.',
                           style: TextStyle(color: Colors.grey.shade500),
@@ -120,6 +148,7 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
   // ── Filter Chip helper ────────────────────────────────────────────────────
   Widget _filterChip(String label, String value) {
     final selected = _filter == value;
+
     return ChoiceChip(
       label: Text(label),
       selected: selected,
@@ -128,12 +157,14 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
         color: selected ? Colors.white : Colors.black87,
         fontWeight: selected ? FontWeight.bold : FontWeight.normal,
       ),
+
       onSelected: (_) => setState(() => _filter = value),
     );
   }
 
   // ── Approve Sale ──────────────────────────────────────────────────────────
   Future<void> _approveSale(String saleId, Map<String, dynamic> data) async {
+
     final userId    = data['userId']        as String?;
     final productId = data['productId']     as String?;
     final quantity  = (data['quantity']     ?? 0) as int;
@@ -141,6 +172,7 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
     if (userId == null || productId == null) return;
 
     try {
+
       // Step 1: Fetch the product to get its current point value.
       final productDoc = await FirebaseFirestore.instance
           .collection('products')
@@ -164,8 +196,7 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
       });
 
       // Step 4: Add points to the salesperson's totalPoints.
-      // FieldValue.increment() adds to the existing value atomically
-      // (safe even if multiple admins approve at the same time).
+      
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -173,25 +204,21 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
         'totalPoints': FieldValue.increment(pointsAwarded),
       });
 
+
       // Step 5: Recalculate ALL salesperson ranks.
       await _recalculateRanks();
 
-      // Step 6: Notify the salesperson their sale was approved.
-      await NotificationService.sendSaleStatusNotification(
-        recipientUserId: userId,
-        saleId:          saleId,
-        productName:     data['productName'] ?? 'Unknown',
-        status:          'approved',
-        pointsAwarded:   pointsAwarded,
-      );
 
       if (!mounted) return;
+
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sale approved! +$pointsAwarded points awarded.'),
           backgroundColor: Colors.green,
         ),
       );
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -205,30 +232,12 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
 
   // ── Reject Sale ───────────────────────────────────────────────────────────
   Future<void> _rejectSale(String saleId) async {
-    // Fetch the sale data first so we can include product name in the notification.
-    final saleDoc = await FirebaseFirestore.instance
-        .collection('sales')
-        .doc(saleId)
-        .get();
-    final saleData   = saleDoc.data() ?? {};
-    final userId     = saleData['userId']      as String?;
-    final productName = saleData['productName'] as String? ?? 'Unknown';
-
+    
     try {
       await FirebaseFirestore.instance
           .collection('sales')
           .doc(saleId)
           .update({'status': 'rejected'});
-
-      // Notify the salesperson their sale was rejected.
-      if (userId != null) {
-        await NotificationService.sendSaleStatusNotification(
-          recipientUserId: userId,
-          saleId:          saleId,
-          productName:     productName,
-          status:          'rejected',
-        );
-      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -248,11 +257,13 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
     }
   }
 
+
+
+
+
+
   // ── Recalculate Ranks ─────────────────────────────────────────────────────
-  // After a sale is approved and points change, we re-rank ALL salespeople.
-  // This queries all salesperson users, sorts them by totalPoints, then
-  // writes each user's new rank back to Firestore using a batch write
-  // (a batch commits all changes at once — faster and safer than individual writes).
+
   Future<void> _recalculateRanks() async {
     final usersSnap = await FirebaseFirestore.instance
         .collection('users')
@@ -273,6 +284,13 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
   }
 }
 
+
+
+
+
+
+
+
 // ── Sale Card Widget ──────────────────────────────────────────────────────────
 // Displays one sale claim with details and (optionally) Approve/Reject buttons.
 class _SaleCard extends StatelessWidget {
@@ -281,12 +299,14 @@ class _SaleCard extends StatelessWidget {
   final VoidCallback?         onApprove; // null = hide the button
   final VoidCallback?         onReject;
 
+
   const _SaleCard({
     required this.saleId,
     required this.data,
     this.onApprove,
     this.onReject,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -300,12 +320,18 @@ class _SaleCard extends StatelessWidget {
         ? (data['createdAt'] as Timestamp).toDate()
         : null;
 
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
+
+
           // ── Card Header ─────────────────────────────────────────────
           ListTile(
             leading: const CircleAvatar(
@@ -320,6 +346,8 @@ class _SaleCard extends StatelessWidget {
             // Status badge on the right.
             trailing: _statusBadge(status),
           ),
+
+
 
           // ── Sale Details ─────────────────────────────────────────────
           Padding(
@@ -342,14 +370,19 @@ class _SaleCard extends StatelessWidget {
             ),
           ),
 
+
+
           // ── Proof Photo ──────────────────────────────────────────────
           if (proofImageUrl != null) ...[
             const SizedBox(height: 8),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: GestureDetector(
                 // Tapping the thumbnail opens it full-screen.
+
                 onTap: () => _viewImage(context, proofImageUrl),
+                
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
@@ -357,10 +390,10 @@ class _SaleCard extends StatelessWidget {
                     height: 140,
                     width: double.infinity,
                     fit: BoxFit.cover,
+
                     // Show a grey box while the image loads.
                     loadingBuilder: (_, child, progress) => progress == null
-                        ? child
-                        : Container(
+                        ? child: Container(
                             height: 140,
                             color: Colors.grey.shade200,
                             child: const Center(
@@ -374,10 +407,14 @@ class _SaleCard extends StatelessWidget {
                         child: Text('Could not load image'),
                       ),
                     ),
+
+
                   ),
                 ),
               ),
             ),
+
+
             Padding(
               padding:
                   const EdgeInsets.only(left: 16, top: 4, bottom: 4),
@@ -389,10 +426,16 @@ class _SaleCard extends StatelessWidget {
             ),
           ],
 
+
+
           // ── Approve / Reject Buttons ─────────────────────────────────
           // Only shown for pending claims (onApprove/onReject are non-null).
           if (onApprove != null || onReject != null) ...[
+
+
             const Divider(height: 1),
+
+
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -428,11 +471,14 @@ class _SaleCard extends StatelessWidget {
               ),
             ),
           ] else
+
+
             const SizedBox(height: 12),
         ],
       ),
     );
   }
+
 
   // Small label + value column used in the details section.
   Widget _detail(String label, String value, {Color? color}) {
@@ -441,6 +487,8 @@ class _SaleCard extends StatelessWidget {
       children: [
         Text(label,
             style: const TextStyle(fontSize: 11, color: Colors.grey)),
+
+
         Text(
           value,
           style: TextStyle(
@@ -449,8 +497,12 @@ class _SaleCard extends StatelessWidget {
           ),
         ),
       ],
+
+
     );
   }
+
+
 
   // Status colored pill badge.
   Widget _statusBadge(String status) {
@@ -469,18 +521,28 @@ class _SaleCard extends StatelessWidget {
         fg = Colors.orange.shade700;
     }
     return Container(
+
+
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+
+
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: fg.withValues(alpha: 0.4)),
       ),
+
+
       child: Text(
         status[0].toUpperCase() + status.substring(1),
         style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
       ),
+
+
     );
   }
+
+
 
   // Opens the proof image full-screen in a dialog.
   void _viewImage(BuildContext context, String url) {

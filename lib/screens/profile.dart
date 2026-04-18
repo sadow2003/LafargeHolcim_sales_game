@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../main.dart';       
-import '_buildDrawer.dart'; 
+import '../main.dart';
+import '_buildDrawer.dart';
+import '../widgets/gradient_app_bar.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage>{
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: GradientAppBar(title: 'My Profile'),
       drawer: const AppDrawer(),
 
 
@@ -94,12 +95,12 @@ class _ProfilePageState extends State<ProfilePage>{
                   decoration: BoxDecoration(
                     color: const Color.fromARGB(255, 238, 195, 120),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: kSecondaryColor),
+                    border: Border.all(color: const Color(0xFFF8AB05)),
                   ),
                   child: Text(
                     role[0].toUpperCase() + role.substring(1),
                     style: const TextStyle(
-                      color: kSecondaryColor,
+                      color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

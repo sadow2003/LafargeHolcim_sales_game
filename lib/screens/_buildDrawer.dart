@@ -34,7 +34,14 @@ class _AppDrawerState extends State<AppDrawer> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const DrawerHeader(
                   //what the backgound of the box color is
-                  decoration: BoxDecoration(color: kPrimaryColor),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [kPrimaryColor, kCyanColor, kSecondaryColor],
+                      stops: [0.0, 0.55, 1.0],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
                   child: Center(
                     child: CircularProgressIndicator(color: Colors.white),
                   ),
@@ -57,7 +64,15 @@ class _AppDrawerState extends State<AppDrawer> {
 
 
              return Container(
-                decoration: const BoxDecoration(color: kPrimaryColor),
+                decoration: const BoxDecoration(
+                  // Gradient mirrors the logo: dark navy → cyan → brand green
+                  gradient: LinearGradient(
+                    colors: [kPrimaryColor, kCyanColor, kSecondaryColor],
+                    stops: [0.0, 0.55, 1.0],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
                 padding: EdgeInsets.fromLTRB(
                   16,
                   MediaQuery.of(context).padding.top + 16,

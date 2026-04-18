@@ -63,18 +63,26 @@ class _LoginPageState extends State<LoginPage> {
         email:    _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      final uid =credential.user!.uid;
+      final user = credential.user!;
+
+      // if (!user.emailVerified) {
+      //   await FirebaseAuth.instance.signOut();
+      //   if (!mounted) return;
+      //   setState(() => _isLoading = false);
+      //   _showVerificationDialog(user.email ?? _emailController.text.trim());
+      //   return;
+      // }
+
+      final uid = user.uid;
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
 
-//safety check for the application, if it see the user not connected to widget it return to new widget to not crash the application
       if (!mounted) return;
-
-
-      // check if the user is in the fireStore database
+      //check if the user exists in the fire store, if not it deletes the user authentification
       if (!doc.exists) {
+        await FirebaseAuth.instance.currentUser?.delete();
         await FirebaseAuth.instance.signOut();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,15 +96,14 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      //see the role of the user id it salesperson or admin, if the anwser is null it will just be salesperson
       final role = doc.data()?['role'] ?? 'salesperson';
 
       if (role == 'admin') {
         // Admins go to the admin dashboard 
         Navigator.pushReplacementNamed(context, '/admin/dashboard');
       } else {
-        // Salespeople go to the home/dashboard screen.
-        Navigator.pushReplacementNamed(context, '/home');
+        // Salespeople go to the Rankings screen.
+        Navigator.pushReplacementNamed(context, '/rankings');
       }
 
 
@@ -131,6 +138,54 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  // function that verify the email of the user
+  // void _showVerificationDialog(String email) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (ctx) => AlertDialog(
+  //       title: const Text('Email Not Verified'),
+  //       content: Text(
+  //         'Please verify your email address ($email) before logging in. '
+  //         'Check your inbox for the verification link.',
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () async {
+  //             try {
+  //               final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+  //                 email: _emailController.text.trim(),
+  //                 password: _passwordController.text.trim(),
+  //               );
+  //               await cred.user!.sendEmailVerification();
+  //               await FirebaseAuth.instance.signOut();
+  //               if (!mounted) return;
+  //               Navigator.of(ctx).pop();
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 const SnackBar(content: Text('Verification email resent. Check your inbox.')),
+  //               );
+  //             } catch (_) {
+  //               if (!ctx.mounted) return;
+  //               ScaffoldMessenger.of(ctx).showSnackBar(
+  //                 const SnackBar(content: Text('Could not resend email. Try logging in again.')),
+  //               );
+  //             }
+  //           },
+  //           child: const Text('Resend Email'),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () => Navigator.of(ctx).pop(),
+  //           child: const Text('OK'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+
+
+//____UI________________________________________________
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,11 +202,74 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
 
 
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: kPrimaryColor,
-                  child: const Icon(Icons.business, size: 50, color: Colors.white),
+                // ── LafargeHolcim Logo ─────────────────────────────────────
+                Center(
+                  child: SizedBox(
+                    width: 110,
+                    height: 110,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+
+
+
+                        // Top-right circle — cyan to navy (blue half of logo)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [kPrimaryColor, kCyanColor],
+                                begin: Alignment.bottomLeft,
+                                end: Alignment.topRight,
+                              ),
+                            ),
+                          ),
+                        ),
+
+
+
+                        // Bottom-left circle — green to cyan (green half of logo)
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [kSecondaryColor, kCyanColor],
+                                begin: Alignment.bottomLeft,
+                                end: Alignment.topRight,
+                              ),
+                            ),
+                          ),
+                        ),
+
+
+                        
+                        // Bold S in the centre
+                        const Text(
+                          'S',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+
+
+
                 const SizedBox(height: 20),
 
 

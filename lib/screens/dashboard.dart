@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../main.dart';       
-import '_buildDrawer.dart';  
+import '../main.dart';
+import '_buildDrawer.dart';
+import '../widgets/gradient_app_bar.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -25,9 +26,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
+      appBar: GradientAppBar(title: 'Dashboard'),
       drawer: const AppDrawer(), // Side menu — defined in _buildDrawer.dart
 
 
@@ -70,8 +69,12 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
+                    // Gradient mirrors the logo: dark navy → cyan → brand green
                     gradient: const LinearGradient(
-                      colors: [kPrimaryColor, Color(0xFF2E5FA3)],
+                      colors: [kPrimaryColor, kCyanColor, kSecondaryColor],
+                      stops: [0.0, 0.55, 1.0],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),

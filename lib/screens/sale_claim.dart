@@ -6,7 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart'; // Camera / gallery picker
 import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
-import '../main.dart'; 
+import '../main.dart';
+import '../widgets/gradient_app_bar.dart';
 
 
 
@@ -259,7 +260,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
       // Go back to the original sales page 
-      Navigator.pop(context);
+      Navigator.pushNamed(context, '/saleclaim');
 
 
     } catch (e) {
@@ -288,7 +289,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      appBar: AppBar(title: const Text('Submit Sale Claim')),
+      appBar: GradientAppBar(title: 'Submit Sale Claim'),
       drawer: const AppDrawer(),
 
       body: SingleChildScrollView(
@@ -333,7 +334,10 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
                     final cat    = data['category']      ?? '';
                     return DropdownMenuItem<String>(
                       value: doc.id,
-                      child: Text('$name  ($cat — $pts pts/unit)'),
+                      child: Text(
+                        '$name  ($cat — $pts pts/unit)',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList();
 
@@ -341,6 +345,8 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
                   return DropdownButtonFormField<String>(
+                    //forces it to fill the available width instead of sizing to its content
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.inventory_2_outlined),
                       hintText:   'Choose a product…',

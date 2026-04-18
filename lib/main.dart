@@ -15,9 +15,10 @@ import 'package:lafargeholcim_sales_game/screens/admin/admin_products_page.dart'
 import 'package:lafargeholcim_sales_game/screens/admin/admin_sales_page.dart';
 import 'package:lafargeholcim_sales_game/screens/admin/admin_users_page.dart';
 
-//primary colors of the application
-const Color kPrimaryColor = Color.fromARGB(255, 27, 58, 107);
-const Color kSecondaryColor = Color.fromARGB(255, 66, 245, 11);
+//primary colors of the application — LafargeHolcim brand palette
+const Color kPrimaryColor   = Color(0xFF1B3A6B); // dark navy blue
+const Color kSecondaryColor = Color(0xFF8DC21F);
+const Color kCyanColor      = Color(0xFF00AEEF); // brand cyan
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,9 +41,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      //disables the red "DEBUG" banner that Flutter shows in the top-right corner of the app during development.
       debugShowCheckedModeBanner: false,
-      title: 'LafargeHolcim Sales Game',
+      title: 'SalesQuest',
 
+      //global default theme style of the application , any page that doesnt override the style will inherit from this
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: kPrimaryColor,
@@ -56,12 +59,13 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(fontSize: 16, color: Colors.black87),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: kPrimaryColor,
+        // Transparent so GradientAppBar's flexibleSpace gradient shows through.
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,//the text doesnt seem elevated from the screen
         centerTitle: true,
       ),
-      //any elevation button used any where on this app will get this style 
+      //any elevation button used any where on this app will get this style
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: kPrimaryColor,
@@ -86,13 +90,13 @@ class MyApp extends StatelessWidget {
       ),
       //what is the the first page the user see
       initialRoute: '/login',
-//add the routes of the application
+      //add the routes of the application
       routes: {
-        '/login':    (context) => const LoginPage(),
-        '/register': (context) => const RegisterScreen(),
-        '/home':     (context) => const HomePage(),
-        '/profile':  (context) => const ProfilePage(),
-        '/products': (context) => const ProductsPage(),
+        '/login':            (context) => const LoginPage(),
+        '/register':         (context) => const RegisterScreen(),
+        '/home':             (context) => const HomePage(),
+        '/profile':          (context) => const ProfilePage(),
+        '/products':         (context) => const ProductsPage(),
         '/saleclaim':        (context) => const SaleClaimPage(),
         '/rankings':         (context) => const RankingsPage(),
         '/admin/dashboard':  (context) => const AdminDashboard(),

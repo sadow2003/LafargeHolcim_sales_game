@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../main.dart';       
-import '_buildDrawer.dart';  
+import '../main.dart';
+import '_buildDrawer.dart';
+import '../widgets/gradient_app_bar.dart';
 
 
 class ProductsPage extends StatefulWidget {
@@ -31,7 +32,7 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Product Catalog')),
+      appBar: GradientAppBar(title: 'Product Catalog'),
       drawer: const AppDrawer(),
 
       body: Column(

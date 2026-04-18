@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
+import '../widgets/gradient_app_bar.dart';
 
 const String _kadminScreat = 'admin123';
 
@@ -61,11 +62,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
 
     //only official LafargeHolcim emails are allowed.
-    if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
-      return 'Only @lafargeholcim.com emails are allowed';
-    }
+    //if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
+   //   return 'Only @lafargeholcim.com emails are allowed';
+   // }
     return null;
   }
+
+
+  
    String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Please enter a password';
     if (value.length < 6) return 'Password must be at least 6 characters';
@@ -116,11 +120,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
-        role: _selectedRole, // Save the selected role to Firestore
+        role: _selectedRole,
       );
+
+      //sends out a message verification to the email
+      // await userCredential.user!.sendEmailVerification();
+      // await FirebaseAuth.instance.signOut();
+
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful! Please log in.')
+        const SnackBar(
+          content: Text('Registration successful! Please log in.'),
+          duration: Duration(seconds: 5),
         ),
       );
       Navigator.pushReplacementNamed(context, '/login');
@@ -147,8 +158,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Register'),
-      automaticallyImplyLeading: false,// No back button
+      appBar: GradientAppBar(
+        title: 'Register',
+        automaticallyImplyLeading: false,// No back button
       ),
       body: SafeArea( 
         child: SingleChildScrollView(
