@@ -26,6 +26,7 @@ class _ProductsPageState extends State<ProductsPage> {
     'Concrete',
     'Mortar',
     'Aggregates',
+    'Road Activity',
   ];
 
 //________UI______________________________
@@ -173,6 +174,13 @@ class _ProductsPageState extends State<ProductsPage> {
                       category:      data['category']      ?? '',
                       description:   data['description']   ?? '',
                       productPoints: (data['productPoints'] ?? 0) as int,
+                      onTap: () => _showProductDetail(
+                        context,
+                        name:          data['name']          ?? '',
+                        category:      data['category']      ?? '',
+                        description:   data['description']   ?? '',
+                        productPoints: (data['productPoints'] ?? 0) as int,
+                      ),
                     );
                   },
                 );
@@ -182,6 +190,131 @@ class _ProductsPageState extends State<ProductsPage> {
         ],
       ),
     );
+  }
+
+  void _showProductDetail(
+    BuildContext context, {
+    required String name,
+    required String category,
+    required String description,
+    required int productPoints,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) {
+        final icon  = _iconForCategory(category);
+        final color = _colorForCategory(category);
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.55,
+          minChildSize: 0.35,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) => SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: color,
+                      child: Icon(icon, color: kPrimaryColor, size: 30),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name,
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: kPrimaryColor)),
+                          const SizedBox(height: 4),
+                          Text(category,
+                              style: TextStyle(
+                                  fontSize: 13, color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: kSecondaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: kSecondaryColor),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('$productPoints',
+                          style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: kSecondaryColor)),
+                      const Text('points per kg',
+                          style: TextStyle(fontSize: 13, color: kSecondaryColor)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text('Description',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: kPrimaryColor)),
+                const SizedBox(height: 8),
+                Text(
+                  description.isNotEmpty ? description : 'No description available.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _iconForCategory(String cat) {
+    switch (cat) {
+      case 'Cement':        return Icons.foundation;
+      case 'Concrete':      return Icons.construction;
+      case 'Mortar':        return Icons.handyman;
+      case 'Aggregates':    return Icons.terrain;
+      case 'Road Activity': return Icons.add_road;
+      default:              return Icons.inventory_2_outlined;
+    }
+  }
+
+  Color _colorForCategory(String cat) {
+    switch (cat) {
+      case 'Cement':        return Colors.grey.shade200;
+      case 'Concrete':      return Colors.brown.shade100;
+      case 'Mortar':        return Colors.orange.shade100;
+      case 'Aggregates':    return Colors.green.shade100;
+      case 'Road Activity': return Colors.yellow.shade100;
+      default:              return Colors.blue.shade50;
+    }
   }
 }
 
@@ -195,12 +328,14 @@ class _ProductCard extends StatelessWidget {
   final String category;
   final String description;
   final int    productPoints;
+  final VoidCallback onTap;
 
   const _ProductCard({
     required this.name,
     required this.category,
     required this.description,
     required this.productPoints,
+    required this.onTap,
   });
 
 
@@ -211,8 +346,9 @@ class _ProductCard extends StatelessWidget {
       case 'Cement':     return Icons.foundation;
       case 'Concrete':   return Icons.construction;
       case 'Mortar':     return Icons.handyman;
-      case 'Aggregates': return Icons.terrain;
-      default:           return Icons.inventory_2_outlined;
+      case 'Aggregates':    return Icons.terrain;
+      case 'Road Activity': return Icons.add_road;
+      default:              return Icons.inventory_2_outlined;
     }
   }
 
@@ -225,8 +361,9 @@ class _ProductCard extends StatelessWidget {
       case 'Cement':     return Colors.grey.shade200;
       case 'Concrete':   return Colors.brown.shade100;
       case 'Mortar':     return Colors.orange.shade100;
-      case 'Aggregates': return Colors.green.shade100;
-      default:           return Colors.blue.shade50;
+      case 'Aggregates':    return Colors.green.shade100;
+      case 'Road Activity': return Colors.yellow.shade100;
+      default:              return Colors.blue.shade50;
     }
   }
 
@@ -235,7 +372,9 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -310,7 +449,7 @@ class _ProductCard extends StatelessWidget {
                     ),
                   ),
                   const Text(
-                    'pts/unit',
+                    'pts/kg',
                     style: TextStyle(color: kSecondaryColor, fontSize: 10),
                   ),
                 ],
@@ -318,6 +457,7 @@ class _ProductCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

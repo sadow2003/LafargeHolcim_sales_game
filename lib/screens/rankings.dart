@@ -58,7 +58,6 @@ class _RankingsPageState extends State<RankingsPage>
 
       appBar: GradientAppBar(
         title: 'Rankings',
-        automaticallyImplyLeading: false,
         ),
 
 
@@ -99,17 +98,18 @@ class _RankingsPageState extends State<RankingsPage>
                 color: const Color(0xFF1A3A6B),
                 padding: const EdgeInsets.fromLTRB(8, 16, 8, 12),
 
-
                 // LayoutBuilder so we can size circles relative to screen width
+
+                child: ClipRect(
                 child: LayoutBuilder(builder: (context, constraints) {
                   
                   // Total available width → divide into 3 slots with gutters
                   final totalW = constraints.maxWidth;
                   
                   // #1 gets 40 %, #2 and #3 get 28 % each; 4 % gutters (×2)
-                  final d1 = totalW * 0.36;
-                  final d2 = totalW * 0.27;
-                  final d3 = totalW * 0.25;
+                  final d1 = totalW * 0.34;
+                  final d2 = totalW * 0.26;
+                  final d3 = totalW * 0.24;
 
                   return AnimatedBuilder(
                     animation: _climbController,
@@ -153,9 +153,10 @@ class _RankingsPageState extends State<RankingsPage>
                     },
                   );
                 }),
+                ),
               ),
 
-              
+
               // ── Leaderboard header ──────────────────────────────────
               Container(
                 color: const Color(0xFF122A52),

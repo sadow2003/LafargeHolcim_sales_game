@@ -22,6 +22,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     'Concrete',
     'Mortar',
     'Aggregates',
+    'Road Activity',
   ];
 
   @override
@@ -188,7 +189,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
-                          '${data['category'] ?? ''} — ${data['productPoints'] ?? 0} pts/unit',
+                          '${data['category'] ?? ''} — ${data['productPoints'] ?? 0} pts/kg',
                           style: const TextStyle(fontSize: 12),
                         ),
                         // Edit and Delete buttons on the right side.
@@ -246,8 +247,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
       case 'Cement':     return Icons.foundation;
       case 'Concrete':   return Icons.construction;
       case 'Mortar':     return Icons.handyman;
-      case 'Aggregates': return Icons.terrain;
-      default:           return Icons.inventory_2_outlined;
+      case 'Aggregates':    return Icons.terrain;
+      case 'Road Activity': return Icons.add_road;
+      default:              return Icons.inventory_2_outlined;
     }
   }
 
@@ -257,11 +259,12 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   //___Colors for every category_______________________________________
   Color _colorForCategory(String cat) {
     switch (cat) {
-      case 'Cement':     return Colors.grey.shade200;
-      case 'Concrete':   return Colors.brown.shade100;
-      case 'Mortar':     return Colors.orange.shade100;
-      case 'Aggregates': return Colors.green.shade100;
-      default:           return Colors.blue.shade50;
+      case 'Cement':        return Colors.grey.shade200;
+      case 'Concrete':      return Colors.brown.shade100;
+      case 'Mortar':        return Colors.orange.shade100;
+      case 'Aggregates':    return Colors.green.shade100;
+      case 'Road Activity': return Colors.yellow.shade100;
+      default:              return Colors.blue.shade50;
     }
   }
 
@@ -290,7 +293,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
 
 
     // The four allowed categories.
-    final categories = ['Cement', 'Concrete', 'Mortar', 'Aggregates'];
+    final categories = ['Cement', 'Concrete', 'Mortar', 'Aggregates','Road Activity'];
     String selectedCategory = existing?['category'] ?? categories[0];
 
     //shows a windows for adding or editing a product
@@ -363,7 +366,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                     controller: pointsCtrl,
                     keyboardType: TextInputType.number,
                     decoration:
-                        const InputDecoration(labelText: 'Points per Unit'),
+                        const InputDecoration(labelText: 'Points per kg'),
                   ),
                   const SizedBox(height: 12),
 
