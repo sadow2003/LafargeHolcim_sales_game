@@ -139,52 +139,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // function that verify the email of the user
-  // void _showVerificationDialog(String email) {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (ctx) => AlertDialog(
-  //       title: const Text('Email Not Verified'),
-  //       content: Text(
-  //         'Please verify your email address ($email) before logging in. '
-  //         'Check your inbox for the verification link.',
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () async {
-  //             try {
-  //               final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
-  //                 email: _emailController.text.trim(),
-  //                 password: _passwordController.text.trim(),
-  //               );
-  //               await cred.user!.sendEmailVerification();
-  //               await FirebaseAuth.instance.signOut();
-  //               if (!mounted) return;
-  //               Navigator.of(ctx).pop();
-  //               ScaffoldMessenger.of(context).showSnackBar(
-  //                 const SnackBar(content: Text('Verification email resent. Check your inbox.')),
-  //               );
-  //             } catch (_) {
-  //               if (!ctx.mounted) return;
-  //               ScaffoldMessenger.of(ctx).showSnackBar(
-  //                 const SnackBar(content: Text('Could not resend email. Try logging in again.')),
-  //               );
-  //             }
-  //           },
-  //           child: const Text('Resend Email'),
-  //         ),
-  //         ElevatedButton(
-  //           onPressed: () => Navigator.of(ctx).pop(),
-  //           child: const Text('OK'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-
-
 //____UI________________________________________________
   @override
   Widget build(BuildContext context) {

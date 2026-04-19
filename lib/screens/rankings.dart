@@ -56,7 +56,10 @@ class _RankingsPageState extends State<RankingsPage>
     return Scaffold(
 
 
-      appBar: GradientAppBar(title: 'Rankings'),
+      appBar: GradientAppBar(
+        title: 'Rankings',
+        automaticallyImplyLeading: false,
+        ),
 
 
       drawer: const AppDrawer(),
@@ -181,6 +184,44 @@ class _RankingsPageState extends State<RankingsPage>
                   ],
                 ),
               ),
+
+              // ── Current user rank banner ───────────────────────────
+              Builder(builder: (context) {
+                final myIdx = docs.indexWhere((d) => d.id == _currentUser?.uid);
+                if (myIdx < 0) return const SizedBox.shrink();
+                final myRank = myIdx + 1;
+                final myPoints = (docs[myIdx].data() as Map<String, dynamic>)['totalPoints'] ?? 0;
+                final top1Points = top1 != null
+                    ? ((top1.data() as Map<String, dynamic>)['totalPoints'] ?? 0)
+                    : 0;
+                final diff = (top1Points as num) - (myPoints as num);
+
+                String message;
+                switch(myRank){
+                  case(1):message = 'Congratulation!!!, You are ranked #1 ';
+                  case(2):message = 'You are ranked #2 ,you are so close only $diff pts left';
+                  case(3):message = 'You are ranked #3, keep going only $diff pts to go';
+                  default: message = 'You are ranked #$myRank — only $diff pts for rank 1';
+                }
+                
+
+                return Container(
+                  width: double.infinity,
+                  color: const Color(0xFF0D2248),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: myRank == 1
+                          ? const Color(0xFFFFD700)
+                          : Colors.white70,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              }),
 
               // ── Scrollable leaderboard ──────────────────────────────
               Expanded(
@@ -488,8 +529,8 @@ class _PodiumSlot extends StatelessWidget {
 
             // Glow ring
             Container(
-              width: diameter + 6,
-              height: diameter + 6,
+              width: diameter + 10,
+              height: diameter + 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -513,10 +554,11 @@ class _PodiumSlot extends StatelessWidget {
                 child: ColoredBox(
                   color: const Color(0xFF0E2040),
                   child: CustomPaint(
-                    painter: _ClimbingPainter(
+                    painter: _PodiumPainter(
                       phase: phase,
                       stickColor: stickColor,
                       stairColor: medalColor,
+                      rank: rank,
                     ),
                   ),
                 ),
@@ -582,160 +624,202 @@ class _PodiumSlot extends StatelessWidget {
   }
 }
 
-// ── Endless-stair climbing painter ──────────────────────────────────────────
-//
-// Stairs scroll DOWNWARD as phase 0→1, creating the illusion of climbing up.
-// The stickman is fixed in the canvas center; only its limbs animate.
-
-class _ClimbingPainter extends CustomPainter {//a Flutter class that lets you draw custom graphics directly on screen.
-  final double phase;       // 0.0 → 1.0 continuous
+class _PodiumPainter extends CustomPainter {
+  final double phase;
   final Color stickColor;
   final Color stairColor;
+  final int rank;
 
-
-  const _ClimbingPainter({
+  const _PodiumPainter({
     required this.phase,
     required this.stickColor,
     required this.stairColor,
+    required this.rank,
   });
-
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;//Shorthand variable for the total available width
-    final h = size.height;//Shorthand variable for the total available height
-
-
-    // ── Stairs ─────────────────────────────────────────────────────────
-    // Side-view staircase going up-right.
-    // Each "step" occupies stepW horizontally and stepH vertically.
-    
-    final stepW = w * 0.40;//Each step is 40% of the total canvas width
-    final stepH = h * 0.22;//Each step is 22% of the total canvas height
-    final treadThick = stepH * 0.30; // The horizontal plank (the part you walk on) = 30% of the step height Called "tread" — the flat top surface of a stair step
-    final riserW     = stepW * 0.15; // The vertical face of the step = 15% of the step width Called "riser" — the vertical part connecting two treads
-
-    //draws shapes filled with a semi-transparent version of stairColor — giving the podium steps a translucent colored fill effect, like frosted glass
-    final fillPaint = Paint()
-      ..color = stairColor.withValues(alpha: 0.22)
-      ..style = PaintingStyle.fill;
-
-    
-    final linePaint = Paint()
-      ..color = stairColor.withValues(alpha: 0.85)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.square;
-
-
-
-    // scroll offset: stairs move down by one stepH per cycle
-    final scroll = phase * stepH;
-
-
-
-    // Anchor the staircase so that the stickman's foot level (~70 % of h)
-    // always sits on a tread. Step index 2 (from the bottom of the view)
-    // provides that tread.
-    const anchorStep = 2;
-
-
-    // At scroll=0 step anchorStep's tread top = stickFootY - treadThick/2
-    final stickFootY = h * 0.68;
-    final anchorTreadTop = stickFootY - treadThick * 0.5;
-
-
-    for (int i = -2; i < 7; i++) {
-      // tread top-left corner
-      final left = w / 2 - stepW / 2 + (i - anchorStep) * stepW;
-      final top  = anchorTreadTop - (i - anchorStep) * stepH + scroll;
-
-
-      // Tread
-      canvas.drawRect(Rect.fromLTWH(left, top, stepW, treadThick), fillPaint);
-      canvas.drawRect(Rect.fromLTWH(left, top, stepW, treadThick), linePaint);
-
-
-      // Riser (left-side vertical face)
-      canvas.drawRect(
-          Rect.fromLTWH(left, top + treadThick, riserW, stepH - treadThick),
-          fillPaint);
-      canvas.drawRect(
-          Rect.fromLTWH(left, top + treadThick, riserW, stepH - treadThick),
-          linePaint);
-    }
-
-
-
-    // ── Stickman (fixed position, only limbs move) ──────────────────────
-    final cx = w * 0.50;
-    final footY = stickFootY;
-
-    final headR   = w * 0.10;
-    final bodyLen = h * 0.18;
-    final legLen  = h * 0.14;
-    final armLen  = w * 0.14;
-
-    final bodyBotY  = footY - legLen * 0.4;
-    final bodyTopY  = bodyBotY - bodyLen;
-    final headCY    = bodyTopY - headR;
+    final w = size.width;
+    final h = size.height;
 
     final stick = Paint()
-      ..color = stickColor
-      ..strokeWidth = 2.0
+      ..color = stickColor//the color of the stickman
+      ..strokeWidth = 4.0 //how full is the stickman
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
     final headFill = Paint()
       ..color = stickColor
       ..style = PaintingStyle.fill;
 
+    _drawPodium(canvas, w, h);
 
-
-    // Head (filled circle)
-    canvas.drawCircle(Offset(cx, headCY), headR, headFill);
-
-
-
-    // Body
-    canvas.drawLine(Offset(cx, bodyTopY), Offset(cx, bodyBotY), stick);
-
-
-
-    // Arms swing counter to legs
-    final armSwing = sin(phase * 2 * pi) * 0.55;
-    final armY = bodyTopY + bodyLen * 0.30;
-    canvas.drawLine(
-      Offset(cx, armY),
-      Offset(cx - armLen * cos(armSwing), armY + armLen * sin(armSwing + 0.5)),
-      stick,
-    );
-    canvas.drawLine(
-      Offset(cx, armY),
-      Offset(cx + armLen * cos(armSwing), armY + armLen * sin(-armSwing + 0.5)),
-      stick,
-    );
-
-
-    // Legs alternate: left and right half-cycle apart
-    final legPhase = phase * 2 * pi;
-
-
-    void drawLeg(double angle) {
-      final kx = cx + legLen * sin(angle);
-      // Raise the lifted foot slightly
-      final ky = footY - legLen * (1 - cos(angle)).abs() * 0.45;
-      canvas.drawLine(Offset(cx, bodyBotY), Offset(kx, ky), stick);
+    if (rank == 1) {
+      _drawJumping(canvas, w, h, stick, headFill);
+    } else {
+      _drawStanding(canvas, w, h, stick, headFill);
     }
-
-
-    drawLeg(sin(legPhase) * 0.55);
-    drawLeg(sin(legPhase + pi) * 0.55);
   }
 
-//going through the phases 0 to 1 
+  void _drawPodium(Canvas canvas, double w, double h) {
+    final podiumH = h * 0.18;//podium height
+    final podiumW = w * 0.70;//podium width
+    final podiumTop = h - podiumH;
+    final left = (w - podiumW) / 2;
+
+    //podium color
+    final fill = Paint()
+      ..color = stairColor.withValues(alpha: 0.35)
+      ..style = PaintingStyle.fill;
+      //podium border color
+    final border = Paint()
+      ..color = stairColor.withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.square;
+
+      //draws a rounded-rectangle podium block on a canvas
+    final rect = RRect.fromRectAndCorners(
+      Rect.fromLTWH(left, podiumTop, podiumW, podiumH),
+      topLeft: const Radius.circular(4),
+      topRight: const Radius.circular(4),
+    );
+    canvas.drawRRect(rect, fill);
+    canvas.drawRRect(rect, border);
+
+    // Rank number on the podium face
+    final tp = TextPainter(
+      text: TextSpan(
+        text: '$rank',
+        style: TextStyle(
+          color: stairColor,
+          fontSize: podiumH * 0.52,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas,
+        Offset(w / 2 - tp.width / 2, podiumTop + podiumH / 2 - tp.height / 2));
+  }
+
+  void _drawJumping(Canvas canvas, double w, double h, Paint stick, Paint headFill) {
+    // Stickman bounces up and down, standing on top of the podium
+    final podiumTop = h - h * 0.20;//where the stick men is standing
+    final jumpOffset = sin(phase * 1* pi).abs() * h * 0.3;//How fast and how high the stickman jumps
+    final cx = w * 0.50; //where he is standing(you can get him to be left of the podium ro to the far right)
+    final footY = podiumTop - jumpOffset;
+
+    final headR  = w * 0.10;//how big is the stickman head
+    final bodyLen = h * 0.17;//how tall is his torso
+    final legLen  = h * 0.12;//how long is his legs
+    final armLen  = w * 0.12;//how long is his arms
+
+    //reassembaling the stickman
+    final bodyBotY = footY - legLen * 0.5;
+    final bodyTopY = bodyBotY - bodyLen;
+    final headCY   = bodyTopY - headR;
+
+    // draw Head of the stickman
+    canvas.drawCircle(Offset(cx, headCY), headR, headFill);
+    // draw the Body of the stickman
+    canvas.drawLine(Offset(cx, bodyTopY), Offset(cx, bodyBotY), stick);
+
+    // Arms raised during jump
+    final armRaise = -(sin(phase * 2 * pi).abs() * 0.6 + 0.3);
+    final armY = bodyTopY + bodyLen * 0.25;
+    canvas.drawLine(Offset(cx, armY),
+        Offset(cx - armLen, armY + armLen * armRaise), stick);
+    canvas.drawLine(Offset(cx, armY),
+        Offset(cx + armLen, armY + armLen * armRaise), stick);
+
+    // Legs slightly tucked during jump
+    final tuck = sin(phase * 2 * pi).abs() * 0.35;
+    canvas.drawLine(Offset(cx, bodyBotY),
+        Offset(cx - legLen * 0.35, bodyBotY + legLen * (1 - tuck)), stick);
+    canvas.drawLine(Offset(cx, bodyBotY),
+        Offset(cx + legLen * 0.35, bodyBotY + legLen * (1 - tuck)), stick);
+
+    // Trophy sitting on the podium surface beside the stickman
+    final trophyS = w * 0.09;
+    final trophyCy = h - h * 0.18 - trophyS * 1.4;
+    _drawTrophy(canvas, w * 0.74, trophyCy, trophyS, stairColor);
+  }
+
+  void _drawStanding(Canvas canvas, double w, double h, Paint stick, Paint headFill) {
+    final cx = w * 0.50;//where is he standing in the podium
+    final footY = h - h * 0.18; // stand on top of podium
+
+    final headR  = w * 0.10;//how big is the stickman head
+    final bodyLen = h * 0.17;//how tall is his torso
+    final legLen  = h * 0.14;//how long is his legs
+    final armLen  = w * 0.12;//how long is his arms
+
+    //reasembaling the stickman
+    final bodyBotY = footY - legLen;
+    final bodyTopY = bodyBotY - bodyLen;
+    final headCY   = bodyTopY - headR;
+
+    // Head
+    canvas.drawCircle(Offset(cx, headCY), headR, headFill);
+    // Body
+    canvas.drawLine(Offset(cx, bodyTopY), Offset(cx, bodyBotY), stick);
+    // Arms relaxed
+    canvas.drawLine(Offset(cx, bodyTopY + bodyLen * 0.2),
+        Offset(cx - armLen, bodyTopY + bodyLen * 0.55), stick);
+    canvas.drawLine(Offset(cx, bodyTopY + bodyLen * 0.2),
+        Offset(cx + armLen, bodyTopY + bodyLen * 0.55), stick);
+    // Legs straight
+    canvas.drawLine(Offset(cx, bodyBotY), Offset(cx - legLen * 0.28, footY), stick);
+    canvas.drawLine(Offset(cx, bodyBotY), Offset(cx + legLen * 0.28, footY), stick);
+
+    // Trophy to the right (upper body level, above podium)
+    final trophyS = w * 0.09;
+    final trophyCy = h - h * 0.18 - trophyS * 1.4;
+    _drawTrophy(canvas, w * 0.74, trophyCy, trophyS, stairColor);
+  }
+
+  void _drawTrophy(Canvas canvas, double cx, double cy, double s, Color color) {
+    //the border of the trophy
+    final outline = Paint()
+      ..color = color.withValues(alpha: 0.9)
+      ..strokeWidth = 1.6
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    //the fill of the trophy
+    final fill = Paint()
+      ..color = color.withValues(alpha: 0.25)
+      ..style = PaintingStyle.fill;
+
+    // Cup body
+    final cup = Path()
+      ..moveTo(cx - s, cy - s * 0.9)
+      ..lineTo(cx - s, cy + s * 0.1)
+      ..quadraticBezierTo(cx - s, cy + s * 0.9, cx, cy + s * 0.9)
+      ..quadraticBezierTo(cx + s, cy + s * 0.9, cx + s, cy + s * 0.1)
+      ..lineTo(cx + s, cy - s * 0.9)
+      ..close();
+    canvas.drawPath(cup, fill);
+    canvas.drawPath(cup, outline);
+
+    // Handles (arcs on each side)
+    canvas.drawArc(
+        Rect.fromCenter(center: Offset(cx - s, cy), width: s * 1.0, height: s * 0.9),
+        pi / 2, pi, false, outline);
+    canvas.drawArc(
+        Rect.fromCenter(center: Offset(cx + s, cy), width: s * 1.0, height: s * 0.9),
+        -pi / 2, pi, false, outline);
+
+    // Stem
+    canvas.drawLine(Offset(cx, cy + s * 0.9), Offset(cx, cy + s * 1.4), outline);
+    // Base
+    canvas.drawLine(
+        Offset(cx - s * 0.75, cy + s * 1.4), Offset(cx + s * 0.75, cy + s * 1.4), outline);
+  }
+  //tells flutter whether to redraw the widget,retrun true if any of the values change
   @override
-  bool shouldRepaint(_ClimbingPainter old) =>
+  bool shouldRepaint(_PodiumPainter old) =>
       old.phase != phase ||
       old.stickColor != stickColor ||
-      old.stairColor != stairColor;
+      old.stairColor != stairColor ||
+      old.rank != rank;
 }

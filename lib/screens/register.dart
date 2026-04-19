@@ -62,9 +62,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
 
     //only official LafargeHolcim emails are allowed.
-    //if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
-   //   return 'Only @lafargeholcim.com emails are allowed';
-   // }
+    if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
+      return 'Only @lafargeholcim.com emails are allowed';
+    }
     return null;
   }
 
@@ -122,10 +122,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text.trim(),
         role: _selectedRole,
       );
-
-      //sends out a message verification to the email
-      // await userCredential.user!.sendEmailVerification();
-      // await FirebaseAuth.instance.signOut();
 
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

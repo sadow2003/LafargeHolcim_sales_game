@@ -5,7 +5,6 @@ import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';
 
 
-
 class AdminSalesPage extends StatefulWidget {
   const AdminSalesPage({super.key});
 
@@ -208,7 +207,6 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
       // Step 5: Recalculate ALL salesperson ranks.
       await _recalculateRanks();
 
-
       if (!mounted) return;
 
 
@@ -232,7 +230,7 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
 
   // ── Reject Sale ───────────────────────────────────────────────────────────
   Future<void> _rejectSale(String saleId) async {
-    
+
     try {
       await FirebaseFirestore.instance
           .collection('sales')

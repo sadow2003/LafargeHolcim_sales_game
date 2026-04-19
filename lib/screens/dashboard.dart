@@ -20,10 +20,6 @@ class _HomePageState extends State<HomePage> {
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
   @override
-  void initState() {
-    super.initState();
-  }
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GradientAppBar(title: 'Dashboard'),
