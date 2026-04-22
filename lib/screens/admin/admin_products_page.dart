@@ -145,9 +145,13 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+
+
                         Icon(Icons.inventory_2_outlined,
                             size: 64, color: Colors.grey.shade300),
+
                         const SizedBox(height: 12),
+                        
                         Text(
                           allDocs.isEmpty
                               ? 'No products yet. Tap + to add one.'
@@ -175,6 +179,8 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
+                        
+                        
                         // Leading icon varies by category.
                         leading: CircleAvatar(
                           backgroundColor: _colorForCategory(
@@ -184,10 +190,15 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                             color: kPrimaryColor,
                           ),
                         ),
+
+
+
                         title: Text(
                           data['name'] ?? '',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
+
+
                         subtitle: Text(
                           '${data['category'] ?? ''} — ${data['productPoints'] ?? 0} pts/kg',
                           style: const TextStyle(fontSize: 12),
@@ -196,6 +207,8 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            
+                            
                             // Edit button — opens the product form pre-filled.
                             IconButton(
                               icon: const Icon(Icons.edit_outlined,
@@ -204,6 +217,8 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                               onPressed: () =>
                                   _showProductForm(context, doc.id, data),
                             ),
+
+
                             // Delete button — shows a confirmation dialog first.
                             IconButton(
                               icon: const Icon(Icons.delete_outline,
@@ -376,7 +391,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   TextField(
                     controller: descCtrl,
                     decoration:
-                        const InputDecoration(labelText: 'Description (optional)'),
+                      const InputDecoration(labelText: 'Description'),
                     maxLines: 2,
                   ),
                   const SizedBox(height: 20),

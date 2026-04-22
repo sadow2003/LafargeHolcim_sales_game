@@ -52,8 +52,6 @@ class AdminDashboard extends StatelessWidget {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-
                   Text(
                     'Admin Panel',
                     style: TextStyle(
@@ -86,6 +84,8 @@ class AdminDashboard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+
+
 
             // Row of 3 stat cards (Users / Pending / Total Sales).
             Row(

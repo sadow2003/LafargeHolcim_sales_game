@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lafargeholcim_sales_game/firebase_options.dart';
-import 'package:lafargeholcim_sales_game/screens/Login.dart';
+import 'package:lafargeholcim_sales_game/screens/login.dart';
 import 'package:lafargeholcim_sales_game/screens/dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/products.dart';
 import 'package:lafargeholcim_sales_game/screens/profile.dart';
@@ -75,7 +75,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        //any text input on the app will have this style by default
+        //any textFIELD input on the app will have this style by default
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),// Rounded border for input fields

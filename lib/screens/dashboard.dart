@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                       child: _quickActionButton(
                         context,
                         icon: Icons.leaderboard,
-                        label: 'Rankings',
+                        label: 'Leaderboard',
                         route: '/rankings',
                         color: kPrimaryColor,
                       ),

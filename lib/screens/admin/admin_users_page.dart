@@ -54,9 +54,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               children: [
                 _filterChip('All',         'all'),
                 const SizedBox(width: 8),
-                _filterChip('Salespersons','salesperson'),
+                _filterChip('Salesperson','salesperson'),
                 const SizedBox(width: 8),
-                _filterChip('Admins',      'admin'),
+                _filterChip('Admin',      'admin'),
               ],
             ),
           ),

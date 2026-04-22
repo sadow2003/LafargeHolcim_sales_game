@@ -23,7 +23,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController         = TextEditingController();
   final _confirmPasswordController  = TextEditingController();
   final _adminSecretController      = TextEditingController();
-// Used to trigger validation
+
+// this create a unique key that links to the form widget allowing us to manipulate it
   final _formKey = GlobalKey<FormState>(); 
 
   bool _passwordVisible     = false;
@@ -66,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return 'Only @lafargeholcim.com emails are allowed';
     }
     return null;
-  }
+   }
 
 
   
@@ -123,11 +124,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         role: _selectedRole,
       );
 
+
+      //send an email to a the account to verity that it is the user
+      // await userCredential.user!.sendEmailVerification();
+      // await FirebaseAuth.instance.signOut();
+      // Navigator.popAndPushNamed(context, '/login');
+
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Registration successful! Please log in.'),
-          duration: Duration(seconds: 5),
+          content: Text('Account created! '),
+          duration: Duration(seconds: 6),
+          backgroundColor: Colors.green,
         ),
       );
       Navigator.pushReplacementNamed(context, '/login');
@@ -239,6 +247,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: (value) =>
                       value == null ? 'Please select a role' : null,
                 ),
+
+
 
                 // ── Admin Secret Code (only shown when Admin is selected) ───
                 if (_selectedRole == 'admin') ...[

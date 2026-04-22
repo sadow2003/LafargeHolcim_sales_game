@@ -18,6 +18,7 @@ class _RankingsPageState extends State<RankingsPage>
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   //drives an animation (controls start, stop, repeat, value over time)
   late AnimationController _climbController;
+  //controls the scrolling leaderboard
   final ScrollController _leaderboardScroll = ScrollController();
 
   @override
@@ -36,6 +37,7 @@ class _RankingsPageState extends State<RankingsPage>
     super.dispose();
   }
 
+  //function that lets the user go staight to the the current user
   void _scrollToCurrentUser(List<QueryDocumentSnapshot> docs) {
     final idx = docs.indexWhere((d) => d.id == _currentUser?.uid);
     if (idx < 0) return;
@@ -51,13 +53,14 @@ class _RankingsPageState extends State<RankingsPage>
     });
   }
 
+  //___________________UI___________________________________
   @override
   Widget build(BuildContext context) {
     return Scaffold(
 
 
       appBar: GradientAppBar(
-        title: 'Rankings',
+        title: 'Leaderboard',
         ),
 
 
@@ -82,7 +85,7 @@ class _RankingsPageState extends State<RankingsPage>
 
           final docs = snapshot.data?.docs ?? [];
           _scrollToCurrentUser(docs);
-
+          //extract the top three users on the list
           final top1 = docs.isNotEmpty ? docs[0] : null;
           final top2 = docs.length > 1 ? docs[1] : null;
           final top3 = docs.length > 2 ? docs[2] : null;
@@ -103,15 +106,15 @@ class _RankingsPageState extends State<RankingsPage>
                 child: ClipRect(
                 child: LayoutBuilder(builder: (context, constraints) {
                   
-                  // Total available width → divide into 3 slots with gutters
-                  final totalW = constraints.maxWidth;
+                  // calculate colums width as propotions to the total width available
+                  final totalW = constraints.maxWidth;//full width of the device
                   
-                  // #1 gets 40 %, #2 and #3 get 28 % each; 4 % gutters (×2)
-                  final d1 = totalW * 0.34;
-                  final d2 = totalW * 0.26;
-                  final d3 = totalW * 0.24;
+                  
+                  final d1 = totalW * 0.34;//first cloumn
+                  final d2 = totalW * 0.26;//Second column
+                  final d3 = totalW * 0.24;//third column
 
-                  return AnimatedBuilder(
+                  return AnimatedBuilder(//build an animated screen
                     animation: _climbController,
                     builder: (context, _) {
                       return Row(
@@ -119,7 +122,7 @@ class _RankingsPageState extends State<RankingsPage>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           
-                          
+                          //the 2nd Place Podium
                           _PodiumSlot(
                             rank: 2,
                             doc: top2,
@@ -130,7 +133,7 @@ class _RankingsPageState extends State<RankingsPage>
                           SizedBox(width: totalW * 0.02),
                           
                           
-                          
+                          //the 1st Place Podium
                           _PodiumSlot(
                             rank: 1,
                             doc: top1,
@@ -140,7 +143,7 @@ class _RankingsPageState extends State<RankingsPage>
                           ),
                           SizedBox(width: totalW * 0.02),
                           
-                          
+                          //The 3rd Place Podium
                           _PodiumSlot(
                             rank: 3,
                             doc: top3,
@@ -266,7 +269,7 @@ class _LeaderboardWithButtons extends StatelessWidget {
               itemCount: docs.length,
               itemExtent: 72,
 
-
+              //for evry user in the document we create this card for the leaderboard
               itemBuilder: (context, i) {
                 final doc = docs[i];
                 final data = doc.data() as Map<String, dynamic>;
@@ -299,7 +302,7 @@ class _LeaderboardWithButtons extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 4),
 
-                  //container of the leaderboard   
+                  //container of thge user in leaderboard
                   decoration: BoxDecoration(
                     color: isMe
                         ? kPrimaryColor.withValues(alpha: 0.35)
@@ -595,7 +598,7 @@ class _PodiumSlot extends StatelessWidget {
 
 
         const SizedBox(height: 6),
-        //name of the user
+        //name of the top three users
         SizedBox(
           width: diameter,
           child: Text(
@@ -655,8 +658,10 @@ class _PodiumPainter extends CustomPainter {
     _drawPodium(canvas, w, h);
 
     if (rank == 1) {
+      //if the podium is rank one then the stick man wil countinuasly jump up and down
       _drawJumping(canvas, w, h, stick, headFill);
     } else {
+      //if it rank 2 or 3 then the stick man will be standing still
       _drawStanding(canvas, w, h, stick, headFill);
     }
   }
@@ -816,7 +821,7 @@ class _PodiumPainter extends CustomPainter {
     canvas.drawLine(
         Offset(cx - s * 0.75, cy + s * 1.4), Offset(cx + s * 0.75, cy + s * 1.4), outline);
   }
-  //tells flutter whether to redraw the widget,retrun true if any of the values change
+  //tells flutter whether to redraw the widget,returns true if any of the values change
   @override
   bool shouldRepaint(_PodiumPainter old) =>
       old.phase != phase ||

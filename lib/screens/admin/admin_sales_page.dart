@@ -25,14 +25,7 @@ class _AdminSalesPageState extends State<AdminSalesPage> {
 
       //the app bar gradiant
       appBar: GradientAppBar(
-        title: 'Approve Sales',
-        automaticallyImplyLeading: false,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        title: 'Approve Sales'
       ),
 
 

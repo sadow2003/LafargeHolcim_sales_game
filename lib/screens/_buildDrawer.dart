@@ -192,7 +192,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       _drawerItem(
                         context,
                         icon:  Icons.leaderboard_outlined,
-                        label: 'Ranking',
+                        label: 'Leaderboard',
                         route: '/rankings',
                       ),
                       _drawerItem(

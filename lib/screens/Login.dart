@@ -47,7 +47,43 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 
+  //______password rest Function____________________________
+  // Future<void> _forgotPassword() async {
+  //   final email = _emailController.text.trim();
+  //   if (email.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Enter your email above, then tap Forgot Password.'),
+  //         backgroundColor: Colors.orange,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //   try {
+  //     //send the email to reset the password__________
+  //     await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+  //     if (!mounted) return;
 
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Password reset email sent! Check your inbox.'),
+  //         backgroundColor: Colors.green,
+  //         duration: Duration(seconds: 5),
+  //       ),
+  //     );
+
+
+  //   } on FirebaseAuthException catch (e) {
+  //     if (!mounted) return;
+  //     final message = e.code == 'user-not-found'
+  //         ? 'No account found for that email.'
+  //         : 'Failed to send reset email. (${e.code})';
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text(message), backgroundColor: Colors.red),
+  //     );
+  //   }
+  // }
 
   // ── Login Logic ──────────────────────────────────────────────────────────
   Future<void> _loginUser() async {
@@ -65,11 +101,39 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = credential.user!;
 
+      //Block login if email is not verified
       // if (!user.emailVerified) {
       //   await FirebaseAuth.instance.signOut();
       //   if (!mounted) return;
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //       content: const Text('Please verify your email before logging in.'),
+      //       backgroundColor: Colors.orange,
+      //       duration: const Duration(seconds: 6),
+      //       action: SnackBarAction(
+      //         label: 'Resend',
+      //         textColor: Colors.white,
+      //         onPressed: () async {
+      //           try {
+      //             final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      //               email: _emailController.text.trim(),
+      //               password: _passwordController.text.trim(),
+      //             );
+      //             await cred.user!.sendEmailVerification();
+      //             await FirebaseAuth.instance.signOut();
+      //             if (!mounted) return;
+      //             ScaffoldMessenger.of(context).showSnackBar(
+      //               const SnackBar(
+      //                 content: Text('Verification email resent!'),
+      //                 backgroundColor: Colors.green,
+      //               ),
+      //             );
+      //           } catch (_) {}
+      //         },
+      //       ),
+      //     ),
+      //   );
       //   setState(() => _isLoading = false);
-      //   _showVerificationDialog(user.email ?? _emailController.text.trim());
       //   return;
       // }
 
@@ -99,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
       final role = doc.data()?['role'] ?? 'salesperson';
 
       if (role == 'admin') {
-        // Admins go to the admin dashboard 
+        // Admins go to the admin dashboard
         Navigator.pushReplacementNamed(context, '/admin/dashboard');
       } else {
         // Salespeople go to the Rankings screen.
@@ -295,9 +359,19 @@ class _LoginPageState extends State<LoginPage> {
                 ),
 
 
+                //____Password Reset text Button____________________
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: TextButton(
+                //     onPressed: _forgotPassword,
+                //     child: const Text(
+                //       'Forgot Password?',
+                //       style: TextStyle(color: kPrimaryColor),
+                //     ),
+                //   ),
+                // ),
 
-                const SizedBox(height: 28),
-
+                 const SizedBox(height: 12),
 
 
 

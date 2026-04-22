@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../main.dart'; 
 
+
+//PreferredSizeWidget tells Flutter that this widget can be used as an appBar
 class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool automaticallyImplyLeading;
@@ -15,6 +17,7 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
   });
 
+//Tell exacly how tall is the appbar
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
