@@ -367,8 +367,24 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       _snack(context, 'Email must be a @lafargeholcim.com address.', Colors.red);
       return;
     }
-    if (password.length < 6) {
-      _snack(context, 'Password must be at least 6 characters.', Colors.red);
+    if (password.length < 8) {
+      _snack(context, 'Password must be at least 8 characters.', Colors.red);
+      return;
+    }
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      _snack(context, 'Password must contain a lowercase letter.', Colors.red);
+      return;
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      _snack(context, 'Password must contain an uppercase letter.', Colors.red);
+      return;
+    }
+    if (!RegExp(r'[0-9]').hasMatch(password)) {
+      _snack(context, 'Password must contain a number.', Colors.red);
+      return;
+    }
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\;`~/]').hasMatch(password)) {
+      _snack(context, 'Password must contain a special character.', Colors.red);
       return;
     }
 
@@ -568,7 +584,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     switch (code) {
       case 'email-already-in-use': return 'This email is already registered.';
       case 'invalid-email':        return 'Invalid email address.';
-      case 'weak-password':        return 'Password is too weak (min 6 chars).';
+      case 'weak-password':        return 'Password is too weak (min 8 chars, upper, lower, number, special).';
       default:                     return 'Auth error: $code';
     }
   }

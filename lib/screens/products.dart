@@ -22,7 +22,6 @@ class _ProductsPageState extends State<ProductsPage> {
 
   final List<String> _categories = [
     'All',
-    'Cement',
     'Concrete',
     'Mortar',
     'Aggregates',
@@ -271,8 +270,8 @@ class _ProductsPageState extends State<ProductsPage> {
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
                               color: kSecondaryColor)),
-                      const Text('points per kg',
-                          style: TextStyle(fontSize: 13, color: kSecondaryColor)),
+                      Text('points per ${_unitForCategory(category)}',
+                          style: const TextStyle(fontSize: 13, color: kSecondaryColor)),
                     ],
                   ),
                 ),
@@ -295,9 +294,11 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
+  String _unitForCategory(String cat) =>
+      cat == 'Concrete' ? 'm³' : 'TON';
+
   IconData _iconForCategory(String cat) {
     switch (cat) {
-      case 'Cement':        return Icons.foundation;
       case 'Concrete':      return Icons.construction;
       case 'Mortar':        return Icons.handyman;
       case 'Aggregates':    return Icons.terrain;
@@ -308,7 +309,6 @@ class _ProductsPageState extends State<ProductsPage> {
 
   Color _colorForCategory(String cat) {
     switch (cat) {
-      case 'Cement':        return Colors.grey.shade200;
       case 'Concrete':      return Colors.brown.shade100;
       case 'Mortar':        return Colors.orange.shade100;
       case 'Aggregates':    return Colors.green.shade100;
@@ -340,10 +340,12 @@ class _ProductCard extends StatelessWidget {
 
 
 
+//unit of the product
+  String _unitForCategory(String cat) =>
+      cat == 'Concrete' ? 'm³' : 'TON';
 
   IconData _iconForCategory(String cat) {
     switch (cat) {
-      case 'Cement':     return Icons.foundation;
       case 'Concrete':   return Icons.construction;
       case 'Mortar':     return Icons.handyman;
       case 'Aggregates':    return Icons.terrain;
@@ -358,7 +360,6 @@ class _ProductCard extends StatelessWidget {
 
   Color _colorForCategory(String cat) {
     switch (cat) {
-      case 'Cement':     return Colors.grey.shade200;
       case 'Concrete':   return Colors.brown.shade100;
       case 'Mortar':     return Colors.orange.shade100;
       case 'Aggregates':    return Colors.green.shade100;
@@ -448,9 +449,9 @@ class _ProductCard extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                  const Text(
-                    'pts/kg',
-                    style: TextStyle(color: kSecondaryColor, fontSize: 10),
+                  Text(
+                    'pts/${_unitForCategory(category)}',
+                    style: const TextStyle(color: kSecondaryColor, fontSize: 10),
                   ),
                 ],
               ),

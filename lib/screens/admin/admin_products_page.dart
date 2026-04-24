@@ -18,7 +18,6 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
 
   final List<String> _categories = [
     'All',
-    'Cement',
     'Concrete',
     'Mortar',
     'Aggregates',
@@ -200,7 +199,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
 
 
                         subtitle: Text(
-                          '${data['category'] ?? ''} — ${data['productPoints'] ?? 0} pts/kg',
+                          '${data['category'] ?? ''} — ${data['productPoints'] ?? 0} pts/${_unitForCategory(data['category'] ?? '')}',
                           style: const TextStyle(fontSize: 12),
                         ),
                         // Edit and Delete buttons on the right side.
@@ -257,10 +256,12 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
 
 
   // ── Category helpers ────────────────────────────────────────────────────────
+  String _unitForCategory(String cat) =>
+      cat == 'Concrete' ? 'm³' : 'TON';
+
   IconData _iconForCategory(String cat) {
     switch (cat) {
       case 'Cement':     return Icons.foundation;
-      case 'Concrete':   return Icons.construction;
       case 'Mortar':     return Icons.handyman;
       case 'Aggregates':    return Icons.terrain;
       case 'Road Activity': return Icons.add_road;
@@ -275,7 +276,6 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   Color _colorForCategory(String cat) {
     switch (cat) {
       case 'Cement':        return Colors.grey.shade200;
-      case 'Concrete':      return Colors.brown.shade100;
       case 'Mortar':        return Colors.orange.shade100;
       case 'Aggregates':    return Colors.green.shade100;
       case 'Road Activity': return Colors.yellow.shade100;
@@ -308,7 +308,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
 
 
     // The four allowed categories.
-    final categories = ['Cement', 'Concrete', 'Mortar', 'Aggregates','Road Activity'];
+    final categories = ['Concrete', 'Mortar', 'Aggregates','Road Activity'];
     String selectedCategory = existing?['category'] ?? categories[0];
 
     //shows a windows for adding or editing a product
@@ -380,8 +380,8 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   TextField(
                     controller: pointsCtrl,
                     keyboardType: TextInputType.number,
-                    decoration:
-                        const InputDecoration(labelText: 'Points per kg'),
+                    decoration: InputDecoration(
+                        labelText: 'Points per ${_unitForCategory(selectedCategory)}'),
                   ),
                   const SizedBox(height: 12),
 
