@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lafargeholcim_sales_game/screens/admin/_buildDrawer_Admin.dart';
+import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
 import '../../firebase_options.dart';
 import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';

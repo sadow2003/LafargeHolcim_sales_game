@@ -293,7 +293,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 16),
                 // ── Manager Secret Code (only shown when Manager is selected) ───
                 if (_selectedRole == 'manager') ...[
                   const SizedBox(height: 16),
