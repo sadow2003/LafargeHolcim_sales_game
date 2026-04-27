@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
+import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';
 
@@ -15,7 +15,7 @@ class ManagerSalesManagment extends StatefulWidget {
 
 class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
   // Filter: show 'pending', 'approved', 'rejected', or 'all'.
-  String _filter = 'pending'; // Default to pending so admin sees what needs action
+  String _filter = 'pending'; // Default to pending so manager sees what needs action
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
 
 
 
-      //Drawer of admin
+      //Drawer of manager
       drawer: const AppDrawer(),
 
 

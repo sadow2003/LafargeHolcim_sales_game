@@ -3,12 +3,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lafargeholcim_sales_game/firebase_options.dart';
 import 'package:lafargeholcim_sales_game/screens/login.dart';
-import 'package:lafargeholcim_sales_game/screens/dashboard.dart';
-import 'package:lafargeholcim_sales_game/screens/products.dart';
-import 'package:lafargeholcim_sales_game/screens/profile.dart';
-import 'package:lafargeholcim_sales_game/screens/rankings.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/dashboard.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/products.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/profile.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/rankings.dart';
 import 'package:lafargeholcim_sales_game/screens/register.dart';
-import 'package:lafargeholcim_sales_game/screens/sale_claim.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/sale_claim.dart';
 import 'package:lafargeholcim_sales_game/screens/admin/admin_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/admin/admin_products_page.dart';
 import 'package:lafargeholcim_sales_game/screens/admin/admin_sales_page.dart';
@@ -16,7 +16,7 @@ import 'package:lafargeholcim_sales_game/screens/admin/admin_users_page.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_product_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_sales_managment.dart';
-import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/broadcast.dart';
 
 //primary colors of the application — LafargeHolcim brand palette
 const Color kPrimaryColor   = Color(0xFF1B3A6B); // dark navy blue

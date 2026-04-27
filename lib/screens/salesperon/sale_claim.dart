@@ -5,9 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart'; // Camera / gallery picker
-import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
-import '../main.dart';
-import '../widgets/gradient_app_bar.dart';
+import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
+import '../../main.dart';
+import '../../widgets/gradient_app_bar.dart';
 
 
 

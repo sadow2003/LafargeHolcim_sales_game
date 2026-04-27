@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../main.dart';
-import '_buildDrawer.dart';
-import '../widgets/gradient_app_bar.dart';
+import '../../main.dart';
+import '../../widgets/_buildDrawer.dart';
+import '../../widgets/gradient_app_bar.dart';
 
 
 class HomePage extends StatefulWidget {

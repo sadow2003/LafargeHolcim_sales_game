@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';
-import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
+import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 
 
 class ManagerDashboard extends StatelessWidget {
@@ -15,7 +15,7 @@ class ManagerDashboard extends StatelessWidget {
 
       appBar: GradientAppBar(
         title: 'Manager Dashboard',
-        // The back arrow is hidden — admins should use the Logout button in the drawer.
+        // The back arrow is hidden — managers should use the Logout button in the drawer.
         automaticallyImplyLeading: false,
         leading: Builder(
           builder: (context) => IconButton(
@@ -27,7 +27,7 @@ class ManagerDashboard extends StatelessWidget {
 
 
 
-      //Drawer of admin
+      //Drawer of manager
       drawer: const AppDrawer(),
 
 

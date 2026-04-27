@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import '../main.dart';
-import '_buildDrawer.dart';
-import '../widgets/gradient_app_bar.dart';
+import '../../main.dart';
+import '../../widgets/_buildDrawer.dart';
+import '../../widgets/gradient_app_bar.dart';
 
 
 class ProfilePage extends StatefulWidget {

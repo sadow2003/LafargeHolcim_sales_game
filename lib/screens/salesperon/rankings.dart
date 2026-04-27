@@ -2,9 +2,9 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '_buildDrawer.dart';
-import '../main.dart';
-import '../widgets/gradient_app_bar.dart';
+import '../../widgets/_buildDrawer.dart';
+import '../../main.dart';
+import '../../widgets/gradient_app_bar.dart';
 
 class RankingsPage extends StatefulWidget {
   const RankingsPage({super.key});

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lafargeholcim_sales_game/screens/_buildDrawer.dart';
+import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 import 'package:lafargeholcim_sales_game/widgets/gradient_app_bar.dart';
 
 class BroadcastScreen extends StatefulWidget {
-  const BroadcastScreen({Key? key}) : super(key: key);
+  const BroadcastScreen({super.key});
 
   @override
   State<BroadcastScreen> createState() => _BroadcastScreenState();
