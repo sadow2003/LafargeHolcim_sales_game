@@ -5,7 +5,7 @@
 //
 // Rules:
 //   UPLOAD (write): Any logged-in user can upload to sales_proofs/.
-//   DOWNLOAD (read): Any logged-in user can read (needed to display the photo in the admin panel).
+//   DOWNLOAD (read): Any logged-in user can read (needed to display the photo in the admin/manager panel).
 //   File size limit: Maximum 5 MB per file (as specified in the requirements).
 //   File type limit: Only image files (image/jpeg, image/png, image/webp) are allowed.
 
@@ -30,7 +30,19 @@ service firebase.storage {
       allow read: if request.auth != null;
     }
 
+    // ── profile_photos folder ─────────────────────────────────────────────
+    // Each user's avatar is stored as: profile_photos/{uid}.jpg
+    match /profile_photos/{userId} {
+      // Only the owner can upload their own photo.
+      allow write: if request.auth != null
+        && request.auth.uid == userId.replace('.jpg', '')
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size <= 5 * 1024 * 1024;
+
+      // Any logged-in user can read profile photos (shown in leaderboard/manager views).
+      allow read: if request.auth != null;
+    }
+
     // Block access to everything else in Storage by default.
-    // (No other folders are used by this app.)
   }
 }

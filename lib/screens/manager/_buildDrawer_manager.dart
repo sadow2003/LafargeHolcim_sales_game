@@ -14,7 +14,6 @@ class AppDrawer extends StatefulWidget {
 
 
 
-
 class _AppDrawerState extends State<AppDrawer> {
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
@@ -50,7 +49,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
               String userName  = 'User';
               String userEmail = _currentUser?.email ?? '';
-              String userRole  = 'salesperson';
+              String userRole  = 'Manager';
 
               String? photoUrl;
               if (snapshot.hasData && snapshot.data!.exists) {
@@ -65,7 +64,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
 
 
-             return Container(
+              return Container(
                 decoration: const BoxDecoration(
                   // Gradient mirrors the logo: dark navy → cyan → brand green
                   gradient: LinearGradient(
@@ -86,10 +85,6 @@ class _AppDrawerState extends State<AppDrawer> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-
-
-
-
                     // Avatar circle — shows profile photo if set, else initial.
                     CircleAvatar(
                       radius: 32,
@@ -114,11 +109,6 @@ class _AppDrawerState extends State<AppDrawer> {
                     ),
                     const SizedBox(height: 6),
 
-
-
-
-
-
                     // Full name.
                     Text(
                       userName.isNotEmpty ? userName : userEmail,
@@ -138,12 +128,9 @@ class _AppDrawerState extends State<AppDrawer> {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-
-
-
                     const SizedBox(height: 6),
 
-                    // Role badge pill 
+                    // Role badge pill
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 2),
@@ -179,41 +166,29 @@ class _AppDrawerState extends State<AppDrawer> {
                   .doc(_currentUser?.uid)
                   .get(),
               builder: (context, snapshot) {
-                  // ── Salesperson menu items ─────────────────────────────
+                  // ── Admin menu items ───────────────────────────────────
                   return ListView(
                     padding: EdgeInsets.zero,
                     children: [
                       _drawerItem(
                         context,
-                        icon:  Icons.home_outlined,
-                        label: 'Dashboard',
-                        route: '/home',
+                        icon:  Icons.dashboard_outlined,
+                        label: 'Manager Dashboard',
+                        route: '/manager/dashboard',
                       ),
                       _drawerItem(
                         context,
                         icon:  Icons.inventory_2_outlined,
-                        label: 'Products',
-                        route: '/products', 
+                        label: 'Product Management',
+                        route: '/manager/products',
                       ),
                       _drawerItem(
                         context,
-                        icon:  Icons.leaderboard_outlined,
-                        label: 'Leaderboard',
-                        route: '/rankings',
+                        icon:  Icons.fact_check_outlined,
+                        label: 'Sale Management',
+                        route: '/manager/sales',
                       ),
-                      _drawerItem(
-                        context,
-                        icon:  Icons.person_outline,
-                        label: 'My Profile',
-                        route: '/profile',
-                      ),
-                      _drawerItem(
-                        context,
-                        icon:  Icons.add_shopping_cart,
-                        label: 'Submit Sale',
-                        route: '/saleclaim', 
-                        iconColor: kSecondaryColor,
-                      ),
+                      
                       const Divider(),
                       _logoutItem(context),
                     ],

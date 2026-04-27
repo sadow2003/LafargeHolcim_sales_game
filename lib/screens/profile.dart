@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import '../main.dart';
 import '_buildDrawer.dart';
 import '../widgets/gradient_app_bar.dart';
@@ -15,17 +17,84 @@ class ProfilePage extends StatefulWidget {
 
 
 class _ProfilePageState extends State<ProfilePage>{
-  final User? _currentUser = FirebaseAuth.instance.currentUser;
-  
+  final User _currentUser = FirebaseAuth.instance.currentUser!;
+  bool _uploadingPhoto = false;
+  String? _photoUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhotoUrl();
+  }
+
+  Future<void> _loadPhotoUrl() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUser.uid)
+        .get();
+    if (doc.exists && mounted) {
+      setState(() {
+        _photoUrl = (doc.data() as Map<String, dynamic>)['photoUrl'];
+      });
+    }
+  }
+
+  Future<void> _pickAndUploadPhoto(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, imageQuality: 75);
+    if (picked == null) return;
+
+    setState(() => _uploadingPhoto = true);
+    try {
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_photos/${_currentUser.uid}.jpg');
+      await ref.putData(await picked.readAsBytes());
+      final url = await ref.getDownloadURL();
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUser.uid)
+          .update({'photoUrl': url});
+      if (mounted) setState(() => _photoUrl = url);
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
+  void _showPhotoSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadPhoto(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadPhoto(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    //check if the user is login or not throws an error message if not
-    if(_currentUser == null){
-      return const Scaffold(
-        body:Center(child:Text('no authentication, please log in')),
-      );
-    }
-
     return Scaffold(
       appBar: GradientAppBar(title: 'My Profile'),
       drawer: const AppDrawer(),
@@ -55,6 +124,7 @@ class _ProfilePageState extends State<ProfilePage>{
           //if total points is not there then you can use the old ponits if they also not there use 0
           final totalPoints = data['totalPoints'] ?? data['points'] ?? 0;
           final rank        = data['rank']        ?? 0;
+          final photoUrl    = _photoUrl ?? data['photoUrl'];
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -62,17 +132,40 @@ class _ProfilePageState extends State<ProfilePage>{
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
               // ── Avatar ───────────────────────────────────────────────
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: kPrimaryColor,
-                  child: Text(
-                    // Show the first letter of the first name as an avatar.
-                    firstName.isNotEmpty ? firstName[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontSize: 40,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                GestureDetector(
+                  onTap: _showPhotoSourceDialog,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: kPrimaryColor,
+                        backgroundImage: photoUrl != null
+                            ? NetworkImage(photoUrl as String)
+                            : null,
+                        child: _uploadingPhoto
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : photoUrl == null
+                                ? Text(
+                                    firstName.isNotEmpty ? firstName[0].toUpperCase() : '?',
+                                    style: const TextStyle(
+                                      fontSize: 40,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : null,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: kSecondaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                      ),
+                    ],
                   ),
                 ),
 
@@ -180,7 +273,7 @@ class _ProfilePageState extends State<ProfilePage>{
 
       stream: FirebaseFirestore.instance
           .collection('sales')
-          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('userId', isEqualTo: _currentUser.uid)
           .orderBy('createdAt', descending: true) // Newest first
           .snapshots(),
       builder: (context, snapshot) {

@@ -250,7 +250,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
       //message of confirmation
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Sale submitted! Waiting for admin approval.'),
+          content: Text('Sale submitted! Waiting for manager approval.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -587,7 +587,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
               const Text(
-                'Your sale is going to be reviewed by an admin after submitting, please wait until then',
+                'Your sale is going to be reviewed by an manager after submitting, please wait until then',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),

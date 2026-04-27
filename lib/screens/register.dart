@@ -5,6 +5,7 @@ import '../main.dart';
 import '../widgets/gradient_app_bar.dart';
 
 const String _kadminScreat = 'admin123';
+const String _kManagerScreat = 'manager123';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -36,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedRole = 'salesperson';
 
   // The two allowed roles, shown in the dropdown menu.
-  final List<String> _roles = ['salesperson', 'admin'];
+  final List<String> _roles = ['salesperson', 'admin', 'manager'];
 
   @override
   void dispose() {
@@ -112,6 +113,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_selectedRole == 'admin' && _adminSecretController.text != _kadminScreat) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid admin secret key')),
+      );
+      return;
+    }
+    if (_selectedRole == 'manager' && _adminSecretController.text != _kManagerScreat) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid manager secret key')),
       );
       return;
     }
@@ -287,9 +294,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ],
 
                 const SizedBox(height: 16),
+                // ── Manager Secret Code (only shown when Manager is selected) ───
+                if (_selectedRole == 'manager') ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _adminSecretController,
+                    obscureText: !_adminSecretVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Manager Secret Key',
+                      prefixIcon: const Icon(Icons.lock_outlined),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _adminSecretVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() => _adminSecretVisible = !_adminSecretVisible);
+                        },
+                      ),
+                    ),
+                    validator: (value) {
+                      if (_selectedRole == 'manager' &&
+                          (value == null || value.trim().isEmpty)) {
+                        return 'Manager secret key is required';
+                      }
+                      return null;//null means no errors
+                    },
+                  ),
+                ],
 
-
-
+                const SizedBox(height: 16),
                 // ── Password ───────────────────────────────────────────────
                 TextFormField(
                   controller: _passwordController,

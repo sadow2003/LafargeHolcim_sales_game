@@ -165,6 +165,10 @@ class _LoginPageState extends State<LoginPage> {
       if (role == 'admin') {
         // Admins go to the admin dashboard
         Navigator.pushReplacementNamed(context, '/admin/dashboard');
+      } 
+       else if (role == 'manager') {
+        // Managers go to the manager dashboard
+        Navigator.pushReplacementNamed(context, '/manager/dashboard');
       } else {
         // Salespeople go to the Rankings screen.
         Navigator.pushReplacementNamed(context, '/rankings');
