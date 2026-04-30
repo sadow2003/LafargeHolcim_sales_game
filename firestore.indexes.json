@@ -54,6 +54,15 @@
         { "fieldPath": "role",      "order": "ASCENDING" },
         { "fieldPath": "firstName", "order": "ASCENDING" }
       ]
+    },
+
+    {
+      "collectionGroup": "broadcasts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type",      "order": "ASCENDING"  },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
 
   ],

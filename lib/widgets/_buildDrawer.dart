@@ -161,6 +161,10 @@ class _AppDrawerState extends State<AppDrawer> {
               icon: Icons.people_outline,
               label: 'User Management',
               route: '/admin/users'),
+          _drawerItem(context,
+              icon: Icons.tv_outlined,
+              label: 'Broadcast',
+              route: '/broadcast'),
         ];
       case 'manager':
         return [
@@ -176,6 +180,10 @@ class _AppDrawerState extends State<AppDrawer> {
               icon: Icons.fact_check_outlined,
               label: 'Sale Management',
               route: '/manager/sales'),
+          _drawerItem(context,
+              icon: Icons.tv_outlined,
+              label: 'Broadcast',
+              route: '/broadcast'),
         ];
       default: // salesperson
         return [

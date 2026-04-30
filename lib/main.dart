@@ -16,7 +16,7 @@ import 'package:lafargeholcim_sales_game/screens/admin/admin_users_page.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_product_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_sales_managment.dart';
-import 'package:lafargeholcim_sales_game/screens/salesperon/broadcast.dart';
+import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
 
 //primary colors of the application — LafargeHolcim brand palette
 const Color kPrimaryColor   = Color(0xFF1B3A6B); // dark navy blue

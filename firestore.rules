@@ -107,6 +107,30 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── broadcasts collection ─────────────────────────────────────────────
+    // Path: /broadcasts/{broadcastId}
+    match /broadcasts/{broadcastId} {
+
+      // READ: Any logged-in user can read all broadcasts (shared feed).
+      allow read: if isAuthenticated();
+
+      // CREATE: Any logged-in user can post a broadcast,
+      //         BUT the authorId in the document MUST match their own UID.
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid;
+
+      // UPDATE: The author can update their own broadcast (e.g. reactions toggled by anyone).
+      //         Any logged-in user can update the reactions field only.
+      allow update: if isAuthenticated() && (
+        resource.data.authorId == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+      );
+
+      // DELETE: Only the author or an admin can delete a broadcast.
+      allow delete: if isAuthenticated() &&
+        (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
     // ── notifications collection ──────────────────────────────────────────
     // Path: /notifications/{notificationId}
     match /notifications/{notificationId} {

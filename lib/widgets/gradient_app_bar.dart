@@ -8,6 +8,7 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool automaticallyImplyLeading;
   final Widget? leading;
   final List<Widget>? actions;
+  final PreferredSizeWidget? bottom;
 
   const GradientAppBar({
     super.key,
@@ -15,11 +16,14 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.automaticallyImplyLeading = true,
     this.leading,
     this.actions,
+    this.bottom,
   });
 
 //Tell exacly how tall is the appbar
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(
+        kToolbarHeight + (bottom?.preferredSize.height ?? 0),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +32,7 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: automaticallyImplyLeading,
       leading: leading,
       actions: actions,
+      bottom: bottom,
       // Transparent so the flexibleSpace gradient shows through.
       backgroundColor: Colors.transparent,
       foregroundColor: Colors.white,
