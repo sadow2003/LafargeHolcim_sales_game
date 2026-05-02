@@ -63,6 +63,15 @@
         { "fieldPath": "type",      "order": "ASCENDING"  },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+
+    {
+      "collectionGroup": "userAchievements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId",      "order": "ASCENDING"  },
+        { "fieldPath": "unlockedAt",  "order": "DESCENDING" }
+      ]
     }
 
   ],

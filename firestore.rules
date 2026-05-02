@@ -131,6 +131,36 @@ service cloud.firestore {
         (resource.data.authorId == request.auth.uid || isAdmin());
     }
 
+    // ── achievements collection ───────────────────────────────────────────
+    // Path: /achievements/{achievementId}
+    match /achievements/{achievementId} {
+
+      // READ: Any logged-in user can view achievements (salesperson screen).
+      allow read: if isAuthenticated();
+
+      // WRITE (create/update/delete): Admins and managers can manage achievements.
+      allow write: if isAdminOrManager();
+    }
+
+    // ── userAchievements collection ───────────────────────────────────────
+    // Path: /userAchievements/{docId}
+    match /userAchievements/{docId} {
+
+      // READ: A salesperson can read their own unlocked achievements.
+      //       Admins and managers can read all (for analytics / leaderboard).
+      allow read: if isAuthenticated() &&
+        (isAdminOrManager() || resource.data.userId == request.auth.uid);
+
+      // CREATE: A salesperson can unlock for themselves; managers/admins can award to anyone.
+      allow create: if isAuthenticated() &&
+        (isAdminOrManager() || request.resource.data.userId == request.auth.uid);
+
+      // UPDATE: Not allowed.
+      // DELETE: Managers/admins can revoke an achievement.
+      allow update: if false;
+      allow delete: if isAdminOrManager();
+    }
+
     // ── notifications collection ──────────────────────────────────────────
     // Path: /notifications/{notificationId}
     match /notifications/{notificationId} {

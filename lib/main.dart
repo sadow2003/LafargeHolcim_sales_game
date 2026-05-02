@@ -17,6 +17,8 @@ import 'package:lafargeholcim_sales_game/screens/manager/manager_dashboard.dart'
 import 'package:lafargeholcim_sales_game/screens/manager/manager_product_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_sales_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/achievements.dart';
+import 'package:lafargeholcim_sales_game/screens/manager/achievement_management/achievements_management_page.dart';
 
 //primary colors of the application — LafargeHolcim brand palette
 const Color kPrimaryColor   = Color(0xFF1B3A6B); // dark navy blue
@@ -109,7 +111,9 @@ class MyApp extends StatelessWidget {
         '/manager/dashboard': (context) => const ManagerDashboard(),
         '/manager/products': (context) => const ManagerProductsPage(),
         '/manager/sales':    (context) => const ManagerSalesManagment(),
-        '/broadcast':        (context) => const BroadcastScreen(),
+        '/broadcast':              (context) => const BroadcastScreen(),
+        '/achievements':           (context) => const AchievementScreen(),
+        '/manager/achievements':   (context) => const AchievementsManagementPage(),
       },
     );
   }

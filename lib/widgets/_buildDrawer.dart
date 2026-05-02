@@ -167,6 +167,7 @@ class _AppDrawerState extends State<AppDrawer> {
               route: '/broadcast'),
         ];
       case 'manager':
+
         return [
           _drawerItem(context,
               icon: Icons.dashboard_outlined,
@@ -180,6 +181,10 @@ class _AppDrawerState extends State<AppDrawer> {
               icon: Icons.fact_check_outlined,
               label: 'Sale Management',
               route: '/manager/sales'),
+          _drawerItem(context,
+              icon: Icons.emoji_events_outlined,
+              label: 'Achievements',
+              route: '/manager/achievements'),
           _drawerItem(context,
               icon: Icons.tv_outlined,
               label: 'Broadcast',
@@ -208,6 +213,10 @@ class _AppDrawerState extends State<AppDrawer> {
               label: 'Submit Sale',
               route: '/saleclaim',
               iconColor: kSecondaryColor),
+          _drawerItem(context,
+              icon: Icons.emoji_events_outlined,
+              label: 'Achievements',
+              route: '/achievements'),
           _drawerItem(context,
               icon: Icons.tv_outlined,
               label: 'Broadcast',

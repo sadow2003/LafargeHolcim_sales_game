@@ -58,6 +58,7 @@ class BroadcastFeed extends StatelessWidget {
               data: data,
               currentUid: currentUid,
               currentUserRole: currentUserRole,
+              playConfetti: i == 0,
             );
           },
         );

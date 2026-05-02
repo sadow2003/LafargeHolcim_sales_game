@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';
+import '../broadcast/broadcast_milestones.dart';
 
 
 class ManagerSalesManagment extends StatefulWidget {
@@ -200,6 +202,9 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
       // Step 5: Recalculate ALL salesperson ranks.
       await _recalculateRanks();
 
+      // Step 6: Check if the salesperson crossed a product-count milestone.
+      await _checkMilestone(userId, data['userName'] as String? ?? '', quantity);
+
       if (!mounted) return;
 
 
@@ -252,6 +257,49 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
 
 
 
+
+  // ── Milestone Check ───────────────────────────────────────────────────────
+  Future<void> _checkMilestone(String userId, String userName, int approvedQty) async {
+    final db = FirebaseFirestore.instance;
+
+    // Sum all previously approved quantities for this user (excluding the just-approved sale,
+    // which is already updated). We use the current total and subtract approvedQty to get the
+    // previous total.
+    final prevSnap = await db
+        .collection('sales')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'approved')
+        .get();
+
+      // Calculate the new total products sold after this approval.
+    final newTotal = prevSnap.docs
+        .fold<int>(0, (acc, d) => acc + ((d.data()['quantity'] as num?)?.toInt() ?? 0));
+    final prevTotal = newTotal - approvedQty;
+
+    // Check if they crossed a milestone with this sale. If so, broadcast it to the team.
+    final milestone = crossedMilestone(prevTotal, newTotal);
+    if (milestone == null) return;
+
+    // Fetch manager info for the broadcast message.
+    final managerUid  = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final managerDoc  = await db.collection('users').doc(managerUid).get();
+    final managerData = managerDoc.data() ?? {};
+    final managerName = '${managerData['firstName'] ?? ''} ${managerData['lastName'] ?? ''}'.trim();
+
+    await db.collection('broadcasts').add({
+      'authorId':        managerUid,
+      'authorName':      managerName.isNotEmpty ? managerName : 'System',
+      'authorRole':      'manager',
+      'type':            'milestone',
+      'isMilestone':     true,
+      'awardedUserId':   userId,
+      'awardedUserName': userName,
+      'milestoneCount':  milestone,
+      'content':         '$userName just sold $milestone product${milestone == 1 ? '' : 's'}!',
+      'reactions':       {},
+      'createdAt':       FieldValue.serverTimestamp(),
+    });
+  }
 
   // ── Recalculate Ranks ─────────────────────────────────────────────────────
 

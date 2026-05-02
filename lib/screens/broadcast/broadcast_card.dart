@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
+import 'broadcast_achievement.dart';
 import 'broadcast_constants.dart';
+import 'broadcast_milestones.dart';
 import 'broadcast_edit_sheet.dart';
 
 
@@ -10,6 +12,7 @@ class BroadcastCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final String? currentUid;
   final String currentUserRole;
+  final bool playConfetti;
 
 //the constructor
   const BroadcastCard({
@@ -18,6 +21,7 @@ class BroadcastCard extends StatelessWidget {
     required this.data,
     required this.currentUid,
     required this.currentUserRole,
+    this.playConfetti = false,
   });
 //the time ago feature
   String _timeAgo(Timestamp? ts) {
@@ -100,6 +104,31 @@ class BroadcastCard extends StatelessWidget {
 //build method that constructs the UI
   @override
   Widget build(BuildContext context) {
+    
+    
+    
+    // Achievement-award posts get their own special card with confetti
+    if (data['isAchievementAward'] == true) {
+      return AchievementBroadcastCard(
+        docId:           docId,
+        data:            data,
+        currentUid:      currentUid,
+        currentUserRole: currentUserRole,
+        playConfetti:    playConfetti,
+      );
+    }
+
+    // Milestone posts get a special card with confetti
+    if (data['isMilestone'] == true) {
+      return MilestoneBroadcastCard(
+        docId:           docId,
+        data:            data,
+        currentUid:      currentUid,
+        currentUserRole: currentUserRole,
+        playConfetti:    playConfetti,
+      );
+    }
+
     final type = (data['type'] as String? ?? 'general').toLowerCase();
     
     final typeColor =

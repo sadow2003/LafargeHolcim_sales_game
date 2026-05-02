@@ -23,7 +23,7 @@ class PostBroadcastSheet extends StatefulWidget {
 }
 
 class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
-  String _selectedType = 'achievement';
+  String _selectedType = 'general';
   final _contentCtrl = TextEditingController();
   bool _posting = false;
 
