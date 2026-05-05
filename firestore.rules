@@ -161,6 +161,52 @@ service cloud.firestore {
       allow delete: if isAdminOrManager();
     }
 
+    // ── quests collection ─────────────────────────────────────────────────
+    // Path: /quests/{questId}
+    match /quests/{questId} {
+
+      // READ: Any logged-in user can view quests (salesperson screen).
+      allow read: if isAuthenticated();
+
+      // WRITE (create/update/delete): Only managers and admins can manage quests.
+      allow write: if isAdminOrManager();
+    }
+
+    // ── userQuests collection ─────────────────────────────────────────────
+    // Path: /userQuests/{docId}  (docId = {uid}_{questId}_{periodKey})
+    //
+    // We check the document ID prefix instead of resource.data.userId so that
+    // reads of non-existent documents (where resource is null) never crash.
+    match /userQuests/{docId} {
+
+      // READ: The docId starts with the user's UID, or admin/manager.
+      allow read: if isAuthenticated() &&
+        (isAdminOrManager() || docId.matches(request.auth.uid + '_.*'));
+
+      // CREATE: userId field in the new document must match the caller.
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // UPDATE: Check docId prefix (same pattern as read) so salesperson can
+      //         mark their own quest as pointsAwarded without needing resource.data.
+      allow update: if isAuthenticated() &&
+        (isAdminOrManager() || docId.matches(request.auth.uid + '_.*'));
+
+      // DELETE: Only admins and managers can delete quest progress records.
+      allow delete: if isAdminOrManager();
+    }
+
+    // ── userLogins collection ─────────────────────────────────────────────
+    // Path: /userLogins/{docId}  (docId = {uid}_{dateKey})
+    // Used by new-format daily_login quest conditions to track daily presence.
+    match /userLogins/{docId} {
+      allow read: if isAuthenticated() &&
+        (isAdminOrManager() || docId.matches(request.auth.uid + '_.*'));
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
     // ── notifications collection ──────────────────────────────────────────
     // Path: /notifications/{notificationId}
     match /notifications/{notificationId} {

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
-import 'broadcast_achievement.dart';
 import 'broadcast_constants.dart';
 import 'broadcast_milestones.dart';
 import 'broadcast_edit_sheet.dart';
@@ -107,17 +106,6 @@ class BroadcastCard extends StatelessWidget {
     
     
     
-    // Achievement-award posts get their own special card with confetti
-    if (data['isAchievementAward'] == true) {
-      return AchievementBroadcastCard(
-        docId:           docId,
-        data:            data,
-        currentUid:      currentUid,
-        currentUserRole: currentUserRole,
-        playConfetti:    playConfetti,
-      );
-    }
-
     // Milestone posts get a special card with confetti
     if (data['isMilestone'] == true) {
       return MilestoneBroadcastCard(

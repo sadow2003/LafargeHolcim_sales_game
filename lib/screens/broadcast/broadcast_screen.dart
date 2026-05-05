@@ -22,7 +22,7 @@ class _BroadcastScreenState extends State<BroadcastScreen>
   late TabController _tabController;
   String _currentUserRole = 'salesperson';
   // Define the tabs for filtering broadcasts
-  static const _tabs = ['All', 'Achievement', 'Goal', 'Milestone'];
+  static const _tabs = ['All', 'Milestone'];
 
   @override
   void initState() {

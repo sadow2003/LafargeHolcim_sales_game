@@ -166,7 +166,9 @@ class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
             controller: _contentCtrl,
             maxLines: 4,
             maxLength: 280,
+
             style: const TextStyle(color: Colors.white),
+           
             decoration: InputDecoration(
               hintText: broadcastHints[_selectedType],
               hintStyle: const TextStyle(color: Colors.white38),
@@ -177,15 +179,21 @@ class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
                 borderSide:
                     BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
+
+
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide:
                     BorderSide(color: Colors.white.withValues(alpha: 0.15)),
               ),
+
+
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: kSecondaryColor),
               ),
+
+              
               counterStyle: const TextStyle(color: Colors.white38),
             ),
           ),

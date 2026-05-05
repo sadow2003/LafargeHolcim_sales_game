@@ -17,8 +17,9 @@ import 'package:lafargeholcim_sales_game/screens/manager/manager_dashboard.dart'
 import 'package:lafargeholcim_sales_game/screens/manager/manager_product_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/manager/manager_sales_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
-import 'package:lafargeholcim_sales_game/screens/salesperon/achievements.dart';
-import 'package:lafargeholcim_sales_game/screens/manager/achievement_management/achievements_management_page.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone_screen.dart';
+//import 'package:lafargeholcim_sales_game/screens/salesperon/quest.dart';
+//import 'package:lafargeholcim_sales_game/screens/manager/quest_management/quest_managment_page.dart';
 
 //primary colors of the application — LafargeHolcim brand palette
 const Color kPrimaryColor   = Color(0xFF1B3A6B); // dark navy blue
@@ -112,8 +113,9 @@ class MyApp extends StatelessWidget {
         '/manager/products': (context) => const ManagerProductsPage(),
         '/manager/sales':    (context) => const ManagerSalesManagment(),
         '/broadcast':              (context) => const BroadcastScreen(),
-        '/achievements':           (context) => const AchievementScreen(),
-        '/manager/achievements':   (context) => const AchievementsManagementPage(),
+        '/milestones':             (context) => const MilestoneScreen(),
+        //'/quests':                     (context) => const QuestScreen(),
+        //'/manager/quests_management': (context) => const QuestsManagementPage(),
       },
     );
   }
