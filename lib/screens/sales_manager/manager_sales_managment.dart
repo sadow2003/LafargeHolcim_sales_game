@@ -289,7 +289,7 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
     await db.collection('broadcasts').add({
       'authorId':        managerUid,
       'authorName':      managerName.isNotEmpty ? managerName : 'System',
-      'authorRole':      'manager',
+      'authorRole':      'sales-manager',
       'type':            'milestone',
       'isMilestone':     true,
       'awardedUserId':   userId,

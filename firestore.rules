@@ -1,19 +1,25 @@
 // firestore.rules — Controls WHO can read and write WHAT in Firestore.
 //
 // RULES SUMMARY:
-//   users     collection → Any logged-in user can READ (needed for leaderboard).
-//                          Users can only WRITE their own document.
-//                          Admins can WRITE any user document (e.g. updating rank).
-//                          Managers can UPDATE user documents (e.g. updating rank after sale approval).
+//   users         → Any logged-in user can READ (leaderboard).
+//                   Users can WRITE their own document. Admins can WRITE any.
+//                   Managers can UPDATE any (rank recalculation after approval).
 //
-//   products  collection → Any logged-in user can READ (product catalog).
-//                          Admins AND managers can create/update/delete products.
+//   products      → Any logged-in user can READ.
+//                   Admins and managers can create/update/delete.
 //
-//   sales     collection → Users can READ only their own sales.
-//                          Admins AND managers can READ all sales.
-//                          Any logged-in user can CREATE a sale (with their own userId).
-//                          Admins AND managers can UPDATE a sale (approve/reject).
-//                          Nobody can DELETE a sale (audit trail).
+//   sales         → Users can READ only their own. Admins/managers read all.
+//                   Any logged-in user can CREATE (with their own userId).
+//                   Admins/managers can UPDATE (approve/reject). Nobody deletes.
+//
+//   broadcasts    → Any logged-in user can READ and CREATE (own authorId).
+//                   Author or admin can DELETE. Anyone can react.
+//
+//   notifications → Users can READ and mark-as-read only their own.
+//                   Any authenticated user can CREATE.
+//
+//   settings      → Any logged-in user can READ.
+//                   Only market-managers and admins can WRITE.
 
 rules_version = '2';
 
@@ -21,211 +27,86 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Helper Functions ──────────────────────────────────────────────────
-    // These functions are reused in the rules below to keep things readable.
 
-    // Is the request coming from a logged-in user?
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Is the logged-in user the same as the given userId?
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    // Is the logged-in user an admin?
-    // This reads the user's own Firestore document to check their role.
-    // Note: get() costs one Firestore read per rule evaluation.
     function isAdmin() {
       return isAuthenticated() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Is the logged-in user a manager?
     function isManager() {
       return isAuthenticated() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'manager';
     }
 
-    // Is the logged-in user an admin OR a manager?
+    function isMarketManager() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'market-manager';
+    }
+
     function isAdminOrManager() {
       return isAdmin() || isManager();
     }
 
     // ── users collection ──────────────────────────────────────────────────
-    // Path: /users/{userId}
     match /users/{userId} {
-
-      // READ: Any logged-in user can read any user profile.
-      // This is needed so the leaderboard can show all salespeople's names and points.
       allow read: if isAuthenticated();
-
-      // CREATE: A user can create their own document (registration),
-      //         OR an admin can create any user document (admin user management).
       allow create: if isAuthenticated() && (isOwner(userId) || isAdmin());
-
-      // UPDATE: A user can update their own document (e.g. profile changes),
-      //         OR an admin can update any user document (e.g. updating rank),
-      //         OR a manager can update any user document (e.g. updating rank after sale approval).
       allow update: if isAuthenticated() && (isOwner(userId) || isAdminOrManager());
-
-      // DELETE: Only admins can delete user documents. Managers cannot delete users.
-      allow delete: if isAdmin() && !isOwner(userId); // Prevent self-deletion
+      allow delete: if isAdmin() && !isOwner(userId);
     }
 
     // ── products collection ───────────────────────────────────────────────
-    // Path: /products/{productId}
     match /products/{productId} {
-
-      // READ: Any logged-in user can view the product catalog.
       allow read: if isAuthenticated();
-
-      // WRITE (create/update/delete): Admins and managers can manage products.
       allow write: if isAdminOrManager();
     }
 
     // ── sales collection ──────────────────────────────────────────────────
-    // Path: /sales/{saleId}
     match /sales/{saleId} {
-
-      // READ: A salesperson can only read their own sales.
-      //       Admins and managers can read ALL sales (needed for the approval screen).
       allow read: if isAuthenticated() &&
         (isAdminOrManager() || resource.data.userId == request.auth.uid);
-
-      // CREATE: Any logged-in user can submit a sale,
-      //         BUT the userId in the document MUST match their own UID.
-      //         This prevents a user from submitting sales under someone else's name.
       allow create: if isAuthenticated() &&
         request.resource.data.userId == request.auth.uid;
-
-      // UPDATE: Admins and managers can update a sale (to approve or reject it).
-      //         Salespeople cannot modify submitted claims.
       allow update: if isAdminOrManager();
-
-      // DELETE: Nobody can delete sales — they serve as an audit trail.
       allow delete: if false;
     }
 
     // ── broadcasts collection ─────────────────────────────────────────────
-    // Path: /broadcasts/{broadcastId}
     match /broadcasts/{broadcastId} {
-
-      // READ: Any logged-in user can read all broadcasts (shared feed).
       allow read: if isAuthenticated();
-
-      // CREATE: Any logged-in user can post a broadcast,
-      //         BUT the authorId in the document MUST match their own UID.
       allow create: if isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid;
-
-      // UPDATE: The author can update their own broadcast (e.g. reactions toggled by anyone).
-      //         Any logged-in user can update the reactions field only.
       allow update: if isAuthenticated() && (
         resource.data.authorId == request.auth.uid ||
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
       );
-
-      // DELETE: Only the author or an admin can delete a broadcast.
       allow delete: if isAuthenticated() &&
         (resource.data.authorId == request.auth.uid || isAdmin());
     }
 
-    // ── achievements collection ───────────────────────────────────────────
-    // Path: /achievements/{achievementId}
-    match /achievements/{achievementId} {
-
-      // READ: Any logged-in user can view achievements (salesperson screen).
-      allow read: if isAuthenticated();
-
-      // WRITE (create/update/delete): Admins and managers can manage achievements.
-      allow write: if isAdminOrManager();
-    }
-
-    // ── userAchievements collection ───────────────────────────────────────
-    // Path: /userAchievements/{docId}
-    match /userAchievements/{docId} {
-
-      // READ: A salesperson can read their own unlocked achievements.
-      //       Admins and managers can read all (for analytics / leaderboard).
-      allow read: if isAuthenticated() &&
-        (isAdminOrManager() || resource.data.userId == request.auth.uid);
-
-      // CREATE: A salesperson can unlock for themselves; managers/admins can award to anyone.
-      allow create: if isAuthenticated() &&
-        (isAdminOrManager() || request.resource.data.userId == request.auth.uid);
-
-      // UPDATE: Not allowed.
-      // DELETE: Managers/admins can revoke an achievement.
-      allow update: if false;
-      allow delete: if isAdminOrManager();
-    }
-
-    // ── quests collection ─────────────────────────────────────────────────
-    // Path: /quests/{questId}
-    match /quests/{questId} {
-
-      // READ: Any logged-in user can view quests (salesperson screen).
-      allow read: if isAuthenticated();
-
-      // WRITE (create/update/delete): Only managers and admins can manage quests.
-      allow write: if isAdminOrManager();
-    }
-
-    // ── userQuests collection ─────────────────────────────────────────────
-    // Path: /userQuests/{docId}  (docId = {uid}_{questId}_{periodKey})
-    //
-    // We check the document ID prefix instead of resource.data.userId so that
-    // reads of non-existent documents (where resource is null) never crash.
-    match /userQuests/{docId} {
-
-      // READ: The docId starts with the user's UID, or admin/manager.
-      allow read: if isAuthenticated() &&
-        (isAdminOrManager() || docId.matches(request.auth.uid + '_.*'));
-
-      // CREATE: userId field in the new document must match the caller.
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid;
-
-      // UPDATE: Check docId prefix (same pattern as read) so salesperson can
-      //         mark their own quest as pointsAwarded without needing resource.data.
-      allow update: if isAuthenticated() &&
-        (isAdminOrManager() || docId.matches(request.auth.uid + '_.*'));
-
-      // DELETE: Only admins and managers can delete quest progress records.
-      allow delete: if isAdminOrManager();
-    }
-
-    // ── userLogins collection ─────────────────────────────────────────────
-    // Path: /userLogins/{docId}  (docId = {uid}_{dateKey})
-    // Used by new-format daily_login quest conditions to track daily presence.
-    match /userLogins/{docId} {
-      allow read: if isAuthenticated() &&
-        (isAdminOrManager() || docId.matches(request.auth.uid + '_.*'));
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
     // ── notifications collection ──────────────────────────────────────────
-    // Path: /notifications/{notificationId}
     match /notifications/{notificationId} {
-
-      // READ: A user can only read their own notifications.
       allow read: if isAuthenticated() &&
         resource.data.userId == request.auth.uid;
-
-      // CREATE: Admins and managers can create notifications (sent on approve/reject).
-      allow create: if isAdminOrManager();
-
-      // UPDATE: A user can only mark their own notifications as read.
-      //         They cannot change any other field.
+      allow create: if isAuthenticated();
       allow update: if isAuthenticated() &&
         resource.data.userId == request.auth.uid &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
-
-      // DELETE: Not allowed.
       allow delete: if false;
+    }
+
+    // ── settings collection ───────────────────────────────────────────────
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isMarketManager() || isAdmin();
     }
 
   }

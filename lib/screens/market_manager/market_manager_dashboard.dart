@@ -5,8 +5,8 @@ import '../../widgets/gradient_app_bar.dart';
 import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 
 
-class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({super.key});
+class MarketManagerDashboard extends StatelessWidget {
+  const MarketManagerDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +14,7 @@ class AdminDashboard extends StatelessWidget {
 
 
       appBar: GradientAppBar(
-        title: 'Admin Dashboard',
-        // The back arrow is hidden — admins should use the Logout button in the drawer.
+        title: 'Market Manager Dashboard',
         automaticallyImplyLeading: false,
         leading: Builder(
           builder: (context) => IconButton(
@@ -27,7 +26,7 @@ class AdminDashboard extends StatelessWidget {
 
 
 
-      //Drawer of admin
+      //Drawer of market manager
       drawer: const AppDrawer(),
 
 
@@ -37,6 +36,7 @@ class AdminDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             // ── Welcome Banner ──────────────────────────────────────────
             Container(
               width: double.infinity,
@@ -47,13 +47,11 @@ class AdminDashboard extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
-
-
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Admin Panel',
+                    'Market Manager Panel',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -61,10 +59,8 @@ class AdminDashboard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 4),
-
-
                   Text(
-                    'Manage users of the application.',
+                    'Manage sales events and campaign periods.',
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
@@ -72,11 +68,11 @@ class AdminDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // ── Live Stats ──────────────────────────────────────────────
-            
-            
+
+
+            // ── Active Event Status ─────────────────────────────────────
             const Text(
-              'Overview',
+              'Active Sales Event',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -85,29 +81,10 @@ class AdminDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-
-
-            // Row of 3 stat cards (Users / Pending / Total Sales).
-            Row(
-              children: [
-
-
-                Expanded(child: _StatCard(
-                  label: 'Users',
-                  icon:  Icons.people,
-                  color: kPrimaryColor,
-                  // Count users with role = salesperson
-                  stream: FirebaseFirestore.instance
-                      .collection('users')
-                      .where('role', isEqualTo: 'salesperson')
-                      .snapshots(),
-                )),
-
-
-                const SizedBox(width: 10),
-              ],
-            ),
+            const _ActiveEventCard(),
             const SizedBox(height: 28),
+
+
 
             // ── Navigation Tiles ────────────────────────────────────────
             const Text(
@@ -120,13 +97,13 @@ class AdminDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Manage Users tile.
+            // Manage Events tile.
             _NavTile(
-              icon:     Icons.people_outline,
-              title:    'Manage Users',
-              subtitle: 'Add, edit, or remove user accounts',
-              color:    Colors.deepPurple,
-              onTap:    () => Navigator.pushNamed(context, '/admin/users'),
+              icon:     Icons.event_outlined,
+              title:    'Event Management',
+              subtitle: 'Set the sales window for salespeople',
+              color:    kSecondaryColor,
+              onTap:    () => Navigator.pushNamed(context, '/market-manager/events'),
             ),
           ],
         ),
@@ -135,52 +112,82 @@ class AdminDashboard extends StatelessWidget {
   }
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
-// Listens to a Firestore collection stream and shows the document count.
-class _StatCard extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final Stream<QuerySnapshot> stream;
 
-  const _StatCard({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.stream,
-  });
-//______Ui_______________________________________________________
+
+// ── Active Event Card ─────────────────────────────────────────────────────────
+// Shows the current sales event period from Firestore in real time.
+class _ActiveEventCard extends StatelessWidget {
+  const _ActiveEventCard();
+
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: stream,
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('settings')
+          .doc('salesEvent')
+          .snapshots(),
       builder: (context, snapshot) {
-        final count = snapshot.data?.docs.length ?? 0;
-        return Card(
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: Column(
-              children: [
-                Icon(icon, color: color, size: 28),
-                const SizedBox(height: 6),
-                Text(
-                  '$count',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                Text(label,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
-              ],
-            ),
-          ),
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final data = snapshot.data?.data() as Map<String, dynamic>?;
+
+        if (data == null) {
+          return _statusTile(
+            icon:     Icons.event_busy,
+            color:    Colors.grey,
+            title:    'No event scheduled',
+            subtitle: 'Go to Event Management to create one.',
+          );
+        }
+
+        final start  = (data['startDate'] as Timestamp).toDate();
+        final end    = (data['endDate']   as Timestamp).toDate();
+        final now    = DateTime.now();
+        // endDate is inclusive: allow the full last day
+        final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
+        final isLive = now.isAfter(start) && now.isBefore(endOfDay);
+        final isPast = now.isAfter(endOfDay);
+
+        return _statusTile(
+          icon: isLive
+              ? Icons.event_available
+              : (isPast ? Icons.event_busy : Icons.event_outlined),
+          color: isLive
+              ? Colors.green
+              : (isPast ? Colors.red : Colors.orange),
+          title: isLive
+              ? 'Sales window is OPEN'
+              : (isPast ? 'Sales window CLOSED' : 'Upcoming event'),
+          subtitle: '${_fmtDate(start)}  →  ${_fmtDate(end)}',
         );
       },
+    );
+  }
+
+  Widget _statusTile({
+    required IconData icon,
+    required Color    color,
+    required String   title,
+    required String   subtitle,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.12),
+          child: Icon(icon, color: color),
+        ),
+        title:    Text(title,    style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+      ),
     );
   }
 }
