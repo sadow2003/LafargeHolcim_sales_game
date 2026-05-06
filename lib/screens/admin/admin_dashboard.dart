@@ -64,7 +64,7 @@ class AdminDashboard extends StatelessWidget {
 
 
                   Text(
-                    'Manage users of the application.',
+                    'Manage products, users, and sales claims.',
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
@@ -105,6 +105,32 @@ class AdminDashboard extends StatelessWidget {
 
 
                 const SizedBox(width: 10),
+
+
+
+                Expanded(child: _StatCard(
+                  label: 'Pending',
+                  icon:  Icons.hourglass_top,
+                  color: kSecondaryColor,
+                  stream: FirebaseFirestore.instance
+                      .collection('sales')
+                      .where('status', isEqualTo: 'pending')
+                      .snapshots(),
+                )),
+
+
+                const SizedBox(width: 10),
+
+
+
+                Expanded(child: _StatCard(
+                  label: 'All Sales',
+                  icon:  Icons.receipt_long,
+                  color: Colors.green,
+                  stream: FirebaseFirestore.instance
+                      .collection('sales')
+                      .snapshots(),
+                )),
               ],
             ),
             const SizedBox(height: 28),
@@ -117,6 +143,26 @@ class AdminDashboard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: kPrimaryColor,
               ),
+            ),
+            const SizedBox(height: 12),
+
+            // Manage Products tile.
+            _NavTile(
+              icon:     Icons.inventory_2_outlined,
+              title:    'Manage Products',
+              subtitle: 'Add, edit, or remove products from the catalog',
+              color:    kPrimaryColor,
+              onTap:    () => Navigator.pushNamed(context, '/admin/products'),
+            ),
+            const SizedBox(height: 12),
+
+            // Approve Sales tile.
+            _NavTile(
+              icon:     Icons.fact_check_outlined,
+              title:    'Manage Sales',
+              subtitle: 'Manage the sales of salespeople',
+              color:    Colors.green.shade700,
+              onTap:    () => Navigator.pushNamed(context, '/admin/sales'),
             ),
             const SizedBox(height: 12),
 

@@ -134,7 +134,7 @@ class BroadcastCard extends StatelessWidget {
     final isOwn = data['authorId'] == currentUid;
     final canDelete = isOwn ||
         currentUserRole == 'admin' ||
-        currentUserRole == 'sales-manager';
+        currentUserRole == 'manager';
         // Generate initials for avatar
     final initials = authorName.isNotEmpty
         ? authorName

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
-import '../services/notification_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -163,19 +162,13 @@ class _LoginPageState extends State<LoginPage> {
 
       final role = doc.data()?['role'] ?? 'salesperson';
 
-      // Save this device's FCM token so Cloud Functions can notify it
-      await NotificationService.instance.saveTokenForCurrentUser();
-
       if (role == 'admin') {
         // Admins go to the admin dashboard
         Navigator.pushReplacementNamed(context, '/admin/dashboard');
       } 
-       else if (role == 'sales-manager') {
-        // Start listening so this device pops a notification when a sale is submitted
-        NotificationService.instance.startListeningForNotifications();
+       else if (role == 'manager') {
+        // Managers go to the manager dashboard
         Navigator.pushReplacementNamed(context, '/manager/dashboard');
-      } else if (role == 'market-manager') {
-        Navigator.pushReplacementNamed(context, '/market-manager/dashboard');
       } else {
         // Salespeople go to the Rankings screen.
         Navigator.pushReplacementNamed(context, '/rankings');

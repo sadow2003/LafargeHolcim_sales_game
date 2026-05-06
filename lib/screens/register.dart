@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import '../widgets/gradient_app_bar.dart';
 
-const String _kadminScreat         = 'admin123';
-const String _kManagerScreat       = 'manager123';
-const String _kMarketManagerSecret = 'marketmanager123';
+const String _kadminScreat = 'admin123';
+const String _kManagerScreat = 'manager123';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -38,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedRole = 'salesperson';
 
   // The two allowed roles, shown in the dropdown menu.
-  final List<String> _roles = ['salesperson', 'admin', 'sales-manager', 'market-manager'];
+  final List<String> _roles = ['salesperson', 'admin', 'manager'];
 
   @override
   void dispose() {
@@ -117,15 +116,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       return;
     }
-    if (_selectedRole == 'sales-manager' && _adminSecretController.text != _kManagerScreat) {
+    if (_selectedRole == 'manager' && _adminSecretController.text != _kManagerScreat) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid manager secret key')),
-      );
-      return;
-    }
-    if (_selectedRole == 'market-manager' && _adminSecretController.text != _kMarketManagerSecret) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid market manager secret key')),
       );
       return;
     }
@@ -301,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ],
 
                 // ── Manager Secret Code (only shown when Manager is selected) ───
-                if (_selectedRole == 'sales-manager') ...[
+                if (_selectedRole == 'manager') ...[
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _adminSecretController,
@@ -321,39 +314,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (_selectedRole == 'sales-manager' &&
+                      if (_selectedRole == 'manager' &&
                           (value == null || value.trim().isEmpty)) {
                         return 'Manager secret key is required';
-                      }
-                      return null;//null means no errors
-                    },
-                  ),
-                ],
-
-                // ── Market Manager Secret Code ──────────────────────────────
-                if (_selectedRole == 'market-manager') ...[
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _adminSecretController,
-                    obscureText: !_adminSecretVisible,
-                    decoration: InputDecoration(
-                      labelText: 'Market Manager Secret Key',
-                      prefixIcon: const Icon(Icons.lock_outlined),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _adminSecretVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() => _adminSecretVisible = !_adminSecretVisible);
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (_selectedRole == 'market-manager' &&
-                          (value == null || value.trim().isEmpty)) {
-                        return 'Market manager secret key is required';
                       }
                       return null;//null means no errors
                     },

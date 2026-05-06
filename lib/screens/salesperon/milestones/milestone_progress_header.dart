@@ -1,24 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-/// Generates the infinite milestone ladder: 1, 10, then ×10 each step.
-/// 1 → 10 → 100 → 1000 → 10000 → 100000 → …
-/// Always includes at least 3 milestones beyond [total].
-List<int> generateMilestones(int total) {
-  final result = <int>[1, 10];
-  var m = 100;
-  while (result.where((v) => v > total).length < 3) {
-    result.add(m);
-    m = m * 10;
-  }
-  return result;
-}
-
 class MilestoneProgressHeader extends StatelessWidget {
   final String uid;
 
   const MilestoneProgressHeader({super.key, required this.uid});
 
+  static const _milestones = [1, 10, 100, 1000, 10000];
+
+
+//_________UI ______  
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -27,6 +18,8 @@ class MilestoneProgressHeader extends StatelessWidget {
           .where('userId', isEqualTo: uid)
           .where('status', isEqualTo: 'approved')
           .snapshots(),
+      
+      // Calculate total products sold from the sales collection
       builder: (context, snap) {
         final total = (snap.data?.docs ?? []).fold<int>(
           0,
@@ -36,11 +29,21 @@ class MilestoneProgressHeader extends StatelessWidget {
                   .toInt(),
         );
 
-        final milestones = generateMilestones(total);
-        final next = milestones.firstWhere((m) => m > total);
-        final prev = milestones.lastWhere((m) => m <= total, orElse: () => 0);
-        final ratio = (total - prev) / (next - prev).clamp(1, double.infinity);
+        final next = _milestones.firstWhere(
+          (m) => m > total,
+          orElse: () => _milestones.last,
+        );
+        final prev = _milestones.lastWhere(
+          (m) => m <= total,
+          orElse: () => 0,
+        );
+        final alreadyMaxed = total >= _milestones.last;
+        final ratio = alreadyMaxed
+            ? 1.0
+            : (total - prev) / (next - prev).clamp(1, double.infinity);
 
+        
+        // A sleek header showing total products sold and progress towards the next milestone, with a dynamic gradient background and progress bar
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -52,19 +55,29 @@ class MilestoneProgressHeader extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(16),
           ),
+          
+          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              
+              
               Row(
                 children: [
                   const Icon(Icons.rocket_launch,
                       color: Color(0xFF8DC21F), size: 28),
+                  
+                  
                   const SizedBox(width: 10),
+                  
+                  
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Products Sold',
                           style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      
+                      
                       Text(
                         '$total sold',
                         style: const TextStyle(
@@ -75,17 +88,29 @@ class MilestoneProgressHeader extends StatelessWidget {
                       ),
                     ],
                   ),
+                  
+                  
                   const Spacer(),
-                  Text(
-                    'Next: $next',
-                    style: const TextStyle(
-                        color: Color(0xFF8DC21F),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600),
-                  ),
+                  
+                  
+                  if (!alreadyMaxed)
+                    Text(
+                      'Next: $next',
+                      style: const TextStyle(
+                          color: Color(0xFF8DC21F),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600),
+                    )
+                  else
+                    const Text('All milestones reached!',
+                        style: TextStyle(color: Color(0xFF8DC21F), fontSize: 12)),
                 ],
               ),
+              
+              
               const SizedBox(height: 12),
+              
+              
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
@@ -96,11 +121,16 @@ class MilestoneProgressHeader extends StatelessWidget {
                   minHeight: 10,
                 ),
               ),
+              
+              
               const SizedBox(height: 6),
-              Text(
-                '${next - total} more to reach the $next milestone',
-                style: const TextStyle(color: Colors.white60, fontSize: 12),
-              ),
+              
+              
+              if (!alreadyMaxed)
+                Text(
+                  '${next - total} more to reach the $next milestone',
+                  style: const TextStyle(color: Colors.white60, fontSize: 12),
+                ),
             ],
           ),
         );

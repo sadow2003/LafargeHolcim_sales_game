@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:lafargeholcim_sales_game/services/notification_service.dart';
 import 'package:lafargeholcim_sales_game/firebase_options.dart';
 import 'package:lafargeholcim_sales_game/screens/login.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/dashboard.dart';
@@ -11,15 +10,16 @@ import 'package:lafargeholcim_sales_game/screens/salesperon/rankings.dart';
 import 'package:lafargeholcim_sales_game/screens/register.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/sale_claim.dart';
 import 'package:lafargeholcim_sales_game/screens/admin/admin_dashboard.dart';
-import 'package:lafargeholcim_sales_game/screens/admin/user_management/user_management_page.dart';
-import 'package:lafargeholcim_sales_game/screens/sales_manager/manager_dashboard.dart';
-import 'package:lafargeholcim_sales_game/screens/sales_manager/manager_product_managment.dart';
-import 'package:lafargeholcim_sales_game/screens/sales_manager/manager_sales_managment.dart';
+import 'package:lafargeholcim_sales_game/screens/admin/admin_products_page.dart';
+import 'package:lafargeholcim_sales_game/screens/admin/admin_sales_page.dart';
+import 'package:lafargeholcim_sales_game/screens/admin/admin_users_page.dart';
+import 'package:lafargeholcim_sales_game/screens/manager/manager_dashboard.dart';
+import 'package:lafargeholcim_sales_game/screens/manager/manager_product_managment.dart';
+import 'package:lafargeholcim_sales_game/screens/manager/manager_sales_managment.dart';
 import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone_screen.dart';
-import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_dashboard.dart';
-import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
-
+//import 'package:lafargeholcim_sales_game/screens/salesperon/quest.dart';
+//import 'package:lafargeholcim_sales_game/screens/manager/quest_management/quest_managment_page.dart';
 
 //primary colors of the application — LafargeHolcim brand palette
 const Color kPrimaryColor   = Color(0xFF1B3A6B); // dark navy blue
@@ -35,10 +35,8 @@ void main() async {
   }
   
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  await NotificationService.instance.init();
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
   runApp(const MyApp());
 }
@@ -108,14 +106,16 @@ class MyApp extends StatelessWidget {
         '/saleclaim':        (context) => const SaleClaimPage(),
         '/rankings':         (context) => const RankingsPage(),
         '/admin/dashboard':  (context) => const AdminDashboard(),
+        '/admin/products':   (context) => const AdminProductsPage(),
+        '/admin/sales':      (context) => const AdminSalesPage(),
         '/admin/users':      (context) => const AdminUsersPage(),
         '/manager/dashboard': (context) => const ManagerDashboard(),
         '/manager/products': (context) => const ManagerProductsPage(),
         '/manager/sales':    (context) => const ManagerSalesManagment(),
-        '/broadcast':                    (context) => const BroadcastScreen(),
-        '/milestones':                   (context) => const MilestoneScreen(),
-        '/market-manager/dashboard':     (context) => const MarketManagerDashboard(),
-        '/market-manager/events':        (context) => const EventManagementPage(),
+        '/broadcast':              (context) => const BroadcastScreen(),
+        '/milestones':             (context) => const MilestoneScreen(),
+        //'/quests':                     (context) => const QuestScreen(),
+        //'/manager/quests_management': (context) => const QuestsManagementPage(),
       },
     );
   }

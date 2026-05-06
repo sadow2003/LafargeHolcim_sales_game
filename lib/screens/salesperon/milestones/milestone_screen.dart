@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../main.dart';
@@ -24,134 +23,76 @@ class MilestoneScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('sales')
-              .where('userId', isEqualTo: uid)
-              .where('status', isEqualTo: 'approved')
-              .snapshots(),
-          builder: (context, snap) {
-            final total = (snap.data?.docs ?? []).fold<int>(
-              0,
-              (acc, d) =>
-                  acc +
-                  ((d.data() as Map<String, dynamic>)['quantity'] as num? ?? 0)
-                      .toInt(),
-            );
-
-            final milestones = generateMilestones(total);
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: milestones.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MilestoneProgressHeader(uid: uid),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Milestone Badges',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  );
-                }
-
-                final milestone = milestones[index - 1];
-                final reached = total >= milestone;
-
-                return _MilestoneBadge(
-                  count: milestone,
-                  reached: reached,
-                );
-              },
-            );
-          },
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            MilestoneProgressHeader(uid: uid),
+            const SizedBox(height: 24),
+            _MilestoneBadgeList(),
+          ],
         ),
       ),
     );
   }
 }
 
-class _MilestoneBadge extends StatelessWidget {
-  final int count;
-  final bool reached;
-
-  const _MilestoneBadge({required this.count, required this.reached});
-
-  IconData get _icon {
-    if (count == 1)    return Icons.star_outline;
-    if (count <= 10)   return Icons.local_fire_department_outlined;
-    if (count <= 50)   return Icons.bolt_outlined;
-    if (count <= 100)  return Icons.military_tech_outlined;
-    if (count <= 500)  return Icons.emoji_events_outlined;
-    if (count <= 1000) return Icons.workspace_premium_outlined;
-    return Icons.diamond_outlined;
-  }
-
-  String get _label {
-    if (count == 1) return 'First Sale';
-    return '$count Products';
-  }
+class _MilestoneBadgeList extends StatelessWidget {
+  static const _milestones = [
+    {'count': 1,     'label': 'First Sale',      'icon': Icons.star_outline},
+    {'count': 10,    'label': '10 Products',      'icon': Icons.local_fire_department_outlined},
+    {'count': 100,   'label': '100 Products',     'icon': Icons.bolt_outlined},
+    {'count': 1000,  'label': '1 000 Products',   'icon': Icons.military_tech_outlined},
+    {'count': 10000, 'label': '10 000 Products',  'icon': Icons.emoji_events_outlined},
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: reached
-            ? kSecondaryColor.withValues(alpha: 0.12)
-            : Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: reached
-              ? kSecondaryColor.withValues(alpha: 0.45)
-              : Colors.white.withValues(alpha: 0.08),
-          width: reached ? 1.5 : 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            reached ? Icons.check_circle_outline : _icon,
-            color: reached ? kSecondaryColor : Colors.white30,
-            size: 28,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Milestone Badges',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        const SizedBox(height: 12),
+        ..._milestones.map((m) {
+          final icon = m['icon'] as IconData;
+          final label = m['label'] as String;
+          final count = m['count'] as int;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Row(
               children: [
-                Text(
-                  _label,
-                  style: TextStyle(
-                    color: reached ? Colors.white : Colors.white54,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  reached ? 'Completed!' : 'Sell $count product${count == 1 ? '' : 's'}',
-                  style: TextStyle(
-                    color: reached ? kSecondaryColor : Colors.white38,
-                    fontSize: 12,
-                  ),
+                Icon(icon, color: kSecondaryColor, size: 28),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15)),
+                    Text('Sell $count product${count == 1 ? '' : 's'}',
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 12)),
+                  ],
                 ),
               ],
             ),
-          ),
-          if (reached)
-            const Icon(Icons.verified, color: Color(0xFF8DC21F), size: 18),
-        ],
-      ),
+          );
+        }),
+      ],
     );
   }
 }
