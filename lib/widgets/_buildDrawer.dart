@@ -150,14 +150,6 @@ class _AppDrawerState extends State<AppDrawer> {
               label: 'Admin Dashboard',
               route: '/admin/dashboard'),
           _drawerItem(context,
-              icon: Icons.inventory_2_outlined,
-              label: 'Product Management',
-              route: '/admin/products'),
-          _drawerItem(context,
-              icon: Icons.fact_check_outlined,
-              label: 'Sale Management',
-              route: '/admin/sales'),
-          _drawerItem(context,
               icon: Icons.people_outline,
               label: 'User Management',
               route: '/admin/users'),
@@ -166,7 +158,22 @@ class _AppDrawerState extends State<AppDrawer> {
               label: 'Broadcast',
               route: '/broadcast'),
         ];
-      case 'manager':
+      case 'market-manager':
+        return [
+          _drawerItem(context,
+              icon: Icons.dashboard_outlined,
+              label: 'Market Manager Dashboard',
+              route: '/market-manager/dashboard'),
+          _drawerItem(context,
+              icon: Icons.event_outlined,
+              label: 'Event Management',
+              route: '/market-manager/events'),
+          _drawerItem(context,
+              icon: Icons.tv_outlined,
+              label: 'Broadcast',
+              route: '/broadcast'),
+        ];
+      case 'sales-manager':
 
         return [
           _drawerItem(context,

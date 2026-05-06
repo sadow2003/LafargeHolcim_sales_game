@@ -1,4 +1,4 @@
-import 'dart:typed_data'; 
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart'; // Camera / gallery picker
 import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';
+import '../../services/notification_service.dart';
 
 
 
@@ -47,13 +48,19 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
   int     _estimatedPoints = 0; // Live preview: productPoints × quantity
 
 
-//it collects the documents of products
+//it collects the documents of products and checks whether the sales window is open
+  late Future<DocumentSnapshot> _salesEventFuture;
+
   @override
   void initState() {
     super.initState();
     _productsFuture = FirebaseFirestore.instance
       .collection('products')
       .orderBy('name')
+      .get();
+    _salesEventFuture = FirebaseFirestore.instance
+      .collection('settings')
+      .doc('salesEvent')
       .get();
   }
 
@@ -229,18 +236,26 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
 
-      // ── Step 3: Write the sale document to Firestore 
-      await FirebaseFirestore.instance.collection('sales').add({
+      // ── Step 3: Write the sale document to Firestore
+      final saleRef = await FirebaseFirestore.instance.collection('sales').add({
         'userId':        uid,
         'userName':      userName,
         'productId':     _selectedProductId,
         'productName':   _selectedProductName,
         'quantity':      quantity,
-        'status':        'pending',     
-        'pointsAwarded': 0,             
+        'status':        'pending',
+        'pointsAwarded': 0,
         'proofImageUrl': proofImageUrl,
         'createdAt':     FieldValue.serverTimestamp(),
       });
+
+      // ── Step 4: Notify all managers about the new sale claim ───────────
+      await NotificationService.sendNewSaleClaimNotification(
+        userName:    userName,
+        productName: _selectedProductName ?? '',
+        quantity:    quantity,
+        saleId:      saleRef.id,
+      );
 
 
       //if the widget is destoryed , return to original page withou changing anything, so that it doesnt crash tha application
@@ -292,7 +307,61 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
       appBar: GradientAppBar(title: 'Submit Sale Claim'),
       drawer: const AppDrawer(),
 
-      body: SingleChildScrollView(
+      body: FutureBuilder<DocumentSnapshot>(
+        future: _salesEventFuture,
+        builder: (context, eventSnap) {
+          // While checking the event, show a loader.
+          if (eventSnap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Determine whether the sales window is currently open.
+          final eventData = eventSnap.data?.data() as Map<String, dynamic>?;
+          bool isWindowOpen = false;
+          if (eventData != null) {
+            final start    = (eventData['startDate'] as Timestamp).toDate();
+            final end      = (eventData['endDate']   as Timestamp).toDate();
+            final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
+            final now      = DateTime.now();
+            isWindowOpen   = now.isAfter(start) && now.isBefore(endOfDay);
+          }
+
+          // If the window is closed, show a locked screen instead of the form.
+          if (!isWindowOpen) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.lock_clock,
+                        size: 72, color: Colors.grey.shade400),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Sales window is closed',
+                      style: TextStyle(
+                        fontSize:   20,
+                        fontWeight: FontWeight.bold,
+                        color:      Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      eventData == null
+                          ? 'No sales event has been scheduled yet.\nPlease check back later.'
+                          : 'The current sales period has ended.\nPlease check back when the next event opens.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.grey.shade500),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Sales window is open — show the submission form.
+          return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
@@ -594,6 +663,9 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
             ],
           ),
         ),
+      );
+        // closes FutureBuilder builder
+        },
       ),
     );
   }

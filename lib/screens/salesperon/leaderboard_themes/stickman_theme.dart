@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'leaderboard_theme.dart';
-import 'PodiumPainter.dart';
+import 'podiumPainter.dart';
 
 //inherits from the abstract file leaderboard podium for the general structure of the leaderboard theme
 class StickmanPodium extends LeaderboardPodium {

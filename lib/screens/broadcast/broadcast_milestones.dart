@@ -4,11 +4,20 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'broadcast_constants.dart';
 
-const _milestones = [1, 10, 100, 1000, 10000];
+/// Mirrors the progression screen: 1, 10, 100, 1000, 10000, …
+List<int> _broadcastMilestones(int newTotal) {
+  final result = <int>[1, 10];
+  var m = 100;
+  while (m <= newTotal * 10 + 100000) {
+    result.add(m);
+    m *= 10;
+  }
+  return result;
+}
 
 /// Returns the milestone value crossed, or null if none was crossed.
 int? crossedMilestone(int previousTotal, int newTotal) {
-  for (final m in _milestones) {
+  for (final m in _broadcastMilestones(newTotal)) {
     if (previousTotal < m && newTotal >= m) return m;
   }
   return null;
@@ -107,7 +116,7 @@ class _MilestoneBroadcastCardState extends State<MilestoneBroadcastCard> {
     final milestone    = (data['milestoneCount'] as num?)?.toInt() ?? 0;
     final ts           = data['createdAt'] as Timestamp?;
     final reactions    = Map<String, dynamic>.from(data['reactions'] ?? {});
-    final canDelete    = widget.currentUserRole == 'admin' || widget.currentUserRole == 'manager';
+    final canDelete    = widget.currentUserRole == 'admin' || widget.currentUserRole == 'sales-manager';
     final initial      = userName.isNotEmpty ? userName[0].toUpperCase() : '🚀';
 
     const green      = Color(0xFF8DC21F);
