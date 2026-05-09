@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lafargeholcim_sales_game/main.dart';
-
+import 'package:lafargeholcim_sales_game/services/notification_service.dart';
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
 
@@ -221,6 +221,11 @@ class _AppDrawerState extends State<AppDrawer> {
               label: 'Milestones',
               route: '/milestones'),
           _drawerItem(context,
+              icon: Icons.store_outlined,
+              label: 'Reward Store',
+              route: '/reward-store',
+              iconColor: Colors.amber.shade700),
+          _drawerItem(context,
               icon: Icons.tv_outlined,
               label: 'Broadcast',
               route: '/broadcast'),
@@ -278,6 +283,8 @@ class _AppDrawerState extends State<AppDrawer> {
           ),
           TextButton(
             onPressed: () async {
+              NotificationService.instance.stopListeningForNotifications();
+              await NotificationService.instance.clearTokenForCurrentUser();
               await FirebaseAuth.instance.signOut();
               if (!context.mounted) return;
               Navigator.pushNamedAndRemoveUntil(

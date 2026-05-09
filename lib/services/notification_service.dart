@@ -18,13 +18,13 @@ class NotificationService {
 
   static final NotificationService instance = NotificationService._();
 
-  final _fcm = FirebaseMessaging.instance;
-  final _firestore = FirebaseFirestore.instance;
+  final _fcm = FirebaseMessaging.instance;//firebase cloud messaging instance
+  final _firestore = FirebaseFirestore.instance;//firestore instance
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  StreamSubscription? _notificationSubscription;
+  StreamSubscription? _notificationSubscription;//firebase listener subscription for notifications collection
 
   // ── Initialization ────────────────────────────────────────────────────────
 //for the notification on the phone
@@ -75,21 +75,40 @@ class NotificationService {
       sound: true,
     );
 
+    //initialize the local notifications plugin
     await initialize();
 
-    FirebaseMessaging.onMessage.listen(_onForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationTap);
+    FirebaseMessaging.onMessage.listen(_onForegroundMessage);// handle messages received while tha app is in the foreground
+    FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationTap);// handle taps on the notification when the app is in the background or terminated
 
+
+    //check if the app is still opened from a motification tap 
     final initial = await _fcm.getInitialMessage();
     if (initial != null) _onNotificationTap(initial);
   }
 
   // ── Token management ──────────────────────────────────────────────────────
+
+  Future<void> clearTokenForCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      await _firestore.collection('users').doc(user.uid).update({
+        'fcmToken': FieldValue.delete(),
+      });
+      debugPrint('[FCM] Token cleared for ${user.uid}');
+    } catch (e) {
+      debugPrint('[FCM] Error clearing token: $e');
+    }
+  }
+
   // Call this after the manager logs in to save their FCM token in Firestore
   Future<void> saveTokenForCurrentUser() async {
+    //get the current user, if not logged in return
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    //get the FCM token for this device and save it in the user's Firestore Document
     try {
       final token = await _fcm.getToken();
       if (token == null) return;
@@ -121,6 +140,7 @@ class NotificationService {
     String title = 'Notification',
     String body = 'This is a notification message',
   }) async {
+    // define platform-specific details for the notification 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'default_channel',
@@ -131,30 +151,35 @@ class NotificationService {
           showWhen: true,
         );
 
+        //ios details to show alert,badge and sound when the notification is received
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
     );
 
+    //combine platform details into a single object
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
 
+    //show the notification using the plugin
     await _notificationsPlugin.show(id, title, body, notificationDetails);
   }
 
+  //Cancels a  specific notification by its id, 
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
   }
-
+  //cancel all nofifications shown by the app
   Future<void> cancelAllNotifications() async {
     await _notificationsPlugin.cancelAll();
   }
 
   // ── FCM foreground / tap handlers ─────────────────────────────────────────
 
+  //called when a message is received while the app is in the foreground
   void _onForegroundMessage(RemoteMessage message) {
     debugPrint('[FCM] Foreground message: ${message.messageId}');
     // Show a local notification so the manager sees it even while in the app
@@ -165,6 +190,7 @@ class NotificationService {
     );
   }
 
+  //called when the user taps on the notification while the app is in the background or terminated
   void _onNotificationTap(RemoteMessage message) {
     debugPrint('[FCM] Notification tapped: ${message.messageId}');
   }
@@ -173,6 +199,8 @@ class NotificationService {
   // Call this after the manager logs in so their device pops notifications
   // whenever a salesperson writes a new entry into the notifications collection.
 
+
+//this is needed because FCM does not guarantee delivery of the message if the app is in the foreground
   void startListeningForNotifications() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -180,12 +208,15 @@ class NotificationService {
     // Only react to documents created from this moment forward
     final sessionStart = Timestamp.now();
 
+    //collection listener that listens to new documents added to notification collection
     _notificationSubscription = FirebaseFirestore.instance
         .collection('notifications')
         .where('userId', isEqualTo: uid)
         .where('timestamp', isGreaterThan: sessionStart)
         .snapshots()
         .listen((snapshot) {
+
+          //for each document change in the snapshot
       for (final change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
           final data = change.doc.data()!;
@@ -200,7 +231,7 @@ class NotificationService {
 
     debugPrint('[FCM] Listening for notifications for $uid');
   }
-
+ //cancel the listener when the manager logs out to avoid memory leaks
   void stopListeningForNotifications() {
     _notificationSubscription?.cancel();
     _notificationSubscription = null;

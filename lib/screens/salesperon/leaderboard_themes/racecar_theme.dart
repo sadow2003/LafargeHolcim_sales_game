@@ -154,8 +154,8 @@ class _RaceTrackPainter extends CustomPainter {
       final animY = sin(phase * 2 * pi + rankIdx * 1.2) * 1.2;
       final cx = carX + animX;
       final cy = lm.centerY + animY;
-      final carH = lm.laneH * 2.00;
-      final labelW = carH * 1.5;
+      final carH = lm.laneH * 1.00;
+      final labelW = carH * 0.5;
 
       // Name above car
       final displayName = player.name.split(' ').first;

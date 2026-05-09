@@ -9,17 +9,22 @@ import 'package:timeago/timeago.dart' as timeago;
 class NotificationBell extends StatelessWidget {
   const NotificationBell({super.key});
 
+
+  //___________________ui________________________
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = FirebaseAuth.instance.currentUser?.uid; 
     if (uid == null) return const SizedBox.shrink();
 
+    //
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('notifications')
           .where('userId', isEqualTo: uid)
           .where('read', isEqualTo: false)
           .snapshots(),
+
+          //
       builder: (context, snapshot) {
         final unread = snapshot.data?.docs.length ?? 0;
 
@@ -65,6 +70,13 @@ class NotificationBell extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
 
 // ── Notifications screen ─────────────────────────────────────────────────────
 class ManagerNotificationsScreen extends StatelessWidget {
