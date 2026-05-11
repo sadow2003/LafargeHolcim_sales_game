@@ -145,7 +145,7 @@ class BroadcastCard extends StatelessWidget {
             .toUpperCase()
         : '?';
 
-        // Build the card UI
+    // Build the card UI
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(

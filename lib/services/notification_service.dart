@@ -1,11 +1,11 @@
-import 'dart:async';
+import 'dart:async';//imports Dart's built-in async library, provides future stream timer completed
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';// import flutter local notification  which lets your app show local notifications on the device (without needing a server/internet).
 
-@pragma('vm:entry-point')
+@pragma('vm:entry-point')//tells dart to not delete this forgeing code
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('[FCM] Background message: ${message.messageId}');
 }
@@ -101,6 +101,9 @@ class NotificationService {
       debugPrint('[FCM] Error clearing token: $e');
     }
   }
+
+
+
 
   // Call this after the manager logs in to save their FCM token in Firestore
   Future<void> saveTokenForCurrentUser() async {

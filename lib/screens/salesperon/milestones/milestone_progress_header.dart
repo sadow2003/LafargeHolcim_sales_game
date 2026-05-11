@@ -19,6 +19,8 @@ class MilestoneProgressHeader extends StatelessWidget {
 
   const MilestoneProgressHeader({super.key, required this.uid});
 
+
+//____________ui______________________________________________
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -36,10 +38,10 @@ class MilestoneProgressHeader extends StatelessWidget {
                   .toInt(),
         );
 
-        final milestones = generateMilestones(total);
-        final next = milestones.firstWhere((m) => m > total);
-        final prev = milestones.lastWhere((m) => m <= total, orElse: () => 0);
-        final ratio = (total - prev) / (next - prev).clamp(1, double.infinity);
+        final milestones = generateMilestones(total);//Generates the full list of milestone thresholds (e.g. [100, 500, 1000, ...]) based on the current total value.
+        final next = milestones.firstWhere((m) => m > total);//Finds the next milestone the user hasn't reached yet — the first value in the list that is strictly greater than total
+        final prev = milestones.lastWhere((m) => m <= total, orElse: () => 0);//Finds the last milestone already passed — the highest value that is ≤ total. Defaults to 0 if none have been reached yet (user is before the first milestone).
+        final ratio = (total - prev) / (next - prev).clamp(1, double.infinity);//Calculates a progress ratio (0.0 → 1.0) between prev and next. The .clamp(1, double.infinity) prevents division by zero in case next == prev. For example, if prev=500, next=1000, and total=750, then ratio = (750-500)/(1000-500) = 0.5 — halfway through the current milestone segment.
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -59,7 +61,11 @@ class MilestoneProgressHeader extends StatelessWidget {
                 children: [
                   const Icon(Icons.rocket_launch,
                       color: Color(0xFF8DC21F), size: 28),
+                  
+                  
                   const SizedBox(width: 10),
+                  
+                  
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -75,7 +81,12 @@ class MilestoneProgressHeader extends StatelessWidget {
                       ),
                     ],
                   ),
+                  
+                  
                   const Spacer(),
+
+
+
                   Text(
                     'Next: $next',
                     style: const TextStyle(

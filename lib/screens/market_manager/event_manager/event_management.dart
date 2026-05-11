@@ -14,18 +14,18 @@ class EventManagementPage extends StatefulWidget {
 
 class _EventManagementPageState extends State<EventManagementPage> {
   // The date range the market-manager has picked in the UI (before saving).
-  DateTimeRange? _pickedRange;
+  DateTimeRange? _pickedRange;//the date of the event
 
   bool _isSaving   = false;
   bool _isDeleting = false;
 
   String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';//talesthe datetime variable and transform it to classic datepadLeft(2, '0') — converts the day to 2 digits, padding with a leading zero if needed (e.g., 5 → "05") Example: DateTime(2026, 5, 9) → "09/05/2026"
 
   // ── Open the system date-range picker ────────────────────────────────────
   Future<void> _pickDateRange() async {
     final now    = DateTime.now();
-    final picked = await showDateRangePicker(
+    final picked = await showDateRangePicker(// built-in Flutter function that opens a calendar dialog
       context:      context,
       firstDate:    DateTime(now.year, now.month, now.day), // cannot pick past dates
       lastDate:     DateTime(now.year + 2),
@@ -143,7 +143,7 @@ class _EventManagementPageState extends State<EventManagementPage> {
   }
 
 
-
+//----------------------ui-------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,6 +189,9 @@ class _EventManagementPageState extends State<EventManagementPage> {
                   .collection('settings')
                   .doc('salesEvent')
                   .snapshots(),
+
+
+
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -250,6 +253,7 @@ class _EventManagementPageState extends State<EventManagementPage> {
                             ),
                           ),
                         ),
+                        
                         const SizedBox(height: 12),
 
                         // Date range row
