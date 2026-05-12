@@ -24,7 +24,6 @@ const List<String> kStoreCategories = [
   'All',
   'Vouchers',
   'Merchandise',
-  'Experiences',
   'Days Off',
 ];
 
@@ -73,24 +72,6 @@ const List<StoreItem> kStoreItems = [
     category: 'Merchandise',
     icon: Icons.backpack_outlined,
     color: Color(0xFF8DC21F),
-  ),
-  StoreItem(
-    id: 'exp_teambuilding',
-    name: 'Team-Building Day',
-    description: 'Join the next team-building outing (subject to availability).',
-    coinCost: 2000,
-    category: 'Experiences',
-    icon: Icons.groups_outlined,
-    color: Color(0xFF7B1FA2),
-  ),
-  StoreItem(
-    id: 'exp_training',
-    name: 'Online Course Access',
-    description: '3-month access to a professional development platform.',
-    coinCost: 1500,
-    category: 'Experiences',
-    icon: Icons.school_outlined,
-    color: Color(0xFF00796B),
   ),
   StoreItem(
     id: 'dayoff_half',

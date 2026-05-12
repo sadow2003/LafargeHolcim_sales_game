@@ -148,10 +148,8 @@ class _ActiveEventCard extends StatelessWidget {
         final start  = (data['startDate'] as Timestamp).toDate();
         final end    = (data['endDate']   as Timestamp).toDate();
         final now    = DateTime.now();
-        // endDate is inclusive: allow the full last day
-        final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-        final isLive = now.isAfter(start) && now.isBefore(endOfDay);
-        final isPast = now.isAfter(endOfDay);
+        final isLive = now.isAfter(start) && now.isBefore(end);
+        final isPast = now.isAfter(end);
 
         return _statusTile(
           icon: isLive

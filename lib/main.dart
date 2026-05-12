@@ -7,7 +7,7 @@ import 'package:lafargeholcim_sales_game/screens/login.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/products.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/profile.dart';
-import 'package:lafargeholcim_sales_game/screens/salesperon/rankings.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/ranking/rankings.dart';
 import 'package:lafargeholcim_sales_game/screens/register.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/sale_claim.dart';
 import 'package:lafargeholcim_sales_game/screens/admin/admin_dashboard.dart';

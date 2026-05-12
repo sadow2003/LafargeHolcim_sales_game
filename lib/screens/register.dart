@@ -119,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     if (_selectedRole == 'sales-manager' && _adminSecretController.text != _kManagerScreat) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid manager secret key')),
+        const SnackBar(content: Text('Invalid sales manager secret key')),
       );
       return;
     }
@@ -307,7 +307,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _adminSecretController,
                     obscureText: !_adminSecretVisible,
                     decoration: InputDecoration(
-                      labelText: 'Manager Secret Key',
+                      labelText: 'Sales Manager Secret Key',
                       prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -323,7 +323,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     validator: (value) {
                       if (_selectedRole == 'sales-manager' &&
                           (value == null || value.trim().isEmpty)) {
-                        return 'Manager secret key is required';
+                        return 'Sales Manager secret key is required';
                       }
                       return null;//null means no errors
                     },

@@ -18,7 +18,7 @@ class RewardStorePage extends StatefulWidget {
 class _RewardStorePageState extends State<RewardStorePage> {
   final String? _uid = FirebaseAuth.instance.currentUser?.uid;
   String _selectedCategory = 'All';
-
+  //all the categories list
   List<StoreItem> get _filteredItems => _selectedCategory == 'All'
       ? kStoreItems
       : kStoreItems.where((i) => i.category == _selectedCategory).toList();

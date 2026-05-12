@@ -8,6 +8,9 @@ abstract class LeaderboardPodium extends StatelessWidget {
   final QueryDocumentSnapshot? top3;
   final double phase;
   final String? currentUid;
+  // Height available for the podium — passed from rankings.dart so that
+  // each theme can scale itself to fit the screen without overflowing.
+  final double podiumHeight;
 
   const LeaderboardPodium({
     super.key,
@@ -16,5 +19,6 @@ abstract class LeaderboardPodium extends StatelessWidget {
     required this.top3,
     required this.phase,
     required this.currentUid,
+    required this.podiumHeight,
   });
 }

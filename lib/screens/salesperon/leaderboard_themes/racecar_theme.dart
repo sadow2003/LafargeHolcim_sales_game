@@ -13,6 +13,7 @@ class RaceCarPodium extends LeaderboardPodium {
     required super.top3,
     required super.phase,
     required super.currentUid,
+    required super.podiumHeight,
   });
 
   static const _carAssets = [
@@ -33,7 +34,9 @@ class RaceCarPodium extends LeaderboardPodium {
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
-      const h = 300.0;
+      // Use the height passed from the parent instead of a hardcoded value
+      // so the track scales to whatever space the screen can afford.
+      final h = podiumHeight;
 
       return SizedBox(
         width: w,
@@ -52,7 +55,7 @@ class RaceCarPodium extends LeaderboardPodium {
               final carH = lm.laneH * 2.00;
               // car image is portrait; rotated 90° to face right → effective size swaps
               final carDisplayW = carH;        // original height becomes display width
-              final carDisplayH = carH * 0.65; // original width becomes display height
+              final carDisplayH = carH * 0.75; // original width becomes display height
               final cx = w * _carPositions[rankIdx];
               final animX = player.rank == 1 ? sin(phase * 2 * pi) * 4.0 : 0.0;
               final animY = sin(phase * 2 * pi + rankIdx * 1.2) * 1.2;
@@ -164,7 +167,7 @@ class _RaceTrackPainter extends CustomPainter {
           text: displayName,
           style: TextStyle(
             color: player.isMe ? kSecondaryColor : Colors.white,
-            fontSize: lm.laneH * 0.175,
+            fontSize: lm.laneH * 0.18,
             fontWeight: player.isMe ? FontWeight.bold : FontWeight.w500,
             shadows: const [Shadow(color: Colors.black, blurRadius: 6)],
           ),
@@ -173,7 +176,7 @@ class _RaceTrackPainter extends CustomPainter {
       )..layout(maxWidth: labelW);
       namePaint.paint(
         canvas,
-        Offset(cx - namePaint.width / 2, cy - carH * 0.5 - namePaint.height - 2),
+        Offset(cx - namePaint.width / 2, cy - carH * 0.4 - namePaint.height - 2),
       );
 
       // Points below car
@@ -191,7 +194,7 @@ class _RaceTrackPainter extends CustomPainter {
       )..layout();
       ptsPaint.paint(
         canvas,
-        Offset(cx - ptsPaint.width / 2, cy + carH * 0.58),
+        Offset(cx - ptsPaint.width / 2, cy + carH * 0.5),
       );
     }
   }

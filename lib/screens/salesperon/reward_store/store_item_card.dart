@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lafargeholcim_sales_game/main.dart';
 import 'package:lafargeholcim_sales_game/models/store_item.dart';
 import 'reward_store_service.dart';
+import 'reward_receipt_pdf.dart';
 
 class StoreItemCard extends StatelessWidget {
   const StoreItemCard({
@@ -45,6 +46,9 @@ class StoreItemCard extends StatelessWidget {
             Expanded(child: Text(item.name, style: const TextStyle(fontSize: 16))),
           ],
         ),
+
+
+        
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -89,24 +93,27 @@ class StoreItemCard extends StatelessWidget {
 
   Future<void> _processRedemption(BuildContext context) async {
     try {
-      await RewardStoreService.redeem(userId: userId, item: item);
+      final receipt = await RewardStoreService.redeem(userId: userId, item: item);
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(child: Text('${item.name} redeemed! Check with HR/admin.')),
-              ],
-            ),
-            backgroundColor: kSecondaryColor,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text('${item.name} redeemed! Opening your receipt…')),
+            ],
           ),
-        );
-      }
+          backgroundColor: kSecondaryColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
+      // Generate and share the PDF receipt
+      await RewardReceiptPdf.shareReceipt(context, receipt);
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -206,24 +213,24 @@ class _ItemInfo extends StatelessWidget {
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: canAfford ? onRedeem : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: canAfford ? kPrimaryColor : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Redeem',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: canAfford ? Colors.white : Colors.grey.shade500,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: canAfford ? onRedeem : null,
+              //   child: Container(
+              //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              //     decoration: BoxDecoration(
+              //       color: canAfford ? kPrimaryColor : Colors.grey.shade300,
+              //       borderRadius: BorderRadius.circular(8),
+              //     ),
+              //      child: Text(
+              //        'Redeem',
+              //        style: TextStyle(
+              //          fontSize: 11,
+              //          color: canAfford ? Colors.white : Colors.grey.shade500,
+              //          fontWeight: FontWeight.w600,
+              //        ),
+              //      ),
+              //   ),
+              // ),
             ],
           ),
         ],

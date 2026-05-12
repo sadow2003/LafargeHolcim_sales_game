@@ -43,6 +43,7 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
   Uint8List? _proofImage;     // The image bytes picked by the user, uint8list(Unit int 8 bytes List)
   String? _selectedProductId; // Firestore document ID of the chosen product
   String? _selectedProductName;
+  String? _selectedProductCategory;
   int     _productPoints   = 0; // Points per unit for the selected product
   int     _estimatedPoints = 0; // Live preview: productPoints × quantity
 
@@ -318,11 +319,10 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
           final eventData = eventSnap.data?.data() as Map<String, dynamic>?;
           bool isWindowOpen = false;
           if (eventData != null) {
-            final start    = (eventData['startDate'] as Timestamp).toDate();
-            final end      = (eventData['endDate']   as Timestamp).toDate();
-            final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-            final now      = DateTime.now();
-            isWindowOpen   = now.isAfter(start) && now.isBefore(endOfDay);
+            final start  = (eventData['startDate'] as Timestamp).toDate();
+            final end    = (eventData['endDate']   as Timestamp).toDate();
+            final now    = DateTime.now();
+            isWindowOpen = now.isAfter(start) && now.isBefore(end);
           }
 
           // If the window is closed, show a locked screen instead of the form.
@@ -411,7 +411,6 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
 
 
-
                   return DropdownButtonFormField<String>(
                     //forces it to fill the available width instead of sizing to its content
                     isExpanded: true,
@@ -426,9 +425,10 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
                       final doc  = docs.firstWhere((d) => d.id == docId);
                       final data = doc.data() as Map<String, dynamic>;
                       setState(() {
-                        _selectedProductId   = docId;
-                        _selectedProductName = data['name'] ?? '';
-                        _productPoints       = (data['productPoints'] ?? 0) as int;
+                        _selectedProductId       = docId;
+                        _selectedProductName     = data['name']     ?? '';
+                        _selectedProductCategory = data['category'] ?? '';
+                        _productPoints           = (data['productPoints'] ?? 0) as int;
                       });
                       _updateEstimatedPoints();
                     },
@@ -463,12 +463,12 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
               TextFormField(
                 controller: _quantityCtrl,
                 keyboardType: TextInputType.number,
-
-
-
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.numbers),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.numbers),
                   hintText:   'e.g. 10',
+                  suffixText: (_selectedProductCategory ?? '').toLowerCase().contains('concrete')
+                      ? 'm³'
+                      : 'tonnes',
                 ),
 
 
