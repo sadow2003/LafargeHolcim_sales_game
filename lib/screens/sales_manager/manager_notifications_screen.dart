@@ -16,7 +16,7 @@ class NotificationBell extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid; 
     if (uid == null) return const SizedBox.shrink();
 
-    //
+    // Streams unread notifications for the current user to update the badge count
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('notifications')
@@ -24,7 +24,7 @@ class NotificationBell extends StatelessWidget {
           .where('read', isEqualTo: false)
           .snapshots(),
 
-          //
+          // Renders the bell icon with a red badge showing the unread count
       builder: (context, snapshot) {
         final unread = snapshot.data?.docs.length ?? 0;
 

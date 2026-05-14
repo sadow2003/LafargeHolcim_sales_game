@@ -1,200 +1,239 @@
-import 'package:flutter/material.dart' show BuildContext;
+import 'package:flutter/services.dart';
+import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'reward_store_service.dart';
 
-/// Builds and shares a PDF receipt after a successful reward redemption.
 class RewardReceiptPdf {
   RewardReceiptPdf._();
 
-  static String _fmt(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/'
-      '${d.month.toString().padLeft(2, '0')}/'
-      '${d.year}  '
-      '${d.hour.toString().padLeft(2, '0')}:'
-      '${d.minute.toString().padLeft(2, '0')}';
+  static const _brand      = 'LafargeHolcim — SalesQuest';
+  static final _rankLabels = {1: '1st Place ${AppEmojis.gold}', 2: '2nd Place ${AppEmojis.silver}', 3: '3rd Place ${AppEmojis.bronze}'};
 
-  /// Generates the PDF bytes from [receipt] and opens the system share / print
-  /// sheet so the salesperson can save or share the file.
-  static Future<void> shareReceipt(
-    BuildContext context,
-    RedemptionReceipt receipt,
-  ) async {
-    final pdf = pw.Document();
+  static String _fmtMoney(double amount) {
+    if (amount == amount.truncateToDouble()) return '${amount.toInt()} MAD';
+    return '$amount MAD';
+  }
 
-    // ── Brand colours (matching kPrimaryColor / kSecondaryColor) ─────────────
-    const navy  = PdfColor.fromInt(0xFF1B3A6B);
-    const green = PdfColor.fromInt(0xFF8DC21F);
-    const cyan  = PdfColor.fromInt(0xFF00AEEF);
+  static Future<void> share({
+    required String   userName,
+    required int      rank,
+    required double   rewardAmount,
+    required DateTime closedAt,
+    required String   userId,
+  }) async {
+    final doc = await _build(
+      userName:     userName,
+      rank:         rank,
+      rewardAmount: rewardAmount,
+      closedAt:     closedAt,
+      userId:       userId,
+    );
 
-    pdf.addPage(
+    await Printing.sharePdf(
+      bytes:    await doc.save(),
+      filename: 'reward_receipt_${userName.replaceAll(' ', '_')}.pdf',
+    );
+  }
+
+  static Future<pw.Document> _build({
+    required String   userName,
+    required int      rank,
+    required double   rewardAmount,
+    required DateTime closedAt,
+    required String   userId,
+  }) async {
+    final doc  = pw.Document();
+    final logo = await _loadLogo();
+
+    final receiptId =
+        '${userId.substring(0, 6).toUpperCase()}-'
+        '${closedAt.year}${_pad(closedAt.month)}${_pad(closedAt.day)}';
+
+    final eventDate =
+        '${_pad(closedAt.day)}/${_pad(closedAt.month)}/${closedAt.year}';
+
+    doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
         margin:     const pw.EdgeInsets.all(40),
         build:      (ctx) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
+            // ── Header ─────────────────────────────────────────────────────
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                if (logo != null)
+                  pw.Image(logo, width: 64, height: 64)
+                else
+                  pw.SizedBox(width: 64),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      _brand,
+                      style: pw.TextStyle(
+                        fontSize:   13,
+                        fontWeight: pw.FontWeight.bold,
+                        color:      PdfColor.fromHex('#5B8E27'),
+                      ),
+                    ),
+                    pw.Text(
+                      'Reward Receipt',
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        color:    PdfColor.fromHex('#666666'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
 
-            // ── Header banner ───────────────────────────────────────────────
+            pw.SizedBox(height: 8),
+            pw.Divider(color: PdfColor.fromHex('#5B8E27'), thickness: 2),
+            pw.SizedBox(height: 20),
+
+            // ── Title ───────────────────────────────────────────────────────
+            pw.Center(
+              child: pw.Text(
+                'PRIZE RECEIPT',
+                style: pw.TextStyle(
+                  fontSize:      24,
+                  fontWeight:    pw.FontWeight.bold,
+                  color:         PdfColor.fromHex('#1A1A1A'),
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Center(
+              child: pw.Text(
+                'Receipt #$receiptId',
+                style: pw.TextStyle(
+                  fontSize: 11,
+                  color:    PdfColor.fromHex('#888888'),
+                ),
+              ),
+            ),
+
+            pw.SizedBox(height: 32),
+
+            // ── Details table ───────────────────────────────────────────────
+            _row('Winner',     userName),
+            _dividerLine(),
+            _row('Rank',       _rankLabels[rank] ?? 'Rank $rank'),
+            _dividerLine(),
+            _row('Cash Prize', _fmtMoney(rewardAmount)),
+            _dividerLine(),
+            _row('Event Date', eventDate),
+
+            pw.SizedBox(height: 40),
+
+            // ── Footer ──────────────────────────────────────────────────────
             pw.Container(
               width:   double.infinity,
-              padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const pw.EdgeInsets.all(14),
               decoration: pw.BoxDecoration(
-                gradient: const pw.LinearGradient(
-                  colors: [navy, cyan, green],
-                  stops: [0.0, 0.55, 1.0],
-                  begin:  pw.Alignment.centerLeft,
-                  end:    pw.Alignment.centerRight,
-                ),
-                borderRadius: pw.BorderRadius.circular(12),
+                color:        PdfColor.fromHex('#F5F5F5'),
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                border:       pw.Border.all(color: PdfColor.fromHex('#DDDDDD')),
               ),
               child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   pw.Text(
-                    'LafargeHolcim',
+                    'Present this receipt to your market manager to claim your cash prize.',
+                    textAlign: pw.TextAlign.center,
                     style: pw.TextStyle(
-                      fontSize:   22,
+                      fontSize:   11,
                       fontWeight: pw.FontWeight.bold,
-                      color:      PdfColors.white,
+                      color:      PdfColor.fromHex('#333333'),
                     ),
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 6),
                   pw.Text(
-                    'Reward Redemption Receipt',
-                    style: const pw.TextStyle(
-                      fontSize: 13,
-                      color:    PdfColors.white,
+                    'This receipt is valid only for the named winner above.',
+                    textAlign: pw.TextAlign.center,
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      color:    PdfColor.fromHex('#888888'),
                     ),
                   ),
                 ],
               ),
             ),
 
-            pw.SizedBox(height: 28),
-
-            // ── Redemption ID ───────────────────────────────────────────────
-            _sectionLabel('Redemption ID'),
-            pw.SizedBox(height: 4),
-            pw.Container(
-              width:   double.infinity,
-              padding: const pw.EdgeInsets.all(12),
-              decoration: pw.BoxDecoration(
-                color:        const PdfColor.fromInt(0xFFF5F5F5),
-                borderRadius: pw.BorderRadius.circular(8),
-                border:       pw.Border.all(color: const PdfColor.fromInt(0xFFE0E0E0)),
-              ),
-              child: pw.Text(
-                receipt.redemptionId,
-                style: pw.TextStyle(
-                  fontSize:   11,
-                  fontWeight: pw.FontWeight.bold,
-                  color:      navy,
-                ),
-              ),
-            ),
-
-            pw.SizedBox(height: 20),
-
-            // ── Salesperson info ────────────────────────────────────────────
-            _sectionLabel('Salesperson'),
-            pw.SizedBox(height: 8),
-            _infoRow('Name',  receipt.userName),
-            pw.SizedBox(height: 6),
-            _infoRow('Email', receipt.userEmail),
-
-            pw.SizedBox(height: 20),
-
-            // ── Item details ────────────────────────────────────────────────
-            _sectionLabel('Redeemed Item'),
-            pw.SizedBox(height: 8),
-            _infoRow('Item',       receipt.item.name),
-            pw.SizedBox(height: 6),
-            _infoRow('Category',   receipt.item.category),
-            pw.SizedBox(height: 6),
-            _infoRow('Coin Cost',  '${receipt.item.coinCost} coins'),
-            pw.SizedBox(height: 6),
-            _infoRow('Description', receipt.item.description),
-
-            pw.SizedBox(height: 20),
-
-            // ── Date ────────────────────────────────────────────────────────
-            _sectionLabel('Date & Time'),
-            pw.SizedBox(height: 4),
-            _infoRow('Redeemed At', _fmt(receipt.redeemedAt)),
-
             pw.Spacer(),
 
-            // ── Footer ──────────────────────────────────────────────────────
-            pw.Divider(color: const PdfColor.fromInt(0xFFE0E0E0)),
-            pw.SizedBox(height: 8),
-            pw.Center(
-              child: pw.Text(
-                'Please present this receipt to your manager to collect your reward',
-                style: const pw.TextStyle(
-                  fontSize: 10,
-                  color:    PdfColor.fromInt(0xFF757575),
-                ),
-                textAlign: pw.TextAlign.center,
-              ),
-            ),
+            // ── Page bottom ─────────────────────────────────────────────────
+            pw.Divider(color: PdfColor.fromHex('#DDDDDD')),
             pw.SizedBox(height: 4),
-            pw.Center(
-              child: pw.Text(
-                'Generated by SalesQuest · LafargeHolcim',
-                style: const pw.TextStyle(
-                  fontSize: 9,
-                  color:    PdfColor.fromInt(0xFFBDBDBD),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  _brand,
+                  style: pw.TextStyle(
+                      fontSize: 8, color: PdfColor.fromHex('#AAAAAA')),
                 ),
-              ),
+                pw.Text(
+                  'Generated $eventDate',
+                  style: pw.TextStyle(
+                      fontSize: 8, color: PdfColor.fromHex('#AAAAAA')),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
 
-    // Open the system share / print sheet
-    await Printing.sharePdf(
-      bytes:    await pdf.save(),
-      filename: 'receipt_${receipt.redemptionId.substring(0, 8)}.pdf',
-    );
+    return doc;
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
-  static pw.Widget _sectionLabel(String text) => pw.Text(
-        text,
-        style: pw.TextStyle(
-          fontSize:   11,
-          fontWeight: pw.FontWeight.bold,
-          color:      const PdfColor.fromInt(0xFF1B3A6B),
-        ),
-      );
-
-  static pw.Widget _infoRow(String label, String value) => pw.Row(
+  static pw.Widget _row(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.SizedBox(
-            width: 90,
+            width: 100,
             child: pw.Text(
-              '$label:',
-              style: const pw.TextStyle(
-                fontSize: 11,
-                color:    PdfColor.fromInt(0xFF757575),
+              label,
+              style: pw.TextStyle(
+                fontSize:   11,
+                fontWeight: pw.FontWeight.bold,
+                color:      PdfColor.fromHex('#555555'),
               ),
             ),
           ),
           pw.Expanded(
             child: pw.Text(
               value,
-              style: pw.TextStyle(
-                fontSize:   11,
-                fontWeight: pw.FontWeight.bold,
-                color:      PdfColors.black,
-              ),
+              style: const pw.TextStyle(fontSize: 11),
             ),
           ),
         ],
-      );
+      ),
+    );
+  }
+
+  static pw.Widget _dividerLine() =>
+      pw.Divider(color: PdfColor.fromHex('#EEEEEE'), thickness: 0.5);
+
+  static String _pad(int n) => n.toString().padLeft(2, '0');
+
+  static Future<pw.ImageProvider?> _loadLogo() async {
+    try {
+      final data = await rootBundle.load('assets/images/app_logo.png');
+      return pw.MemoryImage(data.buffer.asUint8List());
+    } catch (_) {
+      return null;
+    }
+  }
 }

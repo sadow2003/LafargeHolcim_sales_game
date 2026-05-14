@@ -1,1 +1,1 @@
-export 'reward_store/reward_store_page.dart';
+export 'reward_store/reward_screen.dart';

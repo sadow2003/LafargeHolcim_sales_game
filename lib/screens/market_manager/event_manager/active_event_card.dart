@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 import '../../../main.dart';
 import 'event_management_service.dart';
+import 'event_card_widgets.dart';
 
 class ActiveEventCard extends StatefulWidget {
   const ActiveEventCard({super.key});
@@ -11,7 +13,7 @@ class ActiveEventCard extends StatefulWidget {
 }
 
 class _ActiveEventCardState extends State<ActiveEventCard> {
-  bool _isDeleting         = false;
+  bool _isClosing          = false;
   bool _autoCloseTriggered = false;
 
   String _fmtDate(DateTime d) =>
@@ -21,21 +23,15 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
       '${d.hour.toString().padLeft(2, '0')}:'
       '${d.minute.toString().padLeft(2, '0')}';
 
-  // ── Close event ─────────────────────────────────────────────────────────────
-  // Coins are distributed automatically — no separate manager step needed.
   Future<void> _closeEvent(DateTime start, DateTime end) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title:   const Text('Close Sales Window'),
         content: const Text(
-          'This will close the sales window immediately.\n\n'
-          'Coins will be awarded automatically based on each '
-          "salesperson's performance during this event:\n\n"
-          '🥇 Rank 1 → 500 coins\n'
-          '🥈 Rank 2 → 300 coins\n'
-          '🥉 Rank 3 → 200 coins\n'
-          '✅ Participated → 100 coins\n\n'
+          'This will close the event immediately.\n\n'
+          'The top 3 salespersons will be identified and their '
+          'rewards will be displayed on their screens.\n\n'
           'Points will be reset to 0 for the next event.',
         ),
         actions: [
@@ -46,26 +42,21 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
           FilledButton(
             style:     FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Close & Award'),
+            child: const Text('Close Event'),
           ),
         ],
       ),
     );
     if (confirm != true) return;
 
-    setState(() => _isDeleting = true);
+    setState(() => _isClosing = true);
     try {
-      final awards = await EventManagementService.deleteEvent(start, end);
+      await EventManagementService.deleteEvent(start, end);
       if (!mounted) return;
-
-      final msg = awards.isEmpty
-          ? 'Event closed. No participants — no coins awarded.'
-          : 'Event closed! Coins awarded to ${awards.length} salesperson(s).';
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:         Text(msg),
-          backgroundColor: awards.isEmpty ? Colors.orange : Colors.green,
+        const SnackBar(
+          content:         Text('Event closed. Winners have been notified.'),
+          backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
@@ -77,11 +68,10 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _isDeleting = false);
+      if (mounted) setState(() => _isClosing = false);
     }
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
@@ -104,27 +94,27 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
           );
         }
 
-        final start  = (data['startDate'] as Timestamp).toDate();
-        final end    = (data['endDate']   as Timestamp).toDate();
-        final now    = DateTime.now();
-        final isLive = now.isAfter(start) && now.isBefore(end);
-        final isPast = now.isAfter(end);
+        final start      = (data['startDate'] as Timestamp).toDate();
+        final end        = (data['endDate']   as Timestamp).toDate();
+        final now        = DateTime.now();
+        final isLive     = now.isAfter(start) && now.isBefore(end);
+        final isPast     = now.isAfter(end);
+        final rawRewards = (data['rewards'] as Map<String, dynamic>?) ?? {};
 
-        // Auto-distribute as soon as the event is detected as expired
-        if (isPast && !_autoCloseTriggered && !_isDeleting) {
+        if (isPast && !_autoCloseTriggered && !_isClosing) {
           _autoCloseTriggered = true;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
-            setState(() => _isDeleting = true);
+            setState(() => _isClosing = true);
             try {
               await EventManagementService.deleteEvent(start, end);
             } finally {
-              if (mounted) setState(() => _isDeleting = false);
+              if (mounted) setState(() => _isClosing = false);
             }
           });
         }
 
-        final statusColor = isLive ? Colors.green : (isPast ? Colors.red : Colors.orange);
-        final statusLabel = isLive ? 'OPEN'       : (isPast ? 'CLOSED'   : 'UPCOMING');
+        final statusColor = isLive ? Colors.green : (isPast ? Colors.red   : Colors.orange);
+        final statusLabel = isLive ? 'OPEN'       : (isPast ? 'CLOSING…'   : 'UPCOMING');
 
         return Card(
           elevation: 2,
@@ -134,96 +124,56 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _StatusBadge(label: statusLabel, color: statusColor),
+                EventStatusBadge(label: statusLabel, color: statusColor),
                 const SizedBox(height: 12),
-                _DateRangeRow(start: start, end: end, fmtDate: _fmtDate),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 16, color: kPrimaryColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${_fmtDate(start)}  →  ${_fmtDate(end)}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+                if (rawRewards.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Event Rewards',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 8),
+                  EventRewardSummaryRow(rank: 1, emoji: AppEmojis.gold, rawRewards: rawRewards),
+                  const SizedBox(height: 6),
+                  EventRewardSummaryRow(rank: 2, emoji: AppEmojis.silver, rawRewards: rawRewards),
+                  const SizedBox(height: 6),
+                  EventRewardSummaryRow(rank: 3, emoji: AppEmojis.bronze, rawRewards: rawRewards),
+                ],
                 const SizedBox(height: 16),
-
-                // Single button — closes the event AND awards coins automatically
-                _CloseEventButton(
-                  isLoading: _isDeleting,
-                  onTap:     () => _closeEvent(start, end),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    onPressed: _isClosing ? null : () => _closeEvent(start, end),
+                    icon: _isClosing
+                        ? const SizedBox(
+                            width: 16, height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+                          )
+                        : const Icon(Icons.close_outlined),
+                    label: const Text('Close Sales Window'),
+                  ),
                 ),
               ],
             ),
           ),
         );
       },
-    );
-  }
-}
-
-// ── Private widgets ──────────────────────────────────────────────────────────
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.color});
-  final String label;
-  final Color  color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color:        color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-      ),
-    );
-  }
-}
-
-class _DateRangeRow extends StatelessWidget {
-  const _DateRangeRow({
-    required this.start,
-    required this.end,
-    required this.fmtDate,
-  });
-  final DateTime start;
-  final DateTime end;
-  final String Function(DateTime) fmtDate;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.calendar_today_outlined, size: 16, color: kPrimaryColor),
-        const SizedBox(width: 8),
-        Text(
-          '${fmtDate(start)}  →  ${fmtDate(end)}',
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-}
-
-class _CloseEventButton extends StatelessWidget {
-  const _CloseEventButton({required this.isLoading, required this.onTap});
-  final bool         isLoading;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red,
-          side: const BorderSide(color: Colors.red),
-        ),
-        onPressed: isLoading ? null : onTap,
-        icon: isLoading
-            ? const SizedBox(
-                width: 16, height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
-              )
-            : const Icon(Icons.close_outlined),
-        label: const Text('Close Sales Window'),
-      ),
     );
   }
 }

@@ -80,9 +80,10 @@ def auto_close_expired_event(_: scheduler_fn.ScheduledEvent) -> None:
         logging.info("auto_close: event still active until %s, skipping.", end_local)
         return
 
-    logging.info("auto_close: event expired at %s — starting distribution.", end_local)
+    logging.info("auto_close: event expired at %s — closing.", end_local)
 
-    start_date = data.get("startDate")
+    start_date   = data.get("startDate")
+    raw_rewards  = data.get("rewards", {})  # {"1": {"amount": <float>}, "2": ..., "3": ...}
 
     # 1. Fetch approved sales inside the event window
     try:
@@ -110,23 +111,49 @@ def auto_close_expired_event(_: scheduler_fn.ScheduledEvent) -> None:
 
     logging.info("auto_close: %d participants found.", len(points_by_user))
 
-    # 3. Rank and assign coins
-    coin_rules          = {1: 500, 2: 300, 3: 200}
-    participation_coins = 100
-    ranked              = sorted(points_by_user.items(), key=lambda x: x[1], reverse=True)
+    ranked = sorted(points_by_user.items(), key=lambda x: x[1], reverse=True)
 
-    # 4. Batch-write coin increments + delete event
-    batch = db.batch()
-    for rank, (uid, _) in enumerate(ranked, start=1):
-        coins = coin_rules.get(rank, participation_coins)
-        logging.info("auto_close: awarding %d coins to uid=%s (rank %d).", coins, uid, rank)
-        batch.update(db.collection("users").document(uid), {"coins": fb_firestore.Increment(coins)})
+    # 3. Fetch names for all participants and split into winners / participants
+    winners      = []
+    participants = []
+    for i, (uid, _) in enumerate(ranked):
+        rank = i + 1
+        user_name = "Participant"
+        try:
+            user_doc = db.collection("users").document(uid).get()
+            if user_doc.exists:
+                ud        = user_doc.to_dict() or {}
+                first     = ud.get("firstName", "")
+                last      = ud.get("lastName",  "")
+                user_name = f"{first} {last}".strip() or ud.get("email", "Participant")
+        except Exception:
+            pass
 
-    batch.delete(doc_ref)
-    batch.commit()
-    logging.info("auto_close: coins awarded and event deleted.")
+        entry = {"rank": rank, "userId": uid, "userName": user_name}
 
-    # 5. Reset all salesperson points (chunked at 500 for Firestore batch limit)
+        if rank <= 3:
+            reward_info = raw_rewards.get(str(rank), {})
+            winners.append({
+                **entry,
+                "rewardAmount": float(reward_info.get("amount", 0)),
+            })
+        else:
+            participants.append(entry)
+
+    # 4. Save lastEventResult
+    result_ref = db.collection("settings").document("lastEventResult")
+    result_ref.set({
+        "closedAt":     fb_firestore.SERVER_TIMESTAMP,
+        "winners":      winners,
+        "participants": participants,
+    })
+    logging.info("auto_close: saved lastEventResult with %d winner(s).", len(winners))
+
+    # 5. Delete event document
+    doc_ref.delete()
+    logging.info("auto_close: event deleted.")
+
+    # 6. Reset all salesperson points (chunked at 500 for Firestore batch limit)
     salespeople = list(db.collection("users").where("role", "==", "salesperson").stream())
     chunk_size  = 500
     for i in range(0, len(salespeople), chunk_size):

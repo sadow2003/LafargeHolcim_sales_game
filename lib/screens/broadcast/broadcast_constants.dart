@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 
 // emojies for reactions to broadcasts
-const broadcastReactionEmojis = ['🔥', '💪', '🏆', '👏', '⚡'];
+final broadcastReactionEmojis = AppEmojis.reactions;
 
 // Types users can manually select when posting
 const broadcastTypes = [

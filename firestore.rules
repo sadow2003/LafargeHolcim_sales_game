@@ -4,7 +4,7 @@
 //   users         → Any logged-in user can READ (leaderboard).
 //                   Users can WRITE their own document. Admins can WRITE any.
 //                   Admins/managers/market-managers can UPDATE any user
-//                   (rank recalculation, coin awards after event close).
+//                   (rank recalculation, points reset after event close).
 //
 //   products      → Any logged-in user can READ.
 //                   Admins, managers, and market-managers can create/update/delete.
@@ -19,8 +19,8 @@
 //   notifications → Users can READ and mark-as-read only their own.
 //                   Any authenticated user can CREATE.
 //
-//   settings      → Any logged-in user can READ.
-//                   Only market-managers and admins can WRITE (event management).
+//   settings      → Any logged-in user can READ (salesEvent, lastEventResult).
+//                   Only market-managers and admins can WRITE (event + reward management).
 
 rules_version = '2';
 
@@ -52,8 +52,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'market-manager';
     }
 
-    // Covers all privileged roles — use this for any rule that managers or
-    // market-managers should share (sales reads, coin updates, product writes).
+    // Covers all privileged roles — shared by any rule managers should access.
     function isAdminOrManager() {
       return isAdmin() || isManager() || isMarketManager();
     }
@@ -62,7 +61,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read:   if isAuthenticated();
       allow create: if isAuthenticated() && (isOwner(userId) || isAdmin());
-      // isAdminOrManager covers coin increments by market-manager after event close
+      // isAdminOrManager covers totalPoints resets by market-manager after event close
       allow update: if isAuthenticated() && (isOwner(userId) || isAdminOrManager());
       allow delete: if isAdmin() && !isOwner(userId);
     }
@@ -107,21 +106,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ── redemptions collection ────────────────────────────────────────────
-    // Salesperson creates their own redemption; managers/admins can read all.
-    match /redemptions/{redemptionId} {
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid;
-      allow read: if isAuthenticated() &&
-        (isAdminOrManager() || resource.data.userId == request.auth.uid);
-      allow update: if isAdminOrManager(); // for status changes (pending → fulfilled)
-      allow delete: if false;
-    }
-
     // ── settings collection ───────────────────────────────────────────────
+    // Includes: salesEvent (active event + rewards), lastEventResult (winners).
+    // All authenticated users read so the reward screen and sale-claim gate work.
+    // Only market-managers and admins write (event creation/close).
     match /settings/{docId} {
       allow read:  if isAuthenticated();
-      allow write: if isAdminOrManager();
+      allow write: if isAdmin() || isMarketManager();
     }
 
   }

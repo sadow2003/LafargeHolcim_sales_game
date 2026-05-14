@@ -19,7 +19,7 @@ import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone_screen.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
-import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_store_page.dart';
+import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_screen.dart';
 
 
 //primary colors of the application — LafargeHolcim brand palette

@@ -1,102 +1,117 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
-// Coins awarded per finishing rank inside an event
-const _coinRules = {1: 500, 2: 300, 3: 200};
-const _participationCoins = 100; // any participant outside top 3
+import 'event_reward.dart';
 
 class EventManagementService {
   EventManagementService._();
 
   static final _db = FirebaseFirestore.instance;
 
-  // ── Event CRUD(Create,Read,Update,Delete) ─────────────────────────────────────────────────────────────
+  // ── Streams ───────────────────────────────────────────────────────────────
 
   static Stream<DocumentSnapshot> eventStream() =>
       _db.collection('settings').doc('salesEvent').snapshots();
 
-  static Future<void> saveEvent(DateTimeRange range) async {
+  static Stream<DocumentSnapshot> lastResultStream() =>
+      _db.collection('settings').doc('lastEventResult').snapshots();
+
+  // ── Event CRUD ────────────────────────────────────────────────────────────
+
+  /// Saves (or overwrites) the active event with date range and top-3 cash prizes.
+  static Future<void> saveEvent(
+    DateTimeRange range,
+    List<MoneyReward> rewards,
+  ) async {
+    assert(rewards.length == 3);
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     await _db.collection('settings').doc('salesEvent').set({
       'startDate': Timestamp.fromDate(range.start),
       'endDate':   Timestamp.fromDate(range.end),
       'createdBy': uid,
       'updatedAt': FieldValue.serverTimestamp(),
+      'rewards': {
+        '1': rewards[0].toMap(),
+        '2': rewards[1].toMap(),
+        '3': rewards[2].toMap(),
+      },
     });
   }
 
-  // Distributes coins to participants, deletes the event window, then resets points.
-  // Returns the coin awards map so the caller can show a result message.
-  static Future<Map<String, int>> deleteEvent(DateTime start, DateTime end) async {
-    final awards = await distributeCoins(start, end);
+  /// Closes the event: saves winners + all participants, deletes the event doc, resets points.
+  static Future<void> deleteEvent(DateTime start, DateTime end) async {
+    final eventSnap  = await _db.collection('settings').doc('salesEvent').get();
+    final eventData  = eventSnap.data() ?? {};
+    final rawRewards = (eventData['rewards'] as Map<String, dynamic>?) ?? {};
+
+    final allRanked = await _resolveAllParticipants();
+    await _saveLastEventResult(allRanked, rawRewards);
     await _db.collection('settings').doc('salesEvent').delete();
     await _resetAllSalespersonPoints();
-    return awards;
   }
 
-  // ── Coin distribution ──────────────────────────────────────────────────────
+  // ── Rank ALL participants by their current totalPoints ───────────────────
+  // Uses users.totalPoints directly (same source as the leaderboard) so the
+  // stored winners always match what salespersons saw during the event.
 
-  // Queries approved sales in the event window, ranks participants by
-  // pointsAwarded, and credits coins. Only participants (pts > 0) are ranked.
-  static Future<Map<String, int>> distributeCoins(
-      DateTime start, DateTime end) async {
-
-    // 1. Fetch all approved sales inside the event window
-    final salesSnap = await _db
-        .collection('sales')
-        .where('status',    isEqualTo:            'approved')
-        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-        .where('createdAt', isLessThanOrEqualTo:    Timestamp.fromDate(end))
+  static Future<List<Map<String, dynamic>>> _resolveAllParticipants() async {
+    final usersSnap = await _db
+        .collection('users')
+        .where('role',        isEqualTo:    'salesperson')
+        .where('totalPoints', isGreaterThan: 0)
+        .orderBy('totalPoints', descending: true)
         .get();
 
-    // 2. Sum pointsAwarded per user (participation gate: pts must be > 0)
-    final pointsByUser = <String, int>{};
-    for (final doc in salesSnap.docs) {
-      final data = doc.data();
-      final uid  = data['userId']        as String? ?? '';
-      final pts  = (data['pointsAwarded'] as num?  ?? 0).toInt();
-      if (uid.isNotEmpty && pts > 0) {
-        pointsByUser[uid] = (pointsByUser[uid] ?? 0) + pts;
+    final result = <Map<String, dynamic>>[];
+    for (var i = 0; i < usersSnap.docs.length; i++) {
+      final d     = usersSnap.docs[i].data();
+      final uid   = usersSnap.docs[i].id;
+      final first = (d['firstName'] as String?) ?? '';
+      final last  = (d['lastName']  as String?) ?? '';
+      String userName = '$first $last'.trim();
+      if (userName.isEmpty) userName = (d['email'] as String?) ?? 'Participant';
+      result.add({'rank': i + 1, 'userId': uid, 'userName': userName});
+    }
+    return result;
+  }
+
+  // ── Save results: top-3 get cash prizes, rest are participants ────────────
+
+  static Future<void> _saveLastEventResult(
+    List<Map<String, dynamic>> allRanked,
+    Map<String, dynamic> rawRewards,
+  ) async {
+    final winners      = <Map<String, dynamic>>[];
+    final participants = <Map<String, dynamic>>[];
+
+    for (final entry in allRanked) {
+      final rank = entry['rank'] as int;
+      if (rank <= 3) {
+        final rewardRaw = (rawRewards['$rank'] as Map<String, dynamic>?) ?? {};
+        winners.add({
+          ...entry,
+          'rewardAmount': ((rewardRaw['amount'] as num?) ?? 0).toDouble(),
+        });
+      } else {
+        participants.add(entry);
       }
     }
 
-    if (pointsByUser.isEmpty) return {}; // nobody participated
-
-    // 3. Rank participants highest → lowest event points
-    final ranked = pointsByUser.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    // 4. Assign coins — rank position starts at 1
-    final coinAwards = <String, int>{};
-    for (var i = 0; i < ranked.length; i++) {
-      final rank = i + 1;
-      coinAwards[ranked[i].key] = _coinRules[rank] ?? _participationCoins;
-    }
-
-    // 5. Batch-write coin increments to each user
-    final batch = _db.batch();
-    for (final entry in coinAwards.entries) {
-      batch.update(
-        _db.collection('users').doc(entry.key),
-        {'coins': FieldValue.increment(entry.value)},
-      );
-    }
-    await batch.commit();
-
-    return coinAwards; // returned so the UI can show a summary
+    await _db.collection('settings').doc('lastEventResult').set({
+      'closedAt':    FieldValue.serverTimestamp(),
+      'winners':     winners,
+      'participants': participants,
+    });
   }
 
-  // ── Points reset ───────────────────────────────────────────────────────────
+  // ── Points reset ──────────────────────────────────────────────────────────
 
-  // Sets totalPoints = 0 for every salesperson so the next event starts fresh.
   static Future<void> _resetAllSalespersonPoints() async {
     final snap = await _db
         .collection('users')
         .where('role', isEqualTo: 'salesperson')
         .get();
 
-    // Firestore batch limit is 500 — chunk if needed
     const chunkSize = 500;
     for (var i = 0; i < snap.docs.length; i += chunkSize) {
       final batch = _db.batch();

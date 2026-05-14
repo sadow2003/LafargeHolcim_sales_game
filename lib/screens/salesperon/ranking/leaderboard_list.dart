@@ -9,12 +9,15 @@ class LeaderboardWithButtons extends StatelessWidget {
   final ScrollController leaderboardScroll;
   final List<QueryDocumentSnapshot> docs;
   final String? currentUid;
+  // Prize amounts for ranks 1–3; null means no active event
+  final List<double?>? rewards;
 
   const LeaderboardWithButtons({
     super.key,
     required this.leaderboardScroll,
     required this.docs,
     required this.currentUid,
+    this.rewards,
   });
 
   @override
@@ -118,10 +121,25 @@ class LeaderboardWithButtons extends StatelessWidget {
                       ),
                     ),
 
-                    //points of the user
-                    trailing: Text(
-                      '$points pts',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    //points of the user, plus prize badge for top 3 when an event is active
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$points pts',
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                        if (i < 3 && rewards != null && rewards![i] != null)
+                          Text(
+                            '${rewards![i]!.toStringAsFixed(0)} MAD',
+                            style: TextStyle(
+                              color:      rankColor,
+                              fontSize:   11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 );

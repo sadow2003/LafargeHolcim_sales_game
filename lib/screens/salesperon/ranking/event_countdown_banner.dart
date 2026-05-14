@@ -69,7 +69,7 @@ class _EventCountdownBannerState extends State<EventCountdownBanner> {
         // Event is over
         return _banner(
           icon:    Icons.event_busy_outlined,
-          message: 'Event has ended — awaiting coin distribution',
+          message: 'Event has ended — check the Rewards screen for winners',
           color:   Colors.grey.shade600,
         );
       },

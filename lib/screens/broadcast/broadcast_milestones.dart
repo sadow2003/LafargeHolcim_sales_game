@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 import 'broadcast_constants.dart';
 
 /// Mirrors the progression screen: 1, 10, 100, 1000, 10000, …
@@ -117,7 +118,7 @@ class _MilestoneBroadcastCardState extends State<MilestoneBroadcastCard> {
     final ts           = data['createdAt'] as Timestamp?;
     final reactions    = Map<String, dynamic>.from(data['reactions'] ?? {});
     final canDelete    = widget.currentUserRole == 'admin' || widget.currentUserRole == 'sales-manager';
-    final initial      = userName.isNotEmpty ? userName[0].toUpperCase() : '🚀';
+    final initial      = userName.isNotEmpty ? userName[0].toUpperCase() : AppEmojis.rocket;
 
     const green      = Color(0xFF8DC21F);
     const darkGreen  = Color(0xFF5A8A00);
@@ -254,8 +255,8 @@ class _MilestoneBroadcastCardState extends State<MilestoneBroadcastCard> {
                         child: const Icon(Icons.rocket_launch, color: Colors.white, size: 32),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        '🎉 Milestone Reached! 🎉',
+                      Text(
+                        '${AppEmojis.party} Milestone Reached! ${AppEmojis.party}',
                         style: TextStyle(
                           color: green,
                           fontSize: 16,
