@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../../screens/market_manager/event_manager/event_management_service.dart';
 import '../../../widgets/_buildDrawer.dart';
 import '../../../widgets/gradient_app_bar.dart';
 import 'Congrationlation_screen.dart';
@@ -19,17 +20,32 @@ class RankingsPage extends StatefulWidget {
 class _RankingsPageState extends State<RankingsPage>
     with SingleTickerProviderStateMixin {// Flutter mixin that provides a single Ticker — the engine that drives animations.
   final User? _currentUser = FirebaseAuth.instance.currentUser;
-  //drives an animation (controls start, stop, repeat, value over time)
   late AnimationController _climbController;
-  //controls the scrolling leaderboard
   final ScrollController _leaderboardScroll = ScrollController();
-  // which podium theme is currently displayed
   PodiumTheme _selectedTheme = PodiumTheme.stickman;
 
   // True once the event end-time has passed — flips exactly once.
   bool _eventEnded = false;
+
+  // Keyed by lastEventResult.closedAt (microseconds string).
+  // Static so it survives navigation — instance variables reset when the user
+  // leaves and returns to the leaderboard, causing the overlay to re-appear.
+  static final Set<String> _seenResultKeys = {};
   Timer?      _endTimer;
   StreamSubscription<DocumentSnapshot>? _eventSub;
+
+  // All three streams are hoisted to fields so Flutter never restarts them
+  // mid-build — inline stream creation causes ConnectionState.waiting flashes.
+  final Stream<DocumentSnapshot> _resultStream =
+      EventManagementService.lastResultStream();
+  final Stream<DocumentSnapshot> _eventStream =
+      FirebaseFirestore.instance.collection('settings').doc('salesEvent').snapshots();
+  final Stream<QuerySnapshot> _usersStream =
+      FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'salesperson')
+          .orderBy('totalPoints', descending: true)
+          .snapshots();
 
   @override
   void initState() {
@@ -62,7 +78,6 @@ class _RankingsPageState extends State<RankingsPage>
       if (remaining.isNegative) {
         if (!_eventEnded && mounted) setState(() => _eventEnded = true);
       } else {
-        // Already past? handled above. Otherwise arm a one-shot timer.
         if (_eventEnded && mounted) setState(() => _eventEnded = false);
         _endTimer = Timer(remaining, () {
           if (mounted) setState(() => _eventEnded = true);
@@ -80,13 +95,21 @@ class _RankingsPageState extends State<RankingsPage>
     super.dispose();
   }
 
+  // Returns a stable string key for a given lastEventResult document so we can
+  // track which results this user has already dismissed this session.
+  static String? _resultKey(Map<String, dynamic>? data) {
+    final ts = data?['closedAt'];
+    if (ts is Timestamp) return ts.microsecondsSinceEpoch.toString();
+    return null;
+  }
+
   //function that lets the user go staight to the the current user
   void _scrollToCurrentUser(List<QueryDocumentSnapshot> docs) {
     final idx = docs.indexWhere((d) => d.id == _currentUser?.uid);
     if (idx < 0) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_leaderboardScroll.hasClients) return;
-      final target = idx * 72.0;//
+      final target = idx * 72.0;
       final maxExt = _leaderboardScroll.position.maxScrollExtent;
       _leaderboardScroll.animateTo(
         target.clamp(0.0, maxExt),
@@ -106,11 +129,13 @@ class _RankingsPageState extends State<RankingsPage>
       drawer: const AppDrawer(),
 
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('settings')
-            .doc('salesEvent')
-            .snapshots(),
-        builder: (context, eventSnap) {
+        stream: _resultStream,
+        builder: (context, resultSnap) {
+          final resultData = resultSnap.data?.data() as Map<String, dynamic>?;
+
+          return StreamBuilder<DocumentSnapshot>(
+            stream: _eventStream,
+            builder: (context, eventSnap) {
           // Extract reward amounts from the active event (null if no event)
           final eventData  = eventSnap.data?.data() as Map<String, dynamic>?;
           final rawRewards = eventData?['rewards'] as Map<String, dynamic>?;
@@ -123,11 +148,7 @@ class _RankingsPageState extends State<RankingsPage>
                 ];
 
           return StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('users')
-                .where('role', isEqualTo: 'salesperson')
-                .orderBy('totalPoints', descending: true)
-                .snapshots(),
+            stream: _usersStream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -246,9 +267,38 @@ class _RankingsPageState extends State<RankingsPage>
                       ],
                     ),
 
-                    // ── Congratulation overlay (event ended + winners exist) ──
-                    if (_eventEnded)
+                    // ── Congratulation overlay ──────────────────────────────
+                    // Show when there is a saved result the user hasn't seen,
+                    // and no new event is currently active. Works for both live
+                    // users (event just ended) and late arrivals (entered screen
+                    // after the salesEvent doc was already deleted).
+                    if (resultData != null &&
+                        !_seenResultKeys.contains(_resultKey(resultData)) &&
+                        !(eventData != null &&
+                            (eventData['endDate'] as Timestamp?)
+                                ?.toDate()
+                                .isAfter(DateTime.now()) == true))
                       Builder(builder: (_) {
+                        final key = _resultKey(resultData);
+                        void markSeen() {
+                          if (key != null) setState(() => _seenResultKeys.add(key));
+                        }
+
+                        final savedWinners =
+                            (resultData['winners'] as List<dynamic>?)
+                                ?.cast<Map<String, dynamic>>();
+
+                        if (savedWinners != null && savedWinners.isNotEmpty) {
+                          return Positioned.fill(
+                            child: CongratulationOverlay(
+                              winners:       null,
+                              resultWinners: savedWinners,
+                              rewards:       rewards,
+                              onDismissed:   markSeen,
+                            ),
+                          );
+                        }
+
                         final actualWinners = docs
                             .where((d) {
                               final pts = ((d.data() as Map<String, dynamic>)['totalPoints'] as num?)?.toInt() ?? 0;
@@ -261,7 +311,7 @@ class _RankingsPageState extends State<RankingsPage>
                           child: CongratulationOverlay(
                             winners:     actualWinners,
                             rewards:     rewards,
-                            onDismissed: () => setState(() => _eventEnded = false),
+                            onDismissed: markSeen,
                           ),
                         );
                       }),
@@ -271,7 +321,9 @@ class _RankingsPageState extends State<RankingsPage>
             },
           );
         },
-      ),
-    );
+      );      // closes salesEvent StreamBuilder (return value of resultSnap builder)
+    },        // closes resultSnap builder
+  ),          // closes _resultStream StreamBuilder (body: value)
+);
   }
 }

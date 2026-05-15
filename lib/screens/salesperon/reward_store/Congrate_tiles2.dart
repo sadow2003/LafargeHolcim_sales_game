@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/rendering.dart';
 import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 
 String fmtMoney(dynamic raw) {
@@ -10,7 +10,7 @@ String fmtMoney(dynamic raw) {
 
 // ── Winner tile (top 3) ───────────────────────────────────────────────────────
 
-class WinnerTile extends StatelessWidget{
+class WinnerTile extends StatelessWidget {
   const WinnerTile({
     super.key,
     required this.winner,
@@ -18,48 +18,48 @@ class WinnerTile extends StatelessWidget{
     required this.emojis,
     required this.rankColors,
   });
+
   final Map<String,dynamic> winner;
   final bool isMe;
-  final Map<int,String> emojis;
+  final Map <int,String> emojis;
   final Map<int,Color> rankColors;
 
   @override
   Widget build(BuildContext context){
     final rank =winner['rank'] as int;
-    final name = (winner['userName']as String?)?? 'Participant';
-    final amount =fmtMoney(winner['rewardAmount']);
+    final name = (winner['userName'] as String?) ?? 'Participant';
+    final amount = fmtMoney(winner['rewardAmount']);
     final color = rankColors[rank]!;
 
     return Container(
       decoration: BoxDecoration(
-        color: isMe ? Colors.green.shade50 : color.withValues(alpha : 0.07),
+        color: isMe ?  Colors.green.shade50 :color.withValues(alpha: 0.07),
         border: Border.all(
-          color: isMe ? Colors.green.shade50 : color.withValues(alpha: 0.4),
+          color: isMe ? Colors.green.shade300 : color.withValues(alpha: 0.4),
           width: isMe ? 2 : 1.5,
-          ),
-          borderRadius: BorderRadius.circular(12),
-
+        ),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading: Text(emojis[rank]??'$rank',
-          style: const TextStyle(fontSize: 28)),
-      title:Row(
-        children: [
-          Expanded(
-            child: Text(name,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        leading: Text(emojis[rank] ?? '$rank',
+            style: const TextStyle(fontSize: 28)),
+            title: Row(
+            children: [
+              Expanded(
+                child: Text(name,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              if (isMe) const YouBadge(),
+            ],
+          ),
+          subtitle: Text(
+            amount,
+            style: const TextStyle(
+              fontSize: 13,
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w600,
             ),
-            if(isMe) const YouBadge(),
-        ],
-      ),
-      subtitle: Text(
-        amount,
-        style:const TextStyle(
-          fontSize: 13,
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+            ),
       ),
     );
   }
@@ -79,11 +79,10 @@ class ParticipantTile extends StatelessWidget{
   Widget build(BuildContext context){
     final rank = participant['rank'] as int;
     final name = (participant['userName'] as String?) ?? 'Participant';
-
     return Container(
       decoration: BoxDecoration(
-        color:        isMe ? Colors.blue.shade50 : Colors.grey.shade50,
-        border:       Border.all(
+        color: isMe ? Colors.blue.shade50 : Colors.grey.shade50,
+        border: Border.all(
           color: isMe ? Colors.blue.shade300 : Colors.grey.shade300,
           width: isMe ? 2 : 1,
         ),
@@ -92,50 +91,50 @@ class ParticipantTile extends StatelessWidget{
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Colors.grey.shade200,
-          child:Text('$rank',
-            style: const TextStyle(
+          child: Text(
+            '$rank',
+            style:const TextStyle(
               fontWeight: FontWeight.bold,
-              color:      Colors.black54,
-              fontSize:   13,
+              color: Colors.black54,
+              fontSize: 13,
             ),
           ),
         ),
-        title: Row(
+        title:Row(
           children: [
             Expanded(
               child: Text(name,
                   style: const TextStyle(fontWeight: FontWeight.w600)),
-            ),
-            if (isMe) const YouBadge(),
+              ),
+              if(isMe) const YouBadge(),
           ],
-        ),
-        subtitle: Text(
-          'Participated ${AppEmojis.medal}',
-          style: const TextStyle(fontSize: 12, color: Colors.black45),
-        ),
+          ),
+          subtitle: Text(
+            'Participant ${AppEmojis.medal}',
+            style: const TextStyle(fontSize: 12,color:Colors.black45),
+          ),
       ),
     );
   }
 }
 
-// ── Shared "You" badge ────────────────────────────────────────────────────────
 
-class YouBadge extends StatelessWidget {
+class YouBadge extends StatelessWidget{
   const YouBadge({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 2),
       decoration: BoxDecoration(
-        color:        Colors.green,
+        color: Colors.green,
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Text(
         'You',
         style: TextStyle(
-          color:      Colors.white,
-          fontSize:   11,
+          color: Colors.white,
+          fontSize: 11,
           fontWeight: FontWeight.bold,
         ),
       ),

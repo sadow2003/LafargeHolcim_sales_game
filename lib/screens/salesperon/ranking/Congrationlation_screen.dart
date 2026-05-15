@@ -6,8 +6,12 @@ import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 /// when an event has ended and there are winners.
 /// Fades out when the user taps anywhere on it.
 class CongratulationOverlay extends StatefulWidget {
-  /// The top-ranked users (up to 3). Pass null to hide the overlay.
+  /// Live leaderboard docs (used before results are saved). Pass null when
+  /// using [resultWinners] instead.
   final List<QueryDocumentSnapshot>? winners;
+
+  /// Pre-saved winner maps from `lastEventResult` (preferred after auto-close).
+  final List<Map<String, dynamic>>? resultWinners;
 
   /// Prize amounts for 1st / 2nd / 3rd place (null entries = no prize).
   final List<double?>? rewards;
@@ -16,7 +20,13 @@ class CongratulationOverlay extends StatefulWidget {
   /// the overlay from the tree entirely.
   final VoidCallback? onDismissed;
 
-  const CongratulationOverlay({super.key, required this.winners, this.rewards, this.onDismissed});
+  const CongratulationOverlay({
+    super.key,
+    this.winners,
+    this.resultWinners,
+    this.rewards,
+    this.onDismissed,
+  });
 
   @override
   State<CongratulationOverlay> createState() => _CongratulationOverlayState();
@@ -68,9 +78,9 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
   // ____________________________UI______________________
   @override
   Widget build(BuildContext context) {
-    final winners = widget.winners;
-    // Nothing to show — render an invisible zero-size widget.
-    if (winners == null || winners.isEmpty) return const SizedBox.shrink();
+    final hasWinners = (widget.winners?.isNotEmpty ?? false) ||
+        (widget.resultWinners?.isNotEmpty ?? false);
+    if (!hasWinners) return const SizedBox.shrink();
 
     // Rebuilds every frame as _opacity changes so the fade runs smoothly.
     return AnimatedBuilder(
@@ -128,7 +138,7 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
 
               const SizedBox(height: 32),
               // Expand the winner tiles list inline using the spread operator.
-              ..._buildWinnerTiles(winners, widget.rewards),
+              ..._buildWinnerTiles(),
               const SizedBox(height: 40),
               // Hint so the user knows how to close the overlay.
               const Text(
@@ -145,26 +155,52 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
     );
   }
 
-  // Builds up to 3 ranked winner tiles, each bordered in gold / silver / bronze.
-  List<Widget> _buildWinnerTiles(List<QueryDocumentSnapshot> winners, List<double?>? rewards) {
+  // Builds up to 3 ranked winner tiles from either saved results or live docs.
+  List<Widget> _buildWinnerTiles() {
     final medals = AppEmojis.medals;
     const borderColors = [
-      Color(0xFFFFD700), // gold
-      Color(0xFFC0C0C0), // silver
-      Color(0xFFCD7F32), // bronze
+      Color(0xFFFFD700),
+      Color(0xFFC0C0C0),
+      Color(0xFFCD7F32),
     ];
     final tiles = <Widget>[];
 
-    for (int i = 0; i < winners.length && i < 3; i++) {
-      final data   = winners[i].data() as Map<String, dynamic>;
-      final first  = (data['firstName'] as String?) ?? '';
-      final last   = (data['lastName']  as String?) ?? '';
-      final name   = '$first $last'.trim().isNotEmpty
-          ? '$first $last'.trim()
-          : (data['email'] as String?) ?? 'Unknown';
-      final points = (data['totalPoints'] as num?)?.toInt() ?? 0;
+    // Build a unified list of name/points maps from whichever source is available.
+    final List<Map<String, dynamic>> entries;
+    if (widget.resultWinners != null && widget.resultWinners!.isNotEmpty) {
+      entries = widget.resultWinners!.take(3).map((w) => {
+        'name':   (w['userName'] as String?) ?? 'Unknown',
+        'points': null, // saved results don't store points
+        'rank':   w['rank'] as int? ?? 0,
+        'rewardAmount': w['rewardAmount'],
+      }).toList();
+    } else {
+      entries = (widget.winners ?? []).take(3).map((doc) {
+        final data  = doc.data() as Map<String, dynamic>;
+        final first = (data['firstName'] as String?) ?? '';
+        final last  = (data['lastName']  as String?) ?? '';
+        final name  = '$first $last'.trim().isNotEmpty
+            ? '$first $last'.trim()
+            : (data['email'] as String?) ?? 'Unknown';
+        return {
+          'name':   name,
+          'points': (data['totalPoints'] as num?)?.toInt(),
+          'rank':   0,
+          'rewardAmount': null,
+        };
+      }).toList();
+    }
 
-      final prize     = rewards != null && i < rewards.length ? rewards[i] : null;
+    for (int i = 0; i < entries.length; i++) {
+      final entry  = entries[i];
+      final name   = entry['name'] as String;
+      final points = entry['points'] as int?;
+
+      // Prize: from resultWinners rewardAmount, or from rewards list.
+      final double? prize = (entry['rewardAmount'] as num?)?.toDouble()
+          ?? (widget.rewards != null && i < widget.rewards!.length
+              ? widget.rewards![i]
+              : null);
       final prizeText = (prize != null && prize > 0)
           ? '${prize % 1 == 0 ? prize.toInt() : prize} MAD'
           : null;
@@ -208,14 +244,15 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
                   ],
                 ),
               ),
-              Text(
-                '$points pts',
-                style: const TextStyle(
-                  color:      Colors.white60,
-                  fontSize:   13,
-                  fontWeight: FontWeight.bold,
+              if (points != null)
+                Text(
+                  '$points pts',
+                  style: const TextStyle(
+                    color:      Colors.white60,
+                    fontSize:   13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

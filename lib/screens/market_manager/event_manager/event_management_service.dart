@@ -39,8 +39,10 @@ class EventManagementService {
   }
 
   /// Closes the event: saves winners + all participants, deletes the event doc, resets points.
+  /// Idempotent — returns immediately if the event doc no longer exists.
   static Future<void> deleteEvent(DateTime start, DateTime end) async {
     final eventSnap  = await _db.collection('settings').doc('salesEvent').get();
+    if (!eventSnap.exists) return;           // already closed by another client
     final eventData  = eventSnap.data() ?? {};
     final rawRewards = (eventData['rewards'] as Map<String, dynamic>?) ?? {};
 
