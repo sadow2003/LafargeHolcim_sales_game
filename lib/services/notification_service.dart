@@ -1,9 +1,12 @@
 import 'dart:async';//imports Dart's built-in async library, provides future stream timer completed
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';// import flutter local notification  which lets your app show local notifications on the device (without needing a server/internet).
+import 'package:http/http.dart' as http;
 
 @pragma('vm:entry-point')//tells dart to not delete this forgeing code
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -239,6 +242,38 @@ class NotificationService {
     _notificationSubscription?.cancel();
     _notificationSubscription = null;
     debugPrint('[FCM] Stopped listening for notifications');
+  }
+
+  // ── Push notification via Render.com server ───────────────────────────────
+
+  // Calls the Render.com backend so it sends an FCM push to manager devices
+  // (even when the app is closed). Reads server URL and secret from .env.
+  static Future<void> pushViaServer({
+    required String userName,
+    required String productName,
+    required int    quantity,
+  }) async {
+    final url    = dotenv.env['BACKEND_URL']    ?? '';
+    final secret = dotenv.env['BACKEND_SECRET'] ?? '';
+    if (url.isEmpty) return;
+
+    try {
+      await http.post(
+        Uri.parse('$url/notify-managers'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Secret':     secret,
+        },
+        body: jsonEncode({
+          'userName':    userName,
+          'productName': productName,
+          'quantity':    quantity,
+        }),
+      );
+      debugPrint('[Server] notify-managers called');
+    } catch (e) {
+      debugPrint('[Server] notify-managers error: $e');
+    }
   }
 
   // ── Send sale-claim notification to all managers ──────────────────────────

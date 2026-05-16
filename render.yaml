@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: salesquest-backend
+    env: python
+    rootDir: functions
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false        # paste your service-account JSON here in the Render dashboard
+      - key: BACKEND_SECRET
+        sync: false        # any random string — Flutter sends it as header X-Secret

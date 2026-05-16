@@ -257,6 +257,13 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
         saleId:      saleRef.id,
       );
 
+      // ── Step 5: Send FCM push via Render.com server (works when app closed)
+      NotificationService.pushViaServer(
+        userName:    userName,
+        productName: _selectedProductName ?? '',
+        quantity:    quantity,
+      );
+
 
       //if the widget is destoryed , return to original page withou changing anything, so that it doesnt crash tha application
       if (!mounted) return;
