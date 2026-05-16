@@ -59,7 +59,7 @@ def notify_managers_on_new_sale(event):
     )
 
 
-# @scheduler_fn.on_schedule(schedule="every 1 minutes") # DISABLED — uncomment to re-enable scheduled auto-close
+# @scheduler_fn.on_schedule(schedule="every 1 hour") # DISABLED — uncomment to re-enable scheduled auto-close
 # Automatically checks whether the active sales event has expired and, if so, closes it:
 # ranks participants, saves results, deletes the event document, and resets all salesperson points.
 #def auto_close_expired_event(_: scheduler_fn.ScheduledEvent) -> None:
