@@ -105,6 +105,16 @@ class MarketManagerDashboard extends StatelessWidget {
               color:    kSecondaryColor,
               onTap:    () => Navigator.pushNamed(context, '/market-manager/events'),
             ),
+            const SizedBox(height: 12),
+
+            // Manage Progress Challenges tile.
+            _NavTile(
+              icon:     Icons.flag_outlined,
+              title:    'Progress Challenges',
+              subtitle: 'Set a point target for salespersons to reach',
+              color:    kCyanColor,
+              onTap:    () => Navigator.pushNamed(context, '/market-manager/progress'),
+            ),
           ],
         ),
       ),

@@ -18,15 +18,16 @@ service firebase.storage {
     // All proof photos are stored here as: sales_proofs/{userId}_{timestamp}.jpg
     match /sales_proofs/{fileName} {
 
-      // UPLOAD: The user must be logged in.
-      //   - File must be an image (jpeg, png, or webp).
-      //   - File must be 5 MB or smaller (5 * 1024 * 1024 bytes = 5,242,880 bytes).
-      allow write: if request.auth != null
+      // UPLOAD: The user must be logged in, file must be an image under 5 MB.
+      allow create: if request.auth != null
         && request.resource.contentType.matches('image/.*')
         && request.resource.size <= 5 * 1024 * 1024;
 
+      // DELETE: Any logged-in user can delete (request.resource is null on delete,
+      // so content-type and size checks cannot be used here).
+      allow delete: if request.auth != null;
+
       // DOWNLOAD: Any logged-in user can view the image.
-      //   (Needed by the admin to see the proof photo on the approval screen.)
       allow read: if request.auth != null;
     }
 

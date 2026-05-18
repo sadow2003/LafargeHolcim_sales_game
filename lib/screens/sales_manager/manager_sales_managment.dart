@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 import '../../main.dart';
 import '../../widgets/gradient_app_bar.dart';
-import '../broadcast/broadcast_milestones.dart';
+import 'manager_services.dart';
 
 
 class ManagerSalesManagment extends StatefulWidget {
@@ -16,31 +15,16 @@ class ManagerSalesManagment extends StatefulWidget {
 
 
 class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
-  // Filter: show 'pending', 'approved', 'rejected', or 'all'.
-  String _filter = 'pending'; // Default to pending so manager sees what needs action
+  String _filter = 'pending';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-
-
-      //the app bar gradiant
-      appBar: GradientAppBar(
-        title: 'Approve Sales'
-      ),
-
-
-
-
-      //Drawer of manager
+      appBar: GradientAppBar(title: 'Approve Sales'),
       drawer: const AppDrawer(),
-
-
-
       body: Column(
         children: [
-          // ── Status Filter Tabs ─────────────────────────────────────────
+          // ── Status Filter Tabs ───────────────────────────────────────────
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -57,35 +41,23 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
             ),
           ),
 
-
-
-
-          // ── Sales List ─────────────────────────────────────────────────
+          // ── Sales List ───────────────────────────────────────────────────
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-
-
               stream: _filter == 'all'
-
-                  // 'All' tab: no status filter, order by newest first.
                   ? FirebaseFirestore.instance
                       .collection('sales')
                       .orderBy('createdAt', descending: true)
                       .snapshots()
-
-                  // Other tabs: filter by the selected status.
                   : FirebaseFirestore.instance
                       .collection('sales')
                       .where('status', isEqualTo: _filter)
                       .orderBy('createdAt', descending: true)
                       .snapshots(),
-
               builder: (context, snapshot) {
-                //shows the loading circle 
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                //show a message error
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
@@ -97,12 +69,9 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-
                         Icon(Icons.receipt_long,
                             size: 64, color: Colors.grey.shade300),
-
                         const SizedBox(height: 12),
-
                         Text(
                           'No $_filter sales claims.',
                           style: TextStyle(color: Colors.grey.shade500),
@@ -120,13 +89,13 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
                     final doc  = docs[index];
                     final data = doc.data() as Map<String, dynamic>;
                     return _SaleCard(
-                      saleId:   doc.id,
-                      data:     data,
+                      saleId:    doc.id,
+                      data:      data,
                       onApprove: _filter == 'pending'
                           ? () => _approveSale(doc.id, data)
-                          : null, // Hide approve button for non-pending
-                      onReject: _filter == 'pending'
-                          ? () => _rejectSale(doc.id)
+                          : null,
+                      onReject:  _filter == 'pending'
+                          ? () => _rejectSale(doc.id, data)
                           : null,
                     );
                   },
@@ -139,10 +108,9 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
     );
   }
 
-  // ── Filter Chip helper ────────────────────────────────────────────────────
+  // ── Filter Chip ──────────────────────────────────────────────────────────
   Widget _filterChip(String label, String value) {
     final selected = _filter == value;
-
     return ChoiceChip(
       label: Text(label),
       selected: selected,
@@ -151,70 +119,21 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
         color: selected ? Colors.white : Colors.black87,
         fontWeight: selected ? FontWeight.bold : FontWeight.normal,
       ),
-
       onSelected: (_) => setState(() => _filter = value),
     );
   }
 
-  // ── Approve Sale ──────────────────────────────────────────────────────────
+  // ── Approve Sale ─────────────────────────────────────────────────────────
   Future<void> _approveSale(String saleId, Map<String, dynamic> data) async {
-
-    final userId    = data['userId']        as String?;
-    final productId = data['productId']     as String?;
-    final quantity  = (data['quantity']     ?? 0) as int;
-
-    if (userId == null || productId == null) return;
-
     try {
-
-      // Step 1: Fetch the product to get its current point value.
-      final productDoc = await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
-          .get();
-
-      final productPoints =
-          (productDoc.data()?['productPoints'] ?? 0) as int;
-
-      // Step 2: Calculate points earned for this sale.
-      // Formula from spec: Points = productPoints × quantity
-      final pointsAwarded = productPoints * quantity;
-
-      // Step 3: Update the sale document.
-      await FirebaseFirestore.instance
-          .collection('sales')
-          .doc(saleId)
-          .update({
-        'status':        'approved',
-        'pointsAwarded': pointsAwarded,
-      });
-
-      // Step 4: Add points to the salesperson's totalPoints.
-      
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({
-        'totalPoints': FieldValue.increment(pointsAwarded),
-      });
-
-
-      // Step 5: Recalculate ALL salesperson ranks.
-      await _recalculateRanks();
-
-      // Step 6: Check if the salesperson crossed a product-count milestone.
-      await _checkMilestone(userId, data['userName'] as String? ?? '', quantity);
-
+      final pointsAwarded = await ManagerService.approveSale(saleId, data);
       if (!mounted) return;
-
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sale approved! +$pointsAwarded points awarded.'),
           backgroundColor: Colors.green,
         ),
       );
-
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -226,15 +145,10 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
     }
   }
 
-  // ── Reject Sale ───────────────────────────────────────────────────────────
-  Future<void> _rejectSale(String saleId) async {
-
+  // ── Reject Sale ──────────────────────────────────────────────────────────
+  Future<void> _rejectSale(String saleId, Map<String, dynamic> data) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('sales')
-          .doc(saleId)
-          .update({'status': 'rejected'});
-
+      await ManagerService.rejectSale(saleId, data);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -252,92 +166,15 @@ class _ManagerSalesManagmentState extends State<ManagerSalesManagment> {
       );
     }
   }
-
-
-
-
-
-
-  // ── Milestone Check ───────────────────────────────────────────────────────
-  Future<void> _checkMilestone(String userId, String userName, int approvedQty) async {
-    final db = FirebaseFirestore.instance;
-
-    // Sum all previously approved quantities for this user (excluding the just-approved sale,
-    // which is already updated). We use the current total and subtract approvedQty to get the
-    // previous total.
-    final prevSnap = await db
-        .collection('sales')
-        .where('userId', isEqualTo: userId)
-        .where('status', isEqualTo: 'approved')
-        .get();
-
-      // Calculate the new total products sold after this approval.
-    final newTotal = prevSnap.docs
-        .fold<int>(0, (acc, d) => acc + ((d.data()['quantity'] as num?)?.toInt() ?? 0));
-    final prevTotal = newTotal - approvedQty;
-
-    // Check if they crossed a milestone with this sale. If so, broadcast it to the team.
-    final milestone = crossedMilestone(prevTotal, newTotal);
-    if (milestone == null) return;
-
-    // Fetch manager info for the broadcast message.
-    final managerUid  = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final managerDoc  = await db.collection('users').doc(managerUid).get();
-    final managerData = managerDoc.data() ?? {};
-    final managerName = '${managerData['firstName'] ?? ''} ${managerData['lastName'] ?? ''}'.trim();
-
-    await db.collection('broadcasts').add({
-      'authorId':        managerUid,
-      'authorName':      managerName.isNotEmpty ? managerName : 'System',
-      'authorRole':      'sales-manager',
-      'type':            'milestone',
-      'isMilestone':     true,
-      'awardedUserId':   userId,
-      'awardedUserName': userName,
-      'milestoneCount':  milestone,
-      'content':         '$userName just sold $milestone product${milestone == 1 ? '' : 's'}!',
-      'reactions':       {},
-      'createdAt':       FieldValue.serverTimestamp(),
-    });
-  }
-
-  // ── Recalculate Ranks ─────────────────────────────────────────────────────
-
-  Future<void> _recalculateRanks() async {
-    final usersSnap = await FirebaseFirestore.instance
-        .collection('users')
-        .where('role', isEqualTo: 'salesperson')
-        .orderBy('totalPoints', descending: true)
-        .get();
-
-    // WriteBatch lets us update many documents in a single network request.
-    final batch = FirebaseFirestore.instance.batch();
-
-    for (int i = 0; i < usersSnap.docs.length; i++) {
-      final userRef = usersSnap.docs[i].reference;
-      // rank 1 = highest points (i=0), rank 2 = second (i=1), etc.
-      batch.update(userRef, {'rank': i + 1});
-    }
-
-    await batch.commit(); // Send all rank updates to Firestore at once
-  }
 }
 
 
-
-
-
-
-
-
 // ── Sale Card Widget ──────────────────────────────────────────────────────────
-// Displays one sale claim with details and (optionally) Approve/Reject buttons.
 class _SaleCard extends StatelessWidget {
-  final String                saleId;
-  final Map<String, dynamic>  data;
-  final VoidCallback?         onApprove; // null = hide the button
-  final VoidCallback?         onReject;
-
+  final String               saleId;
+  final Map<String, dynamic> data;
+  final VoidCallback?        onApprove;
+  final VoidCallback?        onReject;
 
   const _SaleCard({
     required this.saleId,
@@ -345,7 +182,6 @@ class _SaleCard extends StatelessWidget {
     this.onApprove,
     this.onReject,
   });
-
 
   @override
   Widget build(BuildContext context) {
@@ -359,19 +195,14 @@ class _SaleCard extends StatelessWidget {
         ? (data['createdAt'] as Timestamp).toDate()
         : null;
 
-
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-
-
-          // ── Card Header ─────────────────────────────────────────────
+          // ── Card Header ────────────────────────────────────────────────
           ListTile(
             leading: const CircleAvatar(
               backgroundColor: Color(0xFFE8EEF7),
@@ -382,13 +213,10 @@ class _SaleCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text('By: $userName'),
-            // Status badge on the right.
             trailing: _statusBadge(status),
           ),
 
-
-
-          // ── Sale Details ─────────────────────────────────────────────
+          // ── Sale Details ───────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -402,26 +230,19 @@ class _SaleCard extends StatelessWidget {
                   ),
                 if (status == 'approved') ...[
                   const SizedBox(width: 20),
-                  _detail('Points', '+$pointsAwarded pts',
-                      color: Colors.green),
+                  _detail('Points', '+$pointsAwarded pts', color: Colors.green),
                 ],
               ],
             ),
           ),
 
-
-
-          // ── Proof Photo ──────────────────────────────────────────────
+          // ── Proof Photo ────────────────────────────────────────────────
           if (proofImageUrl != null) ...[
             const SizedBox(height: 8),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: GestureDetector(
-                // Tapping the thumbnail opens it full-screen.
-
                 onTap: () => _viewImage(context, proofImageUrl),
-                
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
@@ -429,10 +250,9 @@ class _SaleCard extends StatelessWidget {
                     height: 140,
                     width: double.infinity,
                     fit: BoxFit.cover,
-
-                    // Show a grey box while the image loads.
                     loadingBuilder: (_, child, progress) => progress == null
-                        ? child: Container(
+                        ? child
+                        : Container(
                             height: 140,
                             color: Colors.grey.shade200,
                             child: const Center(
@@ -442,39 +262,24 @@ class _SaleCard extends StatelessWidget {
                     errorBuilder: (_, _, _) => Container(
                       height: 80,
                       color: Colors.grey.shade100,
-                      child: const Center(
-                        child: Text('Could not load image'),
-                      ),
+                      child: const Center(child: Text('Could not load image')),
                     ),
-
-
                   ),
                 ),
               ),
             ),
-
-
             Padding(
-              padding:
-                  const EdgeInsets.only(left: 16, top: 4, bottom: 4),
+              padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
               child: Text(
                 'Tap image to view full size',
-                style: TextStyle(
-                    fontSize: 11, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
               ),
             ),
           ],
 
-
-
-          // ── Approve / Reject Buttons ─────────────────────────────────
-          // Only shown for pending claims (onApprove/onReject are non-null).
+          // ── Approve / Reject Buttons ───────────────────────────────────
           if (onApprove != null || onReject != null) ...[
-
-
             const Divider(height: 1),
-
-
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -510,24 +315,17 @@ class _SaleCard extends StatelessWidget {
               ),
             ),
           ] else
-
-
             const SizedBox(height: 12),
         ],
       ),
     );
   }
 
-
-  // Small label + value column used in the details section.
   Widget _detail(String label, String value, {Color? color}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 11, color: Colors.grey)),
-
-
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
         Text(
           value,
           style: TextStyle(
@@ -536,14 +334,9 @@ class _SaleCard extends StatelessWidget {
           ),
         ),
       ],
-
-
     );
   }
 
-
-
-  // Status colored pill badge.
   Widget _statusBadge(String status) {
     Color bg, fg;
     switch (status) {
@@ -560,30 +353,19 @@ class _SaleCard extends StatelessWidget {
         fg = Colors.orange.shade700;
     }
     return Container(
-
-
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-
-
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: fg.withValues(alpha: 0.4)),
       ),
-
-
       child: Text(
         status[0].toUpperCase() + status.substring(1),
         style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
       ),
-
-
     );
   }
 
-
-
-  // Opens the proof image full-screen in a dialog.
   void _viewImage(BuildContext context, String url) {
     showDialog(
       context: context,

@@ -19,6 +19,7 @@ import 'package:lafargeholcim_sales_game/screens/broadcast.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone_screen.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
+import 'package:lafargeholcim_sales_game/screens/market_manager/progress_manager/progress_management.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_screen.dart';
 
 
@@ -117,6 +118,7 @@ class MyApp extends StatelessWidget {
         '/milestones':                   (context) => const MilestoneScreen(),
         '/market-manager/dashboard':     (context) => const MarketManagerDashboard(),
         '/market-manager/events':        (context) => const EventManagementPage(),
+        '/market-manager/progress':      (context) => const ProgressManagementPage(),
         '/reward-store':                 (context) => const RewardStorePage(),
       },
     );

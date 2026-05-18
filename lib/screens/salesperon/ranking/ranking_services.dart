@@ -22,6 +22,12 @@ class RankingService {
           .orderBy('totalPoints', descending: true)
           .snapshots();
 
+  static Stream<DocumentSnapshot> get progressChallengeStream =>
+      FirebaseFirestore.instance
+          .collection('settings')
+          .doc('progressChallenge')
+          .snapshots();
+
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
   /// Returns a stable key for a lastEventResult document, used to track
