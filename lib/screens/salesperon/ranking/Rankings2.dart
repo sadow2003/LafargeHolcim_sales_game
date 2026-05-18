@@ -25,37 +25,33 @@ class _RankingsPageState extends State<RankingsPage>
 
   bool _eventEnded = false;
 
-  // Static so it survives navigation — prevents the overlay re-appearing when
-  // the user leaves and returns to the leaderboard.
-  static final Set<String> _seenResultKeys = {};
-
+  static final Set<String> _seenResultKey = {};
   StreamSubscription<DocumentSnapshot>? _eventSub;
-
-  // Hoisted to fields so Flutter never restarts them mid-build.
+  
   final Stream<DocumentSnapshot> _resultStream = RankingService.resultStream;
-  final Stream<DocumentSnapshot> _eventStream  = RankingService.eventStream;
-  final Stream<QuerySnapshot>    _usersStream  = RankingService.usersStream;
+  final Stream<DocumentSnapshot> _eventStream = RankingService.eventStream;
+  final Stream<QuerySnapshot> _usersStream = RankingService.usersStream;
   final Stream<DocumentSnapshot> _progressStream =
       RankingService.progressChallengeStream;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
-    _climbController = AnimationController(
-      vsync:    this,
+    _climbController =AnimationController(
+      vsync: this,
       duration: const Duration(milliseconds: 700),
-    )..repeat();
+      )..repeat();
 
-    _tabController = TabController(length: 2, vsync: this);
+      _tabController = TabController(length: 2, vsync: this);
 
-    _eventSub = RankingService.listenEventEnd(
-      onEnded:  () { if (!_eventEnded && mounted) setState(() => _eventEnded = true);  },
-      onActive: () { if (_eventEnded  && mounted) setState(() => _eventEnded = false); },
-    );
+      _eventSub = RankingService.listenEventEnd(
+        onEnded: () {if (!_eventEnded && mounted) setState(() => _eventEnded = true);},
+       onActive: () { if(_eventEnded && mounted) setState(() => _eventEnded =false);},
+       );
   }
 
   @override
-  void dispose() {
+  void dispose(){
     _eventSub?.cancel();
     _climbController.dispose();
     _tabController.dispose();
@@ -64,45 +60,42 @@ class _RankingsPageState extends State<RankingsPage>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: GradientAppBar(title: 'Leaderboard'),
       drawer: const AppDrawer(),
       body: Column(
         children: [
-          // ── Tab bar ──────────────────────────────────────────────────────
           Container(
             color: const Color(0xFF122A52),
             height: 50,
             child: TabBar(
               controller: _tabController,
               indicatorColor: kSecondaryColor,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white54,
-              tabs: const [
+              labelColor: Colors.white54,
+              tabs: const[
                 Tab(
-                  icon: Icon(Icons.emoji_events_outlined, size: 18),
+                  icon : Icon(Icons.emoji_events_outlined, size: 18),
                   text: 'Event',
                 ),
                 Tab(
-                  icon: Icon(Icons.flag_outlined, size: 18),
+                  icon: Icon(Icons.flag_outlined,size: 18),
                   text: 'Progress',
                 ),
               ],
             ),
           ),
 
-          // ── Tab bodies ───────────────────────────────────────────────────
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: _resultStream,
-              builder: (context, resultSnap) {
+              builder: (context, resultSnap){
                 final resultData =
                     resultSnap.data?.data() as Map<String, dynamic>?;
-
+                
                 return StreamBuilder<DocumentSnapshot>(
                   stream: _eventStream,
-                  builder: (context, eventSnap) {
+                   builder: (context,eventSnap){
                     final eventData =
                         eventSnap.data?.data() as Map<String, dynamic>?;
                     final rewards = RankingService.extractRewards(eventData);
@@ -119,64 +112,61 @@ class _RankingsPageState extends State<RankingsPage>
                           return Center(
                               child: Text('Error: ${snapshot.error}'));
                         }
-
-                        final docs = snapshot.data?.docs ?? [];
+                        final docs =snapshot.data?.docs ?? [];
                         RankingService.scrollToCurrentUser(
-                          uid:        _currentUser?.uid,
-                          docs:       docs,
+                          uid: _currentUser?.uid, 
+                          docs: docs, 
                           controller: _leaderboardScroll,
-                        );
+                          );
 
                         return StreamBuilder<DocumentSnapshot>(
-                          stream: _progressStream,
-                          builder: (context, progressSnap) {
+                          stream: _progressStream, 
+                          builder: (context,progressSnap){
                             final challengeData = progressSnap.data?.data()
-                                as Map<String, dynamic>?;
-
-                            final resultKey =
+                                as Map<String,dynamic>?;
+                            final resultKey = 
                                 RankingService.resultKey(resultData);
-                            final hasSeenResult = resultKey != null &&
-                                _seenResultKeys.contains(resultKey);
-
+                            final hasSeenResult = resultKey !=null &&
+                              _seenResultKey.contains(resultKey);
                             return TabBarView(
                               controller: _tabController,
                               children: [
-                                // ── Event: stickman leaderboard ───────────
                                 EventLeaderboardBody(
-                                  docs:             docs,
-                                  currentUid:       _currentUser?.uid,
-                                  eventData:        eventData,
-                                  resultData:       resultData,
-                                  rewards:          rewards,
-                                  climbController:  _climbController,
-                                  leaderboardScroll: _leaderboardScroll,
-                                  hasSeenResult:    hasSeenResult,
-                                  onMarkResultSeen: () {
-                                    if (resultKey != null) {
-                                      setState(() =>
-                                          _seenResultKeys.add(resultKey));
-                                    }
-                                  },
+                                docs: docs, 
+                                currentUid: _currentUser?.uid,
+                                eventData: eventData,
+                                resultData: resultData,
+                                rewards: rewards, 
+                                climbController: _climbController, 
+                                leaderboardScroll: _leaderboardScroll, 
+                                hasSeenResult: hasSeenResult, 
+                                onMarkResultSeen: (){
+                                  if (resultKey != null){
+                                    setState(() =>
+                                        _seenResultKey.add(resultKey));
+                                  }
+                                },
                                 ),
 
-                                // ── Progress: race car leaderboard ────────
                                 ProgressLeaderboardBody(
-                                  docs:           docs,
-                                  currentUid:     _currentUser?.uid,
+                                  docs: docs, 
+                                  currentUid: _currentUser?.uid, 
                                   climbController: _climbController,
-                                  challengeData:  challengeData,
-                                ),
+                                  challengeData: challengeData,
+                                  ),
                               ],
                             );
-                          },
-                        );
+                                  
+                          }
+                          );
                       },
                     );
-                  },
-                );
+                      
+                   },
+                   );
               },
+              ),
             ),
-          ),
         ],
       ),
     );
