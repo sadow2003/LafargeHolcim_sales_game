@@ -51,8 +51,8 @@ class PodiumSlot extends StatelessWidget {
 
             // Glow ring
             Container(
-              width: diameter + 10,
-              height: diameter + 10,
+              width: diameter + 6,
+              height: diameter + 6,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(

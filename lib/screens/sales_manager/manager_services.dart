@@ -54,30 +54,50 @@ class ManagerService {
       throw Exception('Missing userId or productId on sale document.');
     }
 
-    // Step 1: Fetch product point value.
-    final productDoc = await _db.collection('products').doc(productId).get();
+    // Step 1: Fetch product point value and category.
+    final productDoc    = await _db.collection('products').doc(productId).get();
     final productPoints = (productDoc.data()?['productPoints'] ?? 0) as int;
-    final pointsAwarded = productPoints * quantity;
+    final productCat    = (productDoc.data()?['category']      ?? '') as String;
 
-    // Step 2: Update sale document — mark approved, clear proof image.
+    // Step 2: Award points only when the product matches the active event filter
+    //         (productCategory required; productId optional).
+    final pointsAwarded = await _eventPointsAwarded(
+      productId:     productId,
+      category:      productCat,
+      productPoints: productPoints,
+      quantity:      quantity,
+    );
+
+    // Step 3: Update sale document — mark approved, clear proof image.
     await _db.collection('sales').doc(saleId).update({
       'status':        'approved',
       'pointsAwarded': pointsAwarded,
       'proofImageUrl': FieldValue.delete(),
     });
 
-    // Step 3: Delete the proof image from Storage.
+    // Step 4: Delete the proof image from Storage.
     await deleteProofImage(data['proofImageUrl'] as String?);
 
-    // Step 4: Add points to salesperson.
-    await _db.collection('users').doc(userId).update({
-      'totalPoints': FieldValue.increment(pointsAwarded),
-    });
+    // Step 5: Add points to salesperson (skip if 0 — non-matching product).
+    if (pointsAwarded > 0) {
+      await _db.collection('users').doc(userId).update({
+        'totalPoints': FieldValue.increment(pointsAwarded),
+      });
+    }
 
-    // Step 5: Recalculate all ranks.
+    // Step 6: Increment progress quantity if the product matches the active
+    //         event's progress challenge filter (category + optional productId).
+    await _incrementProgressIfMatches(
+      userId:    userId,
+      productId: productId,
+      category:  productCat,
+      quantity:  quantity,
+    );
+
+    // Step 7: Recalculate all ranks.
     await recalculateRanks();
 
-    // Step 6: Check milestone.
+    // Step 8: Check milestone.
     await checkMilestone(
       userId,
       data['userName'] as String? ?? '',
@@ -85,6 +105,62 @@ class ManagerService {
     );
 
     return pointsAwarded;
+  }
+
+  // ── Event points filter ──────────────────────────────────────────────────────
+  // Returns productPoints × quantity if the product matches the active event's
+  // category/product filter, or 0 if it does not. Falls back to awarding full
+  // points when no event is configured (no filter to enforce).
+  static Future<int> _eventPointsAwarded({
+    required String productId,
+    required String category,
+    required int    productPoints,
+    required int    quantity,
+  }) async {
+    final eventDoc  = await _db.collection('settings').doc('salesEvent').get();
+    final eventData = eventDoc.data();
+
+    // No event document — no filter, award freely.
+    if (eventData == null) return productPoints * quantity;
+
+    final eventCategory = eventData['productCategory'] as String?;
+    // Old event without a category filter — award freely.
+    if (eventCategory == null || eventCategory.isEmpty) return productPoints * quantity;
+
+    // Category must match.
+    if (category != eventCategory) return 0;
+
+    // If a specific product is required, it must also match.
+    final eventProductId = eventData['productId'] as String?;
+    if (eventProductId != null &&
+        eventProductId.isNotEmpty &&
+        eventProductId != productId) {
+      return 0;
+    }
+
+    return productPoints * quantity;
+  }
+
+  // ── Progress quantity helper ─────────────────────────────────────────────────
+  static Future<void> _incrementProgressIfMatches({
+    required String userId,
+    required String productId,
+    required String category,
+    required int    quantity,
+  }) async {
+    final eventDoc = await _db.collection('settings').doc('salesEvent').get();
+    final eventData = eventDoc.data();
+    if (eventData == null) return;
+
+    final eventCategory  = eventData['productCategory'] as String?;
+    final eventProductId = eventData['productId']       as String?;
+
+    if (eventCategory == null || category != eventCategory) return;
+    if (eventProductId != null && eventProductId != productId) return;
+
+    await _db.collection('users').doc(userId).update({
+      'progressQuantity': FieldValue.increment(quantity),
+    });
   }
 
   // ── Reject Sale ─────────────────────────────────────────────────────────────

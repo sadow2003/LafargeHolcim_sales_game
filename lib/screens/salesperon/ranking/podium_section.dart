@@ -15,6 +15,8 @@ class PodiumSection extends StatelessWidget {
   final QueryDocumentSnapshot? top3;
   final String? currentUid;
   final double podiumHeight;
+  /// Only used by the race-car theme to position cars by progress %.
+  final int targetQuantity;
 
   const PodiumSection({
     super.key,
@@ -25,6 +27,7 @@ class PodiumSection extends StatelessWidget {
     required this.top3,
     required this.currentUid,
     required this.podiumHeight,
+    this.targetQuantity = 0,
   });
 
   @override
@@ -40,12 +43,13 @@ class PodiumSection extends StatelessWidget {
             builder: (context, _) {
               if (selectedTheme == PodiumTheme.raceCar) {
                 return RaceCarPodium(
-                  top1:         top1,
-                  top2:         top2,
-                  top3:         top3,
-                  phase:        climbController.value,
-                  currentUid:   currentUid,
-                  podiumHeight: podiumHeight,
+                  top1:           top1,
+                  top2:           top2,
+                  top3:           top3,
+                  phase:          climbController.value,
+                  currentUid:     currentUid,
+                  podiumHeight:   podiumHeight,
+                  targetQuantity: targetQuantity,
                 );
               }
               return StickmanPodium(

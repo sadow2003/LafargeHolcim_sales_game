@@ -238,15 +238,16 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
       // ── Step 3: Write the sale document to Firestore
       final saleRef = await FirebaseFirestore.instance.collection('sales').add({
-        'userId':        uid,
-        'userName':      userName,
-        'productId':     _selectedProductId,
-        'productName':   _selectedProductName,
-        'quantity':      quantity,
-        'status':        'pending',
-        'pointsAwarded': 0,
-        'proofImageUrl': proofImageUrl,
-        'createdAt':     FieldValue.serverTimestamp(),
+        'userId':           uid,
+        'userName':         userName,
+        'productId':        _selectedProductId,
+        'productName':      _selectedProductName,
+        'productCategory':  _selectedProductCategory,
+        'quantity':         quantity,
+        'status':           'pending',
+        'pointsAwarded':    0,
+        'proofImageUrl':    proofImageUrl,
+        'createdAt':        FieldValue.serverTimestamp(),
       });
 
       // ── Step 4: Notify all managers about the new sale claim ───────────

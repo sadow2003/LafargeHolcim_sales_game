@@ -71,37 +71,36 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
       if (mounted) setState(() => _isClosing = false);
     }
   }
+  List<Widget> _buildProgressSummary(Map<String,dynamic> data){
+    final category =data['productCategory'] as String ?;
+    final productName = data['productName'] as String ?;
+    final target =(data['targetQuantity'] as num?)?.toInt();
+    if(category == null || target == null) return[];
 
-  List<Widget> _buildProgressSummary(Map<String, dynamic> data) {
-    final category    = data['productCategory'] as String?;
-    final productName = data['productName']     as String?;
-    final target      = (data['targetQuantity'] as num?)?.toInt();
-    if (category == null || target == null) return [];
-
-    final unit = category == 'Concrete' ? 'm³' : 'tonnes';
+    final unit =category =='Concrete' ? 'm³' : 'tonnes';
     final filterLabel = productName != null
-        ? 'Product: $productName'
+        ? ' Product : $productName'
         : 'Category: $category';
 
     return [
       const SizedBox(height: 16),
       const Text(
         'Progress Challenge',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        style: TextStyle(fontWeight: FontWeight.bold,fontSize: 13),
       ),
       const SizedBox(height: 8),
       Row(
         children: [
-          const Icon(Icons.category_outlined, size: 15, color: Color(0xFF1565C0)),
+          const Icon(Icons.category_outlined,size: 15,color:Color(0xFF1565C0)),
           const SizedBox(width: 6),
           Text(filterLabel,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF1565C0))),
+              style: const TextStyle(fontSize: 13,color: Color(0xFF1565C0))),
         ],
       ),
       const SizedBox(height: 4),
       Row(
         children: [
-          const Icon(Icons.flag_outlined, size: 15, color: Color(0xFFFFD700)),
+          const Icon(Icons.flag_outlined,size: 15, color: Color(0xFFFFD700)),
           const SizedBox(width: 6),
           Text('Target: $target $unit',
               style: const TextStyle(fontSize: 13, color: Color(0xFFFFD700))),
@@ -109,7 +108,6 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
       ),
     ];
   }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
@@ -176,7 +174,6 @@ class _ActiveEventCardState extends State<ActiveEventCard> {
                     ),
                   ],
                 ),
-                // Progress challenge summary
                 ..._buildProgressSummary(data),
 
                 if (rawRewards.isNotEmpty) ...[

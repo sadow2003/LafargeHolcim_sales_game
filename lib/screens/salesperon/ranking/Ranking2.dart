@@ -25,35 +25,31 @@ class _RankingsPageState extends State<RankingsPage>
 
   bool _eventEnded = false;
 
-  // Static sets survive navigation — prevent overlays from re-appearing when
-  // the user leaves and returns to the leaderboard within the same session.
-  static final Set<String> _seenResultKeys   = {};
+  static final Set<String> _seenResultKeys={};
   static final Set<String> _seenProgressKeys = {};
 
   StreamSubscription<DocumentSnapshot>? _eventSub;
-
-  // Hoisted to fields so Flutter never restarts them mid-build.
   final Stream<DocumentSnapshot> _resultStream = RankingService.resultStream;
   final Stream<DocumentSnapshot> _eventStream  = RankingService.eventStream;
   final Stream<QuerySnapshot>    _usersStream  = RankingService.usersStream;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     _climbController = AnimationController(
-      vsync:    this,
+      vsync: this,
       duration: const Duration(milliseconds: 700),
-    )..repeat();
+      )..repeat();
 
-    _tabController = TabController(length: 2, vsync: this);
+      _tabController = TabController(length: 2, vsync: this);
 
-    _eventSub = RankingService.listenEventEnd(
-      onEnded:  () { if (!_eventEnded && mounted) setState(() => _eventEnded = true);  },
-      onActive: () { if (_eventEnded  && mounted) setState(() => _eventEnded = false); },
-    );
+      _eventSub=RankingService.listenEventEnd(
+        onEnded: () {if (!_eventEnded && mounted) setState(()=> _eventEnded= true);},
+        onActive: (){if (_eventEnded && mounted) setState(()=> _eventEnded = false);},
+        );
   }
 
-  @override
+   @override
   void dispose() {
     _eventSub?.cancel();
     _climbController.dispose();
@@ -63,13 +59,12 @@ class _RankingsPageState extends State<RankingsPage>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: GradientAppBar(title: 'Leaderboard'),
       drawer: const AppDrawer(),
       body: Column(
         children: [
-          // ── Tab bar ──────────────────────────────────────────────────────
           Container(
             color: const Color(0xFF122A52),
             height: 50,
@@ -78,7 +73,7 @@ class _RankingsPageState extends State<RankingsPage>
               indicatorColor: kSecondaryColor,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white54,
-              tabs: const [
+              tabs: const[
                 Tab(
                   icon: Icon(Icons.emoji_events_outlined, size: 18),
                   text: 'Event',
@@ -91,8 +86,7 @@ class _RankingsPageState extends State<RankingsPage>
             ),
           ),
 
-          // ── Tab bodies ───────────────────────────────────────────────────
-          Expanded(
+           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: _resultStream,
               builder: (context, resultSnap) {
@@ -126,74 +120,67 @@ class _RankingsPageState extends State<RankingsPage>
                           controller: _leaderboardScroll,
                         );
 
-                        // ── Event overlay dedup key ───────────────────────
-                        final resultKey =
+                        final resultKey = 
                             RankingService.resultKey(resultData);
                         final hasSeenResult = resultKey != null &&
                             _seenResultKeys.contains(resultKey);
 
-                        // ── Progress overlay dedup key ────────────────────
-                        // Key exists only when the event has a product target
-                        // AND at least one user has already hit it.
                         final progressTarget =
-                            (eventData?['targetQuantity'] as num?)
-                                    ?.toInt() ??
-                                0;
+                            (eventData?['targetQuantity'] as num ?)
+                                ?.toInt() ??
+                              0;
                         final progressTs = eventData?['startDate'];
                         String? progressKey;
-                        if (progressTs is Timestamp && progressTarget > 0) {
+                        if(progressTs is Timestamp && progressTarget > 0){
                           final anyCompleted = docs.any((d) =>
-                              ((((d.data() as Map<String, dynamic>)[
-                                          'progressQuantity']) as num?)
-                                      ?.toInt() ??
-                                  0) >=
-                              progressTarget);
-                          if (anyCompleted) {
-                            progressKey =
-                                'progress_${progressTs.microsecondsSinceEpoch}';
+                          ((((d.data() as Map<String,dynamic>)[
+                                    'progressQuantity']) as num?)
+                                  ?.toInt() ??
+                                0) >=
+                            progressTarget);
+                          if(anyCompleted){
+                            progressKey= 
+                                'progress_${progressTs.millisecondsSinceEpoch}';
                           }
                         }
                         final hasSeenProgressResult =
                             progressKey != null &&
                                 _seenProgressKeys.contains(progressKey);
-
+                        
                         return TabBarView(
                           controller: _tabController,
                           children: [
-                            // ── Event: stickman leaderboard ───────────
                             EventLeaderboardBody(
-                              docs:              docs,
-                              currentUid:        _currentUser?.uid,
-                              eventData:         eventData,
-                              resultData:        resultData,
-                              rewards:           rewards,
-                              climbController:   _climbController,
-                              leaderboardScroll: _leaderboardScroll,
-                              hasSeenResult:     hasSeenResult,
-                              onMarkResultSeen: () {
-                                if (resultKey != null) {
+                              docs: docs, 
+                              currentUid: _currentUser?.uid,
+                              eventData: eventData,
+                              resultData: resultData,
+                              rewards: rewards, 
+                              climbController: _climbController, 
+                              leaderboardScroll: _leaderboardScroll, 
+                              hasSeenResult: hasSeenResult, 
+                              onMarkResultSeen: (){
+                                if (resultKey != null){
                                   setState(() =>
                                       _seenResultKeys.add(resultKey));
                                 }
-                              },
+                              }
                             ),
-
-                            // ── Progress: race car leaderboard ────────
                             ProgressLeaderboardBody(
-                              docs:                     docs,
-                              currentUid:               _currentUser?.uid,
-                              climbController:          _climbController,
-                              eventData:                eventData,
-                              hasSeenProgressResult:    hasSeenProgressResult,
-                              onMarkProgressResultSeen: () {
-                                if (progressKey != null) {
-                                  setState(() =>
+                              docs: docs,
+                              currentUid: _currentUser?.uid,
+                              climbController: _climbController,
+                              eventData: eventData,
+                              hasSeenProgressResult: hasSeenProgressResult,
+                              onMarkProgressResultSeen: (){
+                                if (progressKey != null){
+                                  setState(()=>
                                       _seenProgressKeys.add(progressKey!));
                                 }
                               },
-                            ),
+                              ),
                           ],
-                        );
+                          );
                       },
                     );
                   },
@@ -205,4 +192,5 @@ class _RankingsPageState extends State<RankingsPage>
       ),
     );
   }
+
 }

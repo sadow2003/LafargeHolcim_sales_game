@@ -185,15 +185,17 @@ class _SaleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productName   = data['productName']   ?? 'Unknown';
-    final quantity      = data['quantity']      ?? 0;
-    final status        = data['status']        ?? 'pending';
-    final userName      = data['userName']      ?? 'Unknown User';
-    final proofImageUrl = data['proofImageUrl'] as String?;
-    final pointsAwarded = data['pointsAwarded'] ?? 0;
-    final createdAt     = data['createdAt'] != null
+    final productName     = data['productName']     ?? 'Unknown';
+    final productCategory = data['productCategory'] as String?;
+    final quantity        = data['quantity']        ?? 0;
+    final status          = data['status']          ?? 'pending';
+    final userName        = data['userName']        ?? 'Unknown User';
+    final proofImageUrl   = data['proofImageUrl']   as String?;
+    final pointsAwarded   = data['pointsAwarded']   ?? 0;
+    final createdAt       = data['createdAt'] != null
         ? (data['createdAt'] as Timestamp).toDate()
         : null;
+    final unitLabel = productCategory == 'Concrete' ? 'm³' : 'tonnes';
 
     return Card(
       elevation: 2,
@@ -212,7 +214,11 @@ class _SaleCard extends StatelessWidget {
               productName,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text('By: $userName'),
+            subtitle: Text(
+              productCategory != null
+                  ? 'By: $userName  •  $productCategory'
+                  : 'By: $userName',
+            ),
             trailing: _statusBadge(status),
           ),
 
@@ -221,7 +227,7 @@ class _SaleCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                _detail('Quantity', '$quantity units'),
+                _detail('Quantity', '$quantity $unitLabel'),
                 const SizedBox(width: 20),
                 if (createdAt != null)
                   _detail(

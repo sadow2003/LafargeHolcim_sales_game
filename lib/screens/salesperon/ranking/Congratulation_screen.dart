@@ -20,12 +20,28 @@ class CongratulationOverlay extends StatefulWidget {
   /// the overlay from the tree entirely.
   final VoidCallback? onDismissed;
 
+  /// Headline text (defaults to event-mode text).
+  final String title;
+
+  /// Subtitle text shown beneath the headline.
+  final String subtitle;
+
+  /// Which field on the user doc to read as the "score" (defaults to totalPoints).
+  final String pointsField;
+
+  /// Unit label appended after the score value (defaults to 'pts').
+  final String pointsLabel;
+
   const CongratulationOverlay({
     super.key,
     this.winners,
     this.resultWinners,
     this.rewards,
     this.onDismissed,
+    this.title = 'Event Over!',
+    this.subtitle = 'Congratulations to our winners',
+    this.pointsField = 'totalPoints',
+    this.pointsLabel = 'pts',
   });
 
   @override
@@ -116,9 +132,9 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
 
               const SizedBox(height: 12),
               // Primary headline in gold to match the trophy theme.
-              const Text(
-                'Event Over!',
-                style: TextStyle(
+              Text(
+                widget.title,
+                style: const TextStyle(
                   color: Color(0xFFFFD700),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -128,9 +144,9 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
 
               const SizedBox(height: 4),
               // Subtitle shown beneath the headline.
-              const Text(
-                'Congratulations to our winners',
-                style: TextStyle(
+              Text(
+                widget.subtitle,
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
                 ),
@@ -184,7 +200,7 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
             : (data['email'] as String?) ?? 'Unknown';
         return {
           'name':   name,
-          'points': (data['totalPoints'] as num?)?.toInt(),
+          'points': (data[widget.pointsField] as num?)?.toInt(),
           'rank':   0,
           'rewardAmount': null,
         };
@@ -246,7 +262,7 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
               ),
               if (points != null)
                 Text(
-                  '$points pts',
+                  '$points ${widget.pointsLabel}',
                   style: const TextStyle(
                     color:      Colors.white60,
                     fontSize:   13,

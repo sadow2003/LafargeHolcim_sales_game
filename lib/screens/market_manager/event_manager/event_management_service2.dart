@@ -15,67 +15,49 @@ class EventManagementService {
 
   static Stream<DocumentSnapshot> lastResultStream() =>
       _db.collection('settings').doc('lastEventResult').snapshots();
+  
 
-  // ── Event CRUD ────────────────────────────────────────────────────────────
-
-  /// Saves (or overwrites) the active event.
-  ///
-  /// In addition to the date range and top-3 cash prizes, the event now
-  /// embeds the progress challenge parameters:
-  ///   - [productCategory]: required — only sales of this category count
-  ///     toward the progress leaderboard.
-  ///   - [productId] / [productName]: optional — when set, only sales of
-  ///     that specific product count (ignores other products in the category).
-  ///   - [targetQuantity]: the unit goal each salesperson races toward.
-  ///
-  /// Saving a new event also resets every salesperson's [progressQuantity]
-  /// counter to 0 so the new challenge starts from a clean slate.
   static Future<void> saveEvent(
-    DateTimeRange      range,
-    List<MoneyReward>  rewards, {
-    required String productCategory,
-    String?         productId,
-    String?         productName,
-    required int    targetQuantity,
-  }) async {
-    assert(rewards.length == 3);
-    final uid   = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final batch = _db.batch();
+    DateTimeRange range,
+    List<MoneyReward> rewards,{
+      required String productCatregory,
+      String? productId,
+      String? productName,
+      required int targetQuantity,
+    }) async {
+      assert(rewards.length == 3);
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final batch =_db.batch();
 
-    // Reset every salesperson's progress counter for the fresh event.
-    final usersSnap = await _db
-        .collection('users')
-        .where('role', isEqualTo: 'salesperson')
-        .get();
-    for (final doc in usersSnap.docs) {
-      batch.update(doc.reference, {'progressQuantity': 0});
+      final usersSnap = await _db
+          .collection('users')
+          .where('role',isEqualTo: 'salesperson')
+          .get();
+      for (final doc in usersSnap.docs){
+        batch.update(doc.reference, {'progressQuantity':0});
+      }
+
+      final payload = <String,dynamic>{
+        'startDate': Timestamp.fromDate(range.start),
+        'endDate': Timestamp.fromDate(range.end),
+        'createdBy':uid ,
+        'updatedAt': FieldValue.serverTimestamp(),
+        'productCategory': productCatregory,
+        'targetQuantity':targetQuantity,
+        'rewards':{
+          '1':rewards[0].toMap(),
+          '2':rewards[1].toMap(),
+          '3' :rewards[2].toMap(),
+        },
+      };
+
+      if (productId != null) payload['productId'] =productId;
+      if (productName != null) payload ['productName'] =productName;
+
+      batch.set(_db.collection('settings').doc('salesEvent'),payload);
+      await batch.commit();
     }
-
-    // Build the event payload.
-    final payload = <String, dynamic>{
-      'startDate':       Timestamp.fromDate(range.start),
-      'endDate':         Timestamp.fromDate(range.end),
-      'createdBy':       uid,
-      'updatedAt':       FieldValue.serverTimestamp(),
-      'productCategory': productCategory,
-      'targetQuantity':  targetQuantity,
-      'rewards': {
-        '1': rewards[0].toMap(),
-        '2': rewards[1].toMap(),
-        '3': rewards[2].toMap(),
-      },
-    };
-    if (productId   != null) payload['productId']   = productId;
-    if (productName != null) payload['productName'] = productName;
-
-    batch.set(_db.collection('settings').doc('salesEvent'), payload);
-    await batch.commit();
-  }
-
-  /// Closes the event: saves winners + all participants, deletes the event doc,
-  /// and resets both [totalPoints] and [progressQuantity] for all salespersons.
-  /// Idempotent — returns immediately if the event doc no longer exists.
-  static Future<void> deleteEvent(DateTime start, DateTime end) async {
+    static Future<void> deleteEvent(DateTime start, DateTime end) async {
     final eventSnap  = await _db.collection('settings').doc('salesEvent').get();
     if (!eventSnap.exists) return;           // already closed by another client
     final eventData  = eventSnap.data() ?? {};
@@ -86,12 +68,7 @@ class EventManagementService {
     await _db.collection('settings').doc('salesEvent').delete();
     await _resetAllSalespersonPoints();
   }
-
-  // ── Rank ALL participants by their current totalPoints ───────────────────
-  // Uses users.totalPoints directly (same source as the leaderboard) so the
-  // stored winners always match what salespersons saw during the event.
-
-  static Future<List<Map<String, dynamic>>> _resolveAllParticipants() async {
+   static Future<List<Map<String, dynamic>>> _resolveAllParticipants() async {
     final usersSnap = await _db
         .collection('users')
         .where('role',        isEqualTo:    'salesperson')
@@ -111,10 +88,7 @@ class EventManagementService {
     }
     return result;
   }
-
-  // ── Save results: top-3 get cash prizes, rest are participants ────────────
-
-  static Future<void> _saveLastEventResult(
+   static Future<void> _saveLastEventResult(
     List<Map<String, dynamic>> allRanked,
     Map<String, dynamic> rawRewards,
   ) async {
@@ -140,9 +114,6 @@ class EventManagementService {
       'participants': participants,
     });
   }
-
-  // ── Points reset ──────────────────────────────────────────────────────────
-
   static Future<void> _resetAllSalespersonPoints() async {
     final snap = await _db
         .collection('users')
@@ -155,7 +126,7 @@ class EventManagementService {
       final chunk = snap.docs.skip(i).take(chunkSize);
       for (final doc in chunk) {
         batch.update(doc.reference, {
-          'totalPoints':    0,
+          'totalPoints': 0,
           'progressQuantity': 0,
         });
       }

@@ -130,15 +130,6 @@ class LeaderboardWithButtons extends StatelessWidget {
                           '$points pts',
                           style: const TextStyle(color: Colors.white70, fontSize: 13),
                         ),
-                        if (i < 3 && rewards != null && rewards![i] != null)
-                          Text(
-                            '${rewards![i]!.toStringAsFixed(0)} MAD',
-                            style: TextStyle(
-                              color:      rankColor,
-                              fontSize:   11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                       ],
                     ),
                   ),
