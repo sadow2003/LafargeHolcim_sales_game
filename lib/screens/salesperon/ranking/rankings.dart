@@ -42,7 +42,7 @@ class _RankingsPageState extends State<RankingsPage>
     super.initState();
     _climbController = AnimationController(
       vsync:    this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 1400),
     )..repeat();
 
     _tabController = TabController(length: 2, vsync: this);

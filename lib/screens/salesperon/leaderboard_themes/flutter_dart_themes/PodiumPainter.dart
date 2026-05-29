@@ -12,7 +12,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../../main.dart';
+import '../../../../main.dart';
 
 enum StickmanMode { champion, sprinter, climber }
 
@@ -251,13 +251,14 @@ class StickmanScenePainter extends CustomPainter {
 
   // ── Aura behind the character (pulses with the animation) ──────
   void _drawAura(Canvas canvas, double w, double h) {
+    // Each mode has its own pulse rate.
     double t;
     switch (mode) {
       case StickmanMode.champion:
-        t = sin(phase * pi).abs();
+        t = sin(phase * pi).abs(); // 1 pulse per cycle
         break;
       case StickmanMode.sprinter:
-        t = (sin(phase * 6 * pi) + 1) / 2;
+        t = (sin(phase * 6 * pi) + 1) / 2; // fast pulse
         break;
       case StickmanMode.climber:
         t = (sin(phase * pi) + 1) / 2;
@@ -280,7 +281,7 @@ class StickmanScenePainter extends CustomPainter {
 
   // ── Champion sparkles ──────────────────────────────────────────
   void _drawSparkles(Canvas canvas, double w, double h) {
-    const positions = [
+    final positions = const [
       Offset(0.24, 0.32),
       Offset(0.76, 0.28),
       Offset(0.18, 0.54),
@@ -291,16 +292,18 @@ class StickmanScenePainter extends CustomPainter {
     ];
     final fill = Paint()..color = medalColor;
     for (int i = 0; i < positions.length; i++) {
+      // Stagger sparkle phase by index.
       final t = (phase + i * 0.13) % 1.0;
+      // 0..0.4 fade-in to scale 1.2, 0.4..0.75 fade-out to 0.7, then hidden.
       double scale, opacity;
       if (t < 0.4) {
         final k = t / 0.4;
-        scale = 0.3 + k * 0.9;
+        scale = 0.3 + k * 0.9; // 0.3 → 1.2
         opacity = k;
       } else if (t < 0.75) {
         final k = (t - 0.4) / 0.35;
-        scale = 1.2 - k * 0.5;
-        opacity = 1 - k * 0.6;
+        scale = 1.2 - k * 0.5; // 1.2 → 0.7
+        opacity = 1 - k * 0.6; // 1 → 0.4
       } else {
         scale = 0;
         opacity = 0;
@@ -364,25 +367,37 @@ class StickmanScenePainter extends CustomPainter {
   }
 
   // ── Champion ────────────────────────────────────────────────────
+  //
+  // Animation timing in `phase` 0..1:
+  //   0.00 – 0.18 : anticipation crouch
+  //   0.18 – 0.50 : explosive jump up, peak at 0.50
+  //   0.50 – 0.88 : descent
+  //   0.88 – 1.00 : landing squash + impact ring
+  //
   void _drawChampion(Canvas canvas, double w, double h, Paint stick, Paint headFill) {
     final podiumTop = h * 0.84;
     final cx = w * 0.5;
 
+    // Vertical offset of feet relative to podium top.
     double jumpY;
     double squashY = 1.0;
     if (phase < 0.18) {
+      // Crouch
       final k = phase / 0.18;
       jumpY = 0;
       squashY = 1.0 - k * 0.18;
     } else if (phase < 0.5) {
+      // Launch → peak
       final k = (phase - 0.18) / 0.32;
       jumpY = -Curves.easeOutCubic.transform(k) * h * 0.32;
-      squashY = 0.82 + k * 0.26;
+      squashY = 0.82 + k * 0.26; // → 1.08
     } else if (phase < 0.88) {
+      // Descend
       final k = (phase - 0.5) / 0.38;
       jumpY = -h * 0.32 * (1 - Curves.easeInCubic.transform(k));
-      squashY = 1.08 - k * 0.20;
+      squashY = 1.08 - k * 0.20; // → 0.88
     } else {
+      // Landing squash → recover
       final k = (phase - 0.88) / 0.12;
       jumpY = 0;
       squashY = 0.88 + k * 0.12;
@@ -398,9 +413,12 @@ class StickmanScenePainter extends CustomPainter {
     final bodyTopY = bodyBotY - bodyLen;
     final headCY = bodyTopY - headR;
 
+    // Head
     canvas.drawCircle(Offset(cx, headCY), headR, headFill);
+    // Body
     canvas.drawLine(Offset(cx, bodyTopY), Offset(cx, bodyBotY), stick);
 
+    // Both arms thrust up holding trophy. Slight V wobble synced to jump.
     final wobble = sin(phase * 2 * pi) * 0.18;
     final handLx = cx - armLen * 0.4;
     final handRx = cx + armLen * 0.4;
@@ -408,6 +426,7 @@ class StickmanScenePainter extends CustomPainter {
     canvas.drawLine(Offset(cx, bodyTopY + bodyLen * 0.15), Offset(handLx, handY), stick);
     canvas.drawLine(Offset(cx, bodyTopY + bodyLen * 0.15), Offset(handRx, handY), stick);
 
+    // Legs tuck more at the apex.
     final apex = phase < 0.5
         ? (phase - 0.18).clamp(0, 0.32) / 0.32
         : (1 - (phase - 0.5) / 0.5);
@@ -423,6 +442,7 @@ class StickmanScenePainter extends CustomPainter {
       stick,
     );
 
+    // Trophy held up between the hands, gently rotating.
     final trophyCx = cx;
     final trophyCy = handY - armLen * 0.2;
     final trophyAngle = sin(phase * 2 * pi) * 0.18;
@@ -435,8 +455,9 @@ class StickmanScenePainter extends CustomPainter {
 
   // ── Champion impact ring on the podium at landing ──────────────
   void _drawImpactRing(Canvas canvas, double w, double h) {
+    // Visible only during the last 20% of the cycle (landing).
     if (phase < 0.85) return;
-    final k = (phase - 0.85) / 0.15;
+    final k = (phase - 0.85) / 0.15; // 0..1
     final paint = Paint()
       ..color = medalColor.withValues(alpha: 0.9 * (1 - k))
       ..style = PaintingStyle.stroke
@@ -454,13 +475,16 @@ class StickmanScenePainter extends CustomPainter {
     final cx = w * 0.50;
     final footY = h * 0.82;
 
+    // High-frequency cycle for the limbs (2 per phase loop)
     final t = sin(phase * 4 * pi);
 
+    // Forward lean
     canvas.save();
     canvas.translate(cx, footY);
     canvas.rotate(-0.14);
     canvas.translate(-cx, -footY);
 
+    // Body bob
     final bob = sin(phase * 8 * pi).abs() * h * 0.015;
     final fy = footY - bob;
 
@@ -476,7 +500,8 @@ class StickmanScenePainter extends CustomPainter {
     canvas.drawCircle(Offset(cx, headCY), headR, headFill);
     canvas.drawLine(Offset(cx, bodyTopY), Offset(cx, bodyBotY), stick);
 
-    final armSwing = t;
+    // Arms swing front/back in opposition
+    final armSwing = t; // -1..1
     final shoulderY = bodyTopY + bodyLen * 0.15;
     canvas.drawLine(
       Offset(cx, shoulderY),
@@ -491,6 +516,7 @@ class StickmanScenePainter extends CustomPainter {
       stick,
     );
 
+    // Legs cycle
     final legSwing = -t;
     canvas.drawLine(
       Offset(cx, bodyBotY),
@@ -509,6 +535,7 @@ class StickmanScenePainter extends CustomPainter {
   }
 
   void _drawSprinterFx(Canvas canvas, double w, double h) {
+    // Speed lines flicking backward (left of the character)
     for (int i = 0; i < 3; i++) {
       final t = (phase * 4 + i * 0.33) % 1.0;
       double opacity;
@@ -516,7 +543,7 @@ class StickmanScenePainter extends CustomPainter {
       if (t < 0.4) {
         final k = t / 0.4;
         opacity = k;
-        xOff = w * 0.12 * (1 - k);
+        xOff = w * 0.12 * (1 - k); // moves left
       } else {
         final k = (t - 0.4) / 0.6;
         opacity = 1 - k;
@@ -530,6 +557,7 @@ class StickmanScenePainter extends CustomPainter {
       canvas.drawLine(Offset(w * 0.10 + xOff, y), Offset(w * 0.22 + xOff, y), p);
     }
 
+    // Sweat drop flying off the head
     final st = phase % 1.0;
     if (st > 0.15 && st < 0.9) {
       final k = (st - 0.15) / 0.75;
@@ -554,7 +582,8 @@ class StickmanScenePainter extends CustomPainter {
 
   // ── Climber ─────────────────────────────────────────────────────
   void _drawClimber(Canvas canvas, double w, double h, Paint stick, Paint headFill) {
-    final pull = sin(phase * 2 * pi);
+    // Rise/fall whole body
+    final pull = sin(phase * 2 * pi); // -1..1
     final rise = -pull.clamp(-1.0, 1.0) * h * 0.05;
     final stretch = 1.0 + pull * 0.04;
 
@@ -572,7 +601,8 @@ class StickmanScenePainter extends CustomPainter {
     canvas.drawCircle(Offset(cx, headCY), headR, headFill);
     canvas.drawLine(Offset(cx, bodyTopY), Offset(cx, bodyBotY), stick);
 
-    final aL = cos(phase * 2 * pi);
+    // Arms — alternate big reach up (-135°) ↔ pull down (50°)
+    final aL = cos(phase * 2 * pi); //  1 → -1
     final aR = -aL;
     final shoulderY = bodyTopY + bodyLen * 0.15;
     final reachL = aL > 0 ? -aL : -aL * 0.7;
@@ -588,6 +618,7 @@ class StickmanScenePainter extends CustomPainter {
       stick,
     );
 
+    // Legs step opposite
     final lL = -cos(phase * 2 * pi);
     final lR = -lL;
     canvas.drawLine(
@@ -613,6 +644,7 @@ class StickmanScenePainter extends CustomPainter {
   }
 
   void _drawClimberDust(Canvas canvas, double w, double h) {
+    // Puff at the bottom-right of the climber, visible during pull-up.
     final t = (phase * 1.0) % 1.0;
     if (t < 0.25 || t > 0.95) return;
     final k = (t - 0.25) / 0.70;
@@ -667,6 +699,7 @@ class StickmanScenePainter extends CustomPainter {
   }
 
   void _drawHeroTrophy(Canvas canvas, double s, Color color) {
+    // Drawn centered at the local origin.
     final outline = Paint()
       ..color = color
       ..strokeWidth = 1.8

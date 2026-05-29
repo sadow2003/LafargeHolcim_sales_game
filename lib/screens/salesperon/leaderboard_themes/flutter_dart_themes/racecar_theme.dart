@@ -19,8 +19,8 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../main.dart';
-import 'leaderboard_theme.dart';
+import '../../../../main.dart';
+import '../leaderboard_theme.dart';
 
 class RaceCarPodium extends LeaderboardPodium {
   /// Optional — used to scale "progress %" from points if you want
@@ -150,7 +150,7 @@ class _RaceTrackState extends State<_RaceTrack> with TickerProviderStateMixin {
         final doc = entry.$1;
         if (doc == null) continue;
         final data = doc.data() as Map<String, dynamic>;
-        final pts = (data['progressQuantity'] as num?)?.toInt() ?? 0;
+        final pts = (data['totalPoints'] as num?)?.toInt() ?? 0;
         final firstName = (data['firstName'] ?? '') as String;
         final lastName = (data['lastName'] ?? '') as String;
         final name = '$firstName $lastName'.trim();
@@ -227,15 +227,19 @@ class _DriftState {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Individual car widget.
+// Individual car widget. AnimatedPositioned isn't used because we
+// already get smooth interpolation from the implicit `top` change
+// across rebuilds via an AnimatedAlign-like approach: we compute
+// lane positions ourselves and let `top` change → AnimatedContainer
+// transitions it.
 // ─────────────────────────────────────────────────────────────────
 class _RaceCar extends StatelessWidget {
   final _PlayerSlot slot;
   final double trackWidth;
   final double trackHeight;
   final int laneCount;
-  final double intro;
-  final double ambientPhase;
+  final double intro;        // 0..1 from the intro controller
+  final double ambientPhase; // 0..1 looping for idle bob
   final _DriftState? drift;
   final String carAsset;
   final Color medalColor;
@@ -256,22 +260,27 @@ class _RaceCar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Lane vertical math (matches background painter)
     final lm = _laneMetrics(trackHeight, slot.rank - 1, laneCount);
 
+    // Horizontal target position — progress-based if target > 0, else
+    // fixed by rank (original behaviour: rank 1 furthest right).
     double targetXPct;
     if (target > 0) {
       final pct = (slot.points / target).clamp(0.0, 1.0);
-      targetXPct = 0.06 + pct * 0.82;
+      targetXPct = 0.06 + pct * 0.82; // 6% → 88% of width
     } else {
-      const fixed = [0.74, 0.50, 0.30];
+      const fixed = [0.74, 0.50, 0.30]; // index by rank-1
       targetXPct = fixed[(slot.rank - 1).clamp(0, 2)];
     }
 
+    // Intro lerps from start line (~6%) to target with stagger.
     final introDelay = (slot.rank - 1) * 0.15;
     final introT = ((intro - introDelay) / (1 - introDelay)).clamp(0.0, 1.0);
     final introCurve = Curves.easeOutCubic.transform(introT);
     final xPct = 0.06 + (targetXPct - 0.06) * introCurve;
 
+    // Drift FX
     double tilt = 0;
     double yShift = 0;
     double scaleK = 1;
@@ -280,7 +289,7 @@ class _RaceCar extends StatelessWidget {
     if (drift != null) {
       final elapsed = DateTime.now().difference(drift!.start).inMilliseconds;
       final k = (elapsed / 900).clamp(0.0, 1.0);
-      final wave = sin(k * pi);
+      final wave = sin(k * pi); // peaks at k = 0.5
       if (drift!.direction > 0) {
         tilt = -0.16 * wave;
         yShift = -3 * wave;
@@ -294,11 +303,12 @@ class _RaceCar extends StatelessWidget {
       trail = wave > 0.2;
     }
 
+    // Idle bobbing
     final bob = sin(ambientPhase * 2 * pi + slot.rank * 1.2) * 1.2;
     final ambientShake = slot.rank == 1 ? sin(ambientPhase * 2 * pi) * 3.0 : 0.0;
 
     final carH = lm.laneH * 0.80;
-    final carDisplayW = carH;
+    final carDisplayW = carH;          // rotated portrait SVG
     final carDisplayH = carH * 0.75;
     final cx = trackWidth * xPct + ambientShake;
 
@@ -310,10 +320,11 @@ class _RaceCar extends StatelessWidget {
       child: Transform.scale(
         scale: scaleK,
         child: Transform.rotate(
-          angle: pi / 2 + tilt,
+          angle: pi / 2 + tilt, // base rotation (SVG is portrait) + drift tilt
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              // Name label above the car
               Positioned(
                 left: -carDisplayW * 0.4,
                 top: -16,
@@ -323,6 +334,7 @@ class _RaceCar extends StatelessWidget {
                   isMe: slot.isMe,
                 ),
               ),
+              // Points label below the car
               Positioned(
                 left: -carDisplayW * 0.4,
                 bottom: -14,
@@ -330,6 +342,7 @@ class _RaceCar extends StatelessWidget {
                 child: _CarPts(text: '${slot.points} pts', color: medalColor),
               ),
 
+              // Drift trail (smoke streak behind the car)
               if (trail)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -340,6 +353,7 @@ class _RaceCar extends StatelessWidget {
                   ),
                 ),
 
+              // The actual SVG car body
               SizedBox(
                 width: carDisplayH,
                 height: carDisplayW,
@@ -450,6 +464,7 @@ class _RaceBackgroundPainter extends CustomPainter {
   void _drawHorizon(Canvas canvas, double w, double h) {
     final horizonH = h * 0.10;
     final rect = Rect.fromLTWH(0, 0, w, horizonH);
+    // Sky gradient
     final sky = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
@@ -459,6 +474,7 @@ class _RaceBackgroundPainter extends CustomPainter {
       ).createShader(rect);
     canvas.drawRect(rect, sky);
 
+    // Drifting clouds (scroll based on phase)
     final cloudPaint = Paint()..color = Colors.white.withValues(alpha: 0.6);
     final scroll = (phase * 0.6 * w) % (w * 1.1);
     for (int i = -1; i < 3; i++) {
@@ -475,6 +491,7 @@ class _RaceBackgroundPainter extends CustomPainter {
       );
     }
 
+    // Sun
     final sunCenter = Offset(w * 0.78, horizonH * 0.75);
     final sun = Paint()
       ..shader = RadialGradient(
@@ -487,6 +504,7 @@ class _RaceBackgroundPainter extends CustomPainter {
       Paint()..color = const Color(0xFFFFB74A).withValues(alpha: 0.2),
     );
 
+    // Crowd silhouette bobbing
     final crowdPaint = Paint()..color = Colors.black.withValues(alpha: 0.78);
     final bob = sin(phase * 4 * pi) * 0.5;
     for (double x = 0; x < w; x += 3) {
@@ -503,6 +521,7 @@ class _RaceBackgroundPainter extends CustomPainter {
     final trackTop = horizonH;
     final trackH = h - horizonH;
 
+    // Track base
     canvas.drawRect(
       Rect.fromLTWH(0, trackTop, w, trackH),
       Paint()..color = const Color(0xFF1B5E20),
@@ -510,19 +529,23 @@ class _RaceBackgroundPainter extends CustomPainter {
 
     for (int i = 0; i < laneCount; i++) {
       final lm = _laneMetrics(h, i, laneCount, horizonH);
+      // Lane background
       canvas.drawRect(
         Rect.fromLTWH(0, lm.top, w, lm.laneH),
         Paint()..color = const Color(0xFF37474F),
       );
 
+      // Lane borders
       final edge = Paint()
         ..color = Colors.white38
         ..strokeWidth = 1.2;
       canvas.drawLine(Offset(0, lm.top), Offset(w, lm.top), edge);
       canvas.drawLine(Offset(0, lm.bottom), Offset(w, lm.bottom), edge);
 
+      // Scrolling dashed center line — gives forward-motion feel.
       _drawScrollingDashes(canvas, lm.centerY, w);
 
+      // Rank badge on the left
       final badgeR = lm.laneH * 0.28;
       final medalColors = [
         const Color(0xFFFFD700),
@@ -555,7 +578,7 @@ class _RaceBackgroundPainter extends CustomPainter {
     const dashLen = 10.0;
     const gap = 8.0;
     const stride = dashLen + gap;
-    final offset = (phase * stride) % stride;
+    final offset = (phase * stride) % stride; // 0..stride
 
     final paint = Paint()
       ..color = Colors.white.withValues(alpha: 0.32)
@@ -599,16 +622,19 @@ class _RaceBackgroundPainter extends CustomPainter {
   }
 
   void _drawFlag(Canvas canvas, double w, double h) {
+    // Waving flag perched on top of the finish line.
     final horizonH = h * 0.10;
     final poleX = w - 2;
     final poleTop = horizonH * 0.45;
     final poleBot = h * 0.95;
 
+    // Pole
     final pole = Paint()
       ..color = const Color(0xFFCCCCCC)
       ..strokeWidth = 2;
     canvas.drawLine(Offset(poleX, poleTop), Offset(poleX, poleBot), pole);
 
+    // Flag fabric — checkered, skews based on phase
     final flagW = w * 0.07;
     final flagH = horizonH * 0.5;
     final skew = sin(phase * 4 * pi) * 0.2;
@@ -658,7 +684,7 @@ class _RaceBackgroundPainter extends CustomPainter {
 // ─── Drift smoke streak painter ──────────────────────────────────
 class _TrailPainter extends CustomPainter {
   final int direction;
-  final double progress;
+  final double progress; // 0..1
 
   _TrailPainter({required this.direction, required this.progress});
 
@@ -666,7 +692,7 @@ class _TrailPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final fade = sin(progress * pi);
+    final fade = sin(progress * pi); // 0 → 1 → 0
     final paint = Paint()
       ..color = Colors.white.withValues(alpha: 0.7 * fade)
       ..strokeWidth = 2.4

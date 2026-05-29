@@ -9,7 +9,7 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'leaderboard_theme.dart';
+import '../leaderboard_theme.dart';
 import 'PodiumPainter.dart';
 
 class StickmanPodium extends LeaderboardPodium {
@@ -114,6 +114,7 @@ class _StageBgPainter extends CustomPainter {
     _drawConfetti(canvas, w, h);
   }
 
+  // Floor glow + center halo
   void _drawGlow(Canvas canvas, double w, double h) {
     final base = Paint()
       ..shader = RadialGradient(
@@ -138,6 +139,7 @@ class _StageBgPainter extends CustomPainter {
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h), halo);
   }
 
+  // Two sweeping spotlight beams
   void _drawSpotlights(Canvas canvas, double w, double h) {
     final beam = Paint()
       ..blendMode = BlendMode.screen
@@ -152,7 +154,7 @@ class _StageBgPainter extends CustomPainter {
         stops: const [0.0, 0.45, 1.0],
       ).createShader(Rect.fromLTWH(-w * 0.05, 0, w * 0.1, h * 1.4));
 
-    final leftAngle = -0.31 + 0.52 * (sin(phase * pi) + 1) / 2;
+    final leftAngle = -0.31 + 0.52 * (sin(phase * pi) + 1) / 2; // -18° → +12°
     final rightAngle = 0.31 - 0.52 * (sin(phase * pi + 1.4) + 1) / 2;
 
     for (final tilt in [
@@ -170,12 +172,13 @@ class _StageBgPainter extends CustomPainter {
     }
   }
 
+  // Twinkling stars
   void _drawStars(Canvas canvas, double w, double h) {
     final paint = Paint();
     for (int i = 0; i < _stars.length; i++) {
       final p = _stars[i];
       final t = (phase + i * 0.27) % 1.0;
-      final pulse = (sin(t * 2 * pi) + 1) / 2;
+      final pulse = (sin(t * 2 * pi) + 1) / 2; // 0..1
       final opacity = 0.15 + pulse * 0.85;
       final scale = 0.6 + pulse * 0.6;
       paint.color = Colors.white.withValues(alpha: opacity);
@@ -183,11 +186,13 @@ class _StageBgPainter extends CustomPainter {
     }
   }
 
+  // Confetti falling — concentrated around the center (over rank 1)
   void _drawConfetti(Canvas canvas, double w, double h) {
     for (int i = 0; i < 18; i++) {
+      // X position biased toward center via a sin-based scatter
       final cxBase = 0.5 + sin(i * 12.9898) * 0.30;
-      final fallDur = 2.6 + (i * 0.41) % 1.4;
-      final lifecycle = ((phase * 2 + i * 0.32) % fallDur) / fallDur;
+      final fallDur = 2.6 + (i * 0.41) % 1.4; // arbitrary duration each
+      final lifecycle = ((phase * 2 + i * 0.32) % fallDur) / fallDur; // 0..1
 
       if (lifecycle < 0.05 || lifecycle > 0.95) continue;
       final y = h * (lifecycle * 1.15 - 0.05);

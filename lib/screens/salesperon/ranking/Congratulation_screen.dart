@@ -120,9 +120,11 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
         child: Container(
           color: Colors.black.withValues(alpha: 0.72),
           alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+          child: SingleChildScrollView(
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
 
               // Large trophy emoji as a visual focal point.
               Text(
@@ -165,9 +167,11 @@ class _CongratulationOverlayState extends State<CongratulationOverlay>
                 ),
               ),
             ],
-          ),
-        ),
-      ),
+              ),       // Column
+            ),         // SafeArea
+          ),           // SingleChildScrollView
+        ),             // Container
+      ),               //r GestureDetecto
     );
   }
 
