@@ -292,6 +292,8 @@ class ProgressLeaderboardBody extends StatelessWidget {
     final qty   = (data['progressQuantity'] as num?)?.toInt() ?? 0;
     final pct   = (qty / target).clamp(0.0, 1.0);
     final pctLabel = '${(pct * 100).toStringAsFixed(0)}%';
+    final photoUrl = data['photoUrl'] as String?;
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
     final initials = name.isNotEmpty
         ? name
             .split(' ')
@@ -325,11 +327,16 @@ class ProgressLeaderboardBody extends StatelessWidget {
               radius: 18,
               backgroundColor:
                   isMe ? kSecondaryColor : const Color(0xFF2E5FA3),
-              child: Text(initials,
-                  style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold)),
+              backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+              onBackgroundImageError: hasPhoto ? (_, _) {} : null,
+              //show initials only when no profile photo is available
+              child: hasPhoto
+                  ? null
+                  : Text(initials,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: 12),
             Expanded(

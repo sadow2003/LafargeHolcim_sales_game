@@ -41,6 +41,8 @@ class LeaderboardWithButtons extends StatelessWidget {
                     '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'
                         .trim();
                 final points   = data['totalPoints'] ?? 0;
+                final photoUrl = data['photoUrl'] as String?;
+                final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
                 final initials = name.isNotEmpty
                     ? name
                         .split(' ')
@@ -99,15 +101,19 @@ class LeaderboardWithButtons extends StatelessWidget {
                           backgroundColor: isMe
                               ? kSecondaryColor
                               : const Color(0xFF2E5FA3),
-                          //the initial lettre of the username
-                          child: Text(
-                            initials,
-                            style: const TextStyle(
-                              fontSize:   12,
-                              color:      Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+                          onBackgroundImageError: hasPhoto ? (_, _) {} : null,
+                          //show initials only when no profile photo is available
+                          child: hasPhoto
+                              ? null
+                              : Text(
+                                  initials,
+                                  style: const TextStyle(
+                                    fontSize:   12,
+                                    color:      Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ],
                     ),

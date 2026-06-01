@@ -48,7 +48,7 @@ class EventLeaderboardBody extends StatelessWidget {
           Column(
             children: [
               PodiumSection(
-                selectedTheme: PodiumTheme.stickman,
+                selectedTheme: PodiumTheme.topContributors,
                 climbController: climbController,
                 top1: docs.isNotEmpty ? docs[0] : null,
                 top2: docs.length > 1 ? docs[1] : null,

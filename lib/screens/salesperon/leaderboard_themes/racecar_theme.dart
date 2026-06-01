@@ -1,20 +1,3 @@
-// racecar_theme.dart
-// ─────────────────────────────────────────────────────────────────
-// Progress-tab leaderboard theme. Renders top-3 cars on a track.
-//
-// New animations vs. the original:
-//   • Intro: every time the widget mounts, cars start at the left
-//     starting line and animate to their actual progress position.
-//   • Overtake: when ranks swap between rebuilds, the overtaker
-//     drifts UP with a nose-up tilt + glow; the overtaken car drifts
-//     DOWN with a backwards tilt.
-//   • Animated horizon strip: sunset gradient, sun, drifting clouds,
-//     bobbing crowd silhouette.
-//   • Scrolling asphalt grain + lane dashes — sense of motion.
-//
-// Drop in at lib/screens/salesperon/leaderboard_themes/racecar_theme.dart
-// ─────────────────────────────────────────────────────────────────
-
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
