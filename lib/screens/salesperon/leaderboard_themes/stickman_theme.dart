@@ -1,11 +1,3 @@
-// stickman_theme.dart
-// ─────────────────────────────────────────────────────────────────
-// Event-tab leaderboard theme. Renders the top-3 podium with the
-// new animated stickmen (champion / sprinter / climber) on a
-// theatrical stage backdrop (stars, spotlights, confetti).
-//
-// Drop in at lib/screens/salesperon/leaderboard_themes/stickman_theme.dart
-// ─────────────────────────────────────────────────────────────────
 
 import 'dart:math';
 import 'package:flutter/material.dart';

@@ -218,12 +218,49 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      backgroundColor: Colors.white,
-      body: SafeArea(
+      backgroundColor: const Color(0xFF94C12E),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF1D4370), // Holcim dark blue
+              Color(0xFF10BBE1), // Holcim light blue
+              Color(0xFF94C12E), // Holcim light green
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+      child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-          child: Form(
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              inputDecorationTheme: const InputDecorationTheme(
+                labelStyle: TextStyle(color: Colors.white70),
+                hintStyle: TextStyle(color: Colors.white54),
+                prefixIconColor: Colors.white70,
+                suffixIconColor: Colors.white70,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white70),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.redAccent),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.redAccent, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                errorStyle: TextStyle(color: Colors.white),
+              ),
+            ),
+            child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -309,7 +346,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: kPrimaryColor,
+                    color: Colors.white,
                   ),
                 ),
 
@@ -319,7 +356,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Text(
                   'LafargeHolcim Maroc',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(fontSize: 14, color: Colors.white70),
                 ),
 
 
@@ -334,6 +371,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
@@ -353,7 +391,8 @@ class _LoginPageState extends State<LoginPage> {
                 // ── Password Field ─────────────────────────────────────────
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: !_passwordVisible, 
+                  obscureText: !_passwordVisible,
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
@@ -410,13 +449,15 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: () => Navigator.pushNamed(context, '/register'),
                   child: const Text(
                     "Don't have an account? Register here",
-                    style: TextStyle(color: kPrimaryColor),
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],
             ),
           ),
+          ),
         ),
+      ),
       ),
     );
   }

@@ -1,13 +1,3 @@
-// PodiumPainter.dart
-// ─────────────────────────────────────────────────────────────────
-// Animated podium slot used by the stickman theme. Three distinct
-// character modes per rank:
-//   1 — champion: jumps with trophy overhead, sparkles + aura
-//   2 — sprinter: forward-leaning run cycle, speed lines, sweat drop
-//   3 — climber : full-body pull-up cycle, alternating reach, dust
-//
-// Drop in at lib/screens/salesperon/leaderboard_themes/PodiumPainter.dart
-// ─────────────────────────────────────────────────────────────────
 
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';

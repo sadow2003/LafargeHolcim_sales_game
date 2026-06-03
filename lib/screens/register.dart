@@ -181,15 +181,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF94C12E),
       appBar: GradientAppBar(
         title: 'Register',
         automaticallyImplyLeading: false,// No back button
       ),
-      body: SafeArea( 
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF1D4370), // Holcim dark blue
+              Color(0xFF10BBE1), // Holcim light blue
+              Color(0xFF94C12E), // Holcim light green
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-          child: Form(
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              inputDecorationTheme: const InputDecorationTheme(
+                labelStyle: TextStyle(color: Colors.white70),
+                hintStyle: TextStyle(color: Colors.white54),
+                prefixIconColor: Colors.white70,
+                suffixIconColor: Colors.white70,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white70),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.redAccent),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.redAccent, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                errorStyle: TextStyle(color: Colors.white),
+              ),
+            ),
+            child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -199,6 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _firstNameController,
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
+                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'First Name',
                     prefixIcon: Icon(Icons.person_outline),
@@ -215,6 +254,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _lastNameController,
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
+                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'Last Name',
                     prefixIcon: Icon(Icons.person_outline),
@@ -231,6 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
@@ -246,7 +287,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // ── Role Dropdown  ────────────────────────────────────
                 // DropdownButtonFormField shows a list of options when tapped.
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedRole, 
+                  initialValue: _selectedRole,
+                  style: const TextStyle(color: Colors.white),
+                  dropdownColor: const Color(0xFF1D4370),
                   decoration: const InputDecoration(
                     labelText: 'Role',
                     prefixIcon: Icon(Icons.work_outline),
@@ -276,6 +319,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _adminSecretController,
                     obscureText: !_adminSecretVisible,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Admin Access Code',
                       prefixIcon: const Icon(Icons.admin_panel_settings_outlined),
@@ -306,6 +350,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _adminSecretController,
                     obscureText: !_adminSecretVisible,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Sales Manager Secret Key',
                       prefixIcon: const Icon(Icons.lock_outlined),
@@ -336,6 +381,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _adminSecretController,
                     obscureText: !_adminSecretVisible,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Market Manager Secret Key',
                       prefixIcon: const Icon(Icons.lock_outlined),
@@ -365,6 +411,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_passwordVisible,
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
@@ -391,6 +438,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: !_passwordVisible,
+                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'Confirm Password',
                     prefixIcon: Icon(Icons.lock_outlined),
@@ -431,12 +479,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                   child: const Text(
                     'Already have an account? Login here',
-                    style: TextStyle(color: kPrimaryColor),
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],
             ),
           ),
+          ),
+        ),
         ),
       ),
       );

@@ -6,9 +6,7 @@ import '../../../main.dart';
 import 'leaderboard_theme.dart';
 
 class RaceCarPodium extends LeaderboardPodium {
-  /// Optional — used to scale "progress %" from points if you want
-  /// progress-based positioning instead of fixed rank lanes. Set 0 to
-  /// fall back to fixed rank lane spacing (original behaviour).
+
   final int targetQuantity;
 
   const RaceCarPodium({

@@ -334,7 +334,7 @@ class _AvatarPainter extends CustomPainter {
       ..shader = RadialGradient(
         center: const Alignment(0, -0.3),
         radius: 0.8,
-        colors: const [Colors.white, Color(0xFFDDE3EA)],
+        colors: const [Color.fromARGB(255, 155, 153, 153), Color(0xFFDDE3EA)],
       ).createShader(Rect.fromLTWH(0, 0, w, h));
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bg);
 
@@ -358,7 +358,7 @@ class _AvatarPainter extends CustomPainter {
       text: TextSpan(
         text: initials,
         style: TextStyle(
-          color:      Colors.white,
+          color:      const Color.fromARGB(255, 255, 255, 255),
           fontSize:   w * 0.24,
           fontWeight: FontWeight.bold,
         ),

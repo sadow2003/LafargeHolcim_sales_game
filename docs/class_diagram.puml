@@ -1,0 +1,310 @@
+@startuml LafargeHolcim_SalesQuest_ClassDiagram
+!theme plain
+left to right direction
+
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #003366
+skinparam classHeaderBackgroundColor #D6E4F0
+skinparam ArrowColor #444444
+skinparam packageStyle rectangle
+skinparam PackageBorderColor #888888
+skinparam PackageBackgroundColor #F7F7F7
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 60
+
+title LafargeHolcim SalesQuest — Class Diagram
+
+' ══════════════════════════════════════
+'  ENUM
+' ══════════════════════════════════════
+enum UserRole {
+  salesperson
+  sales_manager
+  market_manager
+  admin
+}
+
+' ══════════════════════════════════════
+'  FIRESTORE MODELS
+' ══════════════════════════════════════
+package "Firestore Models" #EBF5FB {
+
+  class User {
+    + uid : String
+    + firstName : String
+    + lastName : String
+    + email : String
+    + role : UserRole
+    + totalPoints : int
+    + points : int
+    + rank : int
+    + progressQuantity : int
+    + photoUrl : String
+    + fcmToken : String
+    + fcmTokenUpdatedAt : Timestamp
+    + createdAt : Timestamp
+  }
+
+  class Sale {
+    + id : String
+    + userId : String
+    + userName : String
+    + productId : String
+    + productName : String
+    + quantity : int
+    + status : String
+    + pointsAwarded : int
+    + createdAt : Timestamp
+  }
+
+  class Product {
+    + id : String
+    + name : String
+    + description : String
+    + category : String
+    + productPoints : int
+  }
+
+  class BroadcastPost {
+    + id : String
+    + authorId : String
+    + authorName : String
+    + authorRole : String
+    + authorPhotoUrl : String
+    + content : String
+    + pointsAtTime : int
+    + rankAtTime : int
+    + reactions : Map~String, List~
+    + createdAt : Timestamp
+  }
+
+  class Notification {
+    + id : String
+    + userId : String
+    + saleId : String
+    + title : String
+    + body : String
+    + read : bool
+    + timestamp : Timestamp
+  }
+
+  class SalesEvent {
+    + productId : String
+    + productName : String
+    + startDate : Timestamp
+    + targetQuantity : int
+    + updatedAt : Timestamp
+    + rewards : List~MoneyReward~
+  }
+
+  class EventResult {
+    + closedAt : Timestamp
+    + winners : List~WinnerEntry~
+    + participants : List
+  }
+
+  class MoneyReward {
+    + amount : double
+  }
+
+  class WinnerEntry {
+    + rank : int
+    + userId : String
+    + userName : String
+    + rewardAmount : double
+  }
+
+  ' ── Relationships ──
+  User        "1" --> "many" Sale          : submits
+  User        "1" --> "many" BroadcastPost : posts
+  User        "1" --> "many" Notification  : receives
+  Sale        "many" --> "1" Product       : references
+  SalesEvent  "1" *-- "many" MoneyReward   : contains
+  EventResult "1" *-- "many" WinnerEntry   : contains
+  User ..> UserRole : has role
+}
+
+' ══════════════════════════════════════
+'  SCREENS — grouped by role
+' ══════════════════════════════════════
+
+package "Salesperson Screens" #E3F2FD {
+
+  class Dashboard {
+    - userName : String
+    - totalPoints : int
+    - rank : int
+    --
+    + loadUserStats() : void
+  }
+
+  class Products {
+    - searchQuery : String
+    - selectedCategory : String
+    --
+    + filterProducts() : void
+  }
+
+  class SaleClaimForm {
+    - selectedProduct : Product
+    - quantity : int
+    - proofImage : File
+    --
+    + pickImage() : void
+    + calculatePoints() : int
+    + submitClaim() : void
+  }
+
+  class Leaderboard {
+    - activeTab : String
+    - currentUid : String
+    --
+    + loadEventLeaderboard() : void
+    + loadProgressLeaderboard() : void
+  }
+
+  class MilestoneTracker {
+    - progressQuantity : int
+    - milestones : List
+    --
+    + loadMilestones() : void
+  }
+
+  class RewardStore {
+    - activeEvent : SalesEvent
+    - lastResult : EventResult
+    --
+    + loadRewards() : void
+    + redeemReward() : void
+  }
+
+  class Profile {
+    - photoUrl : String
+    - firstName : String
+    - lastName : String
+    --
+    + uploadPhoto() : void
+    + updateProfile() : void
+  }
+
+  class BroadcastFeed {
+    - activeTab : String
+    - posts : List~BroadcastPost~
+    --
+    + loadFeed() : void
+    + postBroadcast() : void
+  }
+}
+
+package "Sales Manager Screens" #E8F5E9 {
+
+  class ManagerDashboard {
+    - pendingCount : int
+    - totalSales : int
+    - userCount : int
+    --
+    + loadStats() : void
+  }
+
+  class SalesApproval {
+    - statusFilter : String
+    - claims : List~Sale~
+    --
+    + approveSale(saleId) : void
+    + rejectSale(saleId) : void
+    + filterByStatus() : void
+  }
+
+  class ProductManagement {
+    - searchQuery : String
+    - products : List~Product~
+    --
+    + searchProducts() : void
+  }
+
+  class NotificationInbox {
+    - notifications : List~Notification~
+    --
+    + markAsRead(id) : void
+    + loadNotifications() : void
+  }
+
+  class BroadcastFeed_SM <<BroadcastFeed>> {
+    - posts : List~BroadcastPost~
+    --
+    + loadFeed() : void
+    + postBroadcast() : void
+  }
+}
+
+package "Market Manager Screens" #FFFDE7 {
+
+  class MarketManagerDashboard {
+    - activeEvent : SalesEvent
+    --
+    + loadActiveEvent() : void
+  }
+
+  class EventManagement {
+    - startDate : DateTime
+    - endDate : DateTime
+    - rewards : List~MoneyReward~
+    --
+    + saveEvent() : void
+    + deleteEvent() : void
+  }
+
+  class BroadcastFeed_MM <<BroadcastFeed>> {
+    - posts : List~BroadcastPost~
+    --
+    + loadFeed() : void
+    + postBroadcast() : void
+  }
+}
+
+package "Admin Screens" #FBE9E7 {
+
+  class AdminDashboard {
+    - userCount : int
+    - pendingCount : int
+    --
+    + loadStats() : void
+  }
+
+  class UserManagement {
+    - roleFilter : String
+    - users : List~User~
+    --
+    + createUser() : void
+    + editUser(uid) : void
+    + deleteUser(uid) : void
+    + filterByRole() : void
+  }
+
+  class BroadcastFeed_AD <<BroadcastFeed>> {
+    - posts : List~BroadcastPost~
+    --
+    + loadFeed() : void
+    + postBroadcast() : void
+  }
+}
+
+' ── Screen → Model dependencies ──
+SaleClaimForm     ..> Sale          : creates
+SaleClaimForm     ..> Product       : selects from
+Products          ..> Product       : displays
+Leaderboard       ..> User          : ranks
+SalesApproval     ..> Sale          : approves / rejects
+SalesApproval     ..> Notification  : triggers
+ProductManagement ..> Product       : manages
+EventManagement   ..> SalesEvent    : configures
+RewardStore       ..> EventResult   : displays
+UserManagement    ..> User          : manages (CRUD)
+BroadcastFeed     ..> BroadcastPost : displays
+BroadcastFeed_SM  ..> BroadcastPost : displays
+BroadcastFeed_MM  ..> BroadcastPost : displays
+BroadcastFeed_AD  ..> BroadcastPost : displays
+NotificationInbox ..> Notification  : reads
+
+@enduml
