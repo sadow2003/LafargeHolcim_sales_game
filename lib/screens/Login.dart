@@ -268,7 +268,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
 
 
-                // ── LafargeHolcim Logo ─────────────────────────────────────
+                // ── Holcim Logo ─────────────────────────────────────
                 Center(
                   child: SizedBox(
                     width: 110,
@@ -354,7 +354,7 @@ class _LoginPageState extends State<LoginPage> {
 
 
                 const Text(
-                  'LafargeHolcim Maroc',
+                  'Holcim Maroc',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.white70),
                 ),

@@ -20,6 +20,7 @@ import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone
 import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_screen.dart';
+import 'package:lafargeholcim_sales_game/ai/ai_coach_screen.dart';
 
 
 //primary colors of the application — LafargeHolcim brand palette
@@ -118,6 +119,7 @@ class MyApp extends StatelessWidget {
         '/market-manager/dashboard':     (context) => const MarketManagerDashboard(),
         '/market-manager/events':        (context) => const EventManagementPage(),
         '/reward-store':                 (context) => const RewardStorePage(),
+        '/ai-coach':                     (context) => const AiCoachScreen(),
       },
     );
   }

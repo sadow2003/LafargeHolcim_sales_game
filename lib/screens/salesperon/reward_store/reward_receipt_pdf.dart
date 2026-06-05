@@ -7,7 +7,7 @@ import 'package:printing/printing.dart';
 class RewardReceiptPdf {
   RewardReceiptPdf._();
 
-  static const _brand      = 'LafargeHolcim — SalesQuest';
+  static const _brand      = 'Holcim Maroc — SalesQuest';
   static final _rankLabels = {1: '1st Place ${AppEmojis.gold}', 2: '2nd Place ${AppEmojis.silver}', 3: '3rd Place ${AppEmojis.bronze}'};
 
   static String _fmtMoney(double amount) {

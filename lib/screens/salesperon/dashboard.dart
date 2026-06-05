@@ -228,6 +228,18 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: _quickActionButton(
+                    context,
+                    icon: Icons.psychology_outlined,
+                    label: 'AI Sales Coach',
+                    route: '/ai-coach',
+                    color: kCyanColor,
+                  ),
+                ),
               ],
             ),
           );
