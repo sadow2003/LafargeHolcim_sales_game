@@ -1,4 +1,4 @@
-@startuml LafargeHolcim_SalesQuest_ClassDiagram
+@startuml DiagrammeClasses_SalesQuest
 !theme plain
 left to right direction
 
@@ -9,302 +9,173 @@ skinparam ArrowColor #444444
 skinparam packageStyle rectangle
 skinparam PackageBorderColor #888888
 skinparam PackageBackgroundColor #F7F7F7
-skinparam linetype ortho
-skinparam nodesep 40
-skinparam ranksep 60
+skinparam classFontSize 11
+skinparam classAttributeFontSize 10
+skinparam padding 4
+skinparam nodesep 30
+skinparam ranksep 40
 
-title LafargeHolcim SalesQuest — Class Diagram
+title Diagramme de Classes — LafargeHolcim SalesQuest
 
 ' ══════════════════════════════════════
-'  ENUM
+'  ÉNUMÉRATION
 ' ══════════════════════════════════════
-enum UserRole {
-  salesperson
-  sales_manager
-  market_manager
+enum RoleUtilisateur {
+  commercial
+  responsable_commercial
+  responsable_marche
   admin
 }
 
 ' ══════════════════════════════════════
-'  FIRESTORE MODELS
+'  MODÈLES FIRESTORE
 ' ══════════════════════════════════════
-package "Firestore Models" #EBF5FB {
+package "Modèles Firestore" #EBF5FB {
 
-  class User {
+  class Utilisateur {
     + uid : String
-    + firstName : String
-    + lastName : String
+    + nom : String
     + email : String
-    + role : UserRole
-    + totalPoints : int
+    + role : RoleUtilisateur
     + points : int
-    + rank : int
-    + progressQuantity : int
-    + photoUrl : String
+    + rang : int
     + fcmToken : String
-    + fcmTokenUpdatedAt : Timestamp
-    + createdAt : Timestamp
   }
 
-  class Sale {
+  class Vente {
     + id : String
     + userId : String
-    + userName : String
-    + productId : String
-    + productName : String
-    + quantity : int
-    + status : String
-    + pointsAwarded : int
-    + createdAt : Timestamp
+    + produitId : String
+    + quantite : int
+    + statut : String
+    + pointsAttribues : int
   }
 
-  class Product {
+  class Produit {
     + id : String
-    + name : String
-    + description : String
-    + category : String
-    + productPoints : int
+    + nom : String
+    + categorie : String
+    + pointsParUnite : int
   }
 
-  class BroadcastPost {
+  class Publication {
     + id : String
-    + authorId : String
-    + authorName : String
-    + authorRole : String
-    + authorPhotoUrl : String
-    + content : String
-    + pointsAtTime : int
-    + rankAtTime : int
+    + auteurId : String
+    + contenu : String
     + reactions : Map~String, List~
-    + createdAt : Timestamp
+    + date : Timestamp
+  }
+
+  class EvenementVente {
+    + dateDebut : Timestamp
+    + objectifQuantite : int
+    + recompenses : List~Recompense~
+    + dateMAJ : Timestamp
+  }
+
+  class Recompense {
+    + montant : double
   }
 
   class Notification {
     + id : String
     + userId : String
-    + saleId : String
-    + title : String
-    + body : String
-    + read : bool
-    + timestamp : Timestamp
+    + titre : String
+    + lu : bool
   }
 
-  class SalesEvent {
-    + productId : String
-    + productName : String
-    + startDate : Timestamp
-    + targetQuantity : int
-    + updatedAt : Timestamp
-    + rewards : List~MoneyReward~
-  }
-
-  class EventResult {
-    + closedAt : Timestamp
-    + winners : List~WinnerEntry~
-    + participants : List
-  }
-
-  class MoneyReward {
-    + amount : double
-  }
-
-  class WinnerEntry {
-    + rank : int
-    + userId : String
-    + userName : String
-    + rewardAmount : double
-  }
-
-  ' ── Relationships ──
-  User        "1" --> "many" Sale          : submits
-  User        "1" --> "many" BroadcastPost : posts
-  User        "1" --> "many" Notification  : receives
-  Sale        "many" --> "1" Product       : references
-  SalesEvent  "1" *-- "many" MoneyReward   : contains
-  EventResult "1" *-- "many" WinnerEntry   : contains
-  User ..> UserRole : has role
+  Utilisateur   "1" --> "many" Vente       : soumet
+  Utilisateur   "1" --> "many" Publication : publie
+  Utilisateur   "1" --> "many" Notification : reçoit
+  Vente         "many" --> "1" Produit     : concerne
+  EvenementVente "1" *-- "many" Recompense : contient
+  Utilisateur ..> RoleUtilisateur : a un rôle
 }
 
 ' ══════════════════════════════════════
-'  SCREENS — grouped by role
+'  ÉCRANS PAR RÔLE
 ' ══════════════════════════════════════
+package "Écrans" #F0F4F8 {
 
-package "Salesperson Screens" #E3F2FD {
-
-  class Dashboard {
-    - userName : String
-    - totalPoints : int
-    - rank : int
+  class EcranCommercial {
+    - points : int
+    - rang : int
     --
-    + loadUserStats() : void
+    + soumettreVente() : void
+    + voirClassement() : void
+    + voirRecompenses() : void
   }
 
-  class Products {
-    - searchQuery : String
-    - selectedCategory : String
+  class EcranResponsableCommercial {
+    - ventesPendantes : List~Vente~
     --
-    + filterProducts() : void
+    + approuverVente(id) : void
+    + rejeterVente(id) : void
   }
 
-  class SaleClaimForm {
-    - selectedProduct : Product
-    - quantity : int
-    - proofImage : File
+  class EcranResponsableMarche {
+    - evenementActif : EvenementVente
     --
-    + pickImage() : void
-    + calculatePoints() : int
-    + submitClaim() : void
+    + creerEvenement() : void
+    + voirResultats() : void
   }
 
-  class Leaderboard {
-    - activeTab : String
-    - currentUid : String
+  class EcranAdministrateur {
+    - utilisateurs : List~Utilisateur~
     --
-    + loadEventLeaderboard() : void
-    + loadProgressLeaderboard() : void
+    + creerUtilisateur() : void
+    + supprimerUtilisateur(id) : void
   }
 
-  class MilestoneTracker {
-    - progressQuantity : int
-    - milestones : List
+  class FilActualite {
+    - publications : List~Publication~
     --
-    + loadMilestones() : void
-  }
-
-  class RewardStore {
-    - activeEvent : SalesEvent
-    - lastResult : EventResult
-    --
-    + loadRewards() : void
-    + redeemReward() : void
-  }
-
-  class Profile {
-    - photoUrl : String
-    - firstName : String
-    - lastName : String
-    --
-    + uploadPhoto() : void
-    + updateProfile() : void
-  }
-
-  class BroadcastFeed {
-    - activeTab : String
-    - posts : List~BroadcastPost~
-    --
-    + loadFeed() : void
-    + postBroadcast() : void
+    + chargerFil() : void
+    + publier() : void
   }
 }
 
-package "Sales Manager Screens" #E8F5E9 {
+' ══════════════════════════════════════
+'  COACH IA — MAX
+' ══════════════════════════════════════
+package "Coach IA — Max" #FFF8E7 {
 
-  class ManagerDashboard {
-    - pendingCount : int
-    - totalSales : int
-    - userCount : int
+  class EcranCoachIA {
+    - nomUtilisateur : String
+    - messages : List~MessageChat~
+    - chargement : bool
     --
-    + loadStats() : void
+    + envoyerMessage() : void
+    + promptRapide(texte) : void
   }
 
-  class SalesApproval {
-    - statusFilter : String
-    - claims : List~Sale~
+  class ServiceCoachIA <<static>> {
+    - {static} urlAPI : String
+    - {static} promptSysteme : String
     --
-    + approveSale(saleId) : void
-    + rejectSale(saleId) : void
-    + filterByStatus() : void
+    + {static} envoyerMessage(historique) : Future~String~
   }
 
-  class ProductManagement {
-    - searchQuery : String
-    - products : List~Product~
-    --
-    + searchProducts() : void
+  class MessageChat {
+    + texte : String
+    + estUtilisateur : bool
+    + estErreur : bool
   }
 
-  class NotificationInbox {
-    - notifications : List~Notification~
-    --
-    + markAsRead(id) : void
-    + loadNotifications() : void
-  }
-
-  class BroadcastFeed_SM <<BroadcastFeed>> {
-    - posts : List~BroadcastPost~
-    --
-    + loadFeed() : void
-    + postBroadcast() : void
-  }
+  EcranCoachIA "1" *-- "many" MessageChat : contient
+  EcranCoachIA ..> ServiceCoachIA         : appelle
 }
 
-package "Market Manager Screens" #FFFDE7 {
-
-  class MarketManagerDashboard {
-    - activeEvent : SalesEvent
-    --
-    + loadActiveEvent() : void
-  }
-
-  class EventManagement {
-    - startDate : DateTime
-    - endDate : DateTime
-    - rewards : List~MoneyReward~
-    --
-    + saveEvent() : void
-    + deleteEvent() : void
-  }
-
-  class BroadcastFeed_MM <<BroadcastFeed>> {
-    - posts : List~BroadcastPost~
-    --
-    + loadFeed() : void
-    + postBroadcast() : void
-  }
-}
-
-package "Admin Screens" #FBE9E7 {
-
-  class AdminDashboard {
-    - userCount : int
-    - pendingCount : int
-    --
-    + loadStats() : void
-  }
-
-  class UserManagement {
-    - roleFilter : String
-    - users : List~User~
-    --
-    + createUser() : void
-    + editUser(uid) : void
-    + deleteUser(uid) : void
-    + filterByRole() : void
-  }
-
-  class BroadcastFeed_AD <<BroadcastFeed>> {
-    - posts : List~BroadcastPost~
-    --
-    + loadFeed() : void
-    + postBroadcast() : void
-  }
-}
-
-' ── Screen → Model dependencies ──
-SaleClaimForm     ..> Sale          : creates
-SaleClaimForm     ..> Product       : selects from
-Products          ..> Product       : displays
-Leaderboard       ..> User          : ranks
-SalesApproval     ..> Sale          : approves / rejects
-SalesApproval     ..> Notification  : triggers
-ProductManagement ..> Product       : manages
-EventManagement   ..> SalesEvent    : configures
-RewardStore       ..> EventResult   : displays
-UserManagement    ..> User          : manages (CRUD)
-BroadcastFeed     ..> BroadcastPost : displays
-BroadcastFeed_SM  ..> BroadcastPost : displays
-BroadcastFeed_MM  ..> BroadcastPost : displays
-BroadcastFeed_AD  ..> BroadcastPost : displays
-NotificationInbox ..> Notification  : reads
+' ══════════════════════════════════════
+'  DÉPENDANCES ÉCRANS → MODÈLES
+' ══════════════════════════════════════
+EcranCommercial            ..> Vente          : crée
+EcranCommercial            ..> Produit        : consulte
+EcranResponsableCommercial ..> Vente          : approuve / rejette
+EcranResponsableCommercial ..> Notification   : déclenche
+EcranResponsableMarche     ..> EvenementVente : configure
+EcranAdministrateur        ..> Utilisateur    : gère
+FilActualite               ..> Publication    : affiche
+EcranCoachIA               ..> Utilisateur    : charge le nom
 
 @enduml

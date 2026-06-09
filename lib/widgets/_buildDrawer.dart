@@ -229,11 +229,11 @@ class _AppDrawerState extends State<AppDrawer> {
               icon: Icons.tv_outlined,
               label: 'Broadcast',
               route: '/broadcast'),
-          // _drawerItem(context,
-          //     icon: Icons.psychology_outlined,
-          //     label: 'AI Coach',
-          //     route: '/ai-coach',
-          //     iconColor: const Color(0xFF00AEEF)),
+          _drawerItem(context,
+              icon: Icons.psychology_outlined,
+              label: 'AI Coach',
+              route: '/ai-coach',
+              iconColor: const Color(0xFF00AEEF)),
         ];
     }
   }

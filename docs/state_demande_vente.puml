@@ -1,0 +1,28 @@
+@startuml State_Demande_Vente
+!theme plain
+
+skinparam stateFontSize 12
+skinparam stateArrowFontSize 11
+skinparam stateBorderColor #003366
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateHeaderBackgroundColor #D6E4F0
+skinparam ArrowColor #444444
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 8
+skinparam nodesep 40
+skinparam ranksep 50
+
+title Diagramme États-Transitions\nDemande de Vente
+
+state "En Attente" as V_ATT
+state "Approuvée"  as V_APP
+state "Rejetée"    as V_REJ
+
+[*]   --> V_ATT : soumise par le commercial\n/ uploader preuve + créer document
+V_ATT --> V_APP : responsable approuve\n/ attribuer points, recalculer rang\n/ supprimer preuve
+V_ATT --> V_REJ : responsable rejette\n/ supprimer preuve
+V_APP --> [*]
+V_REJ --> [*]
+
+@enduml

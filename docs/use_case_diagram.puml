@@ -9,253 +9,120 @@ skinparam UsecaseBorderColor #003366
 skinparam UsecaseBackgroundColor #FFFFFF
 skinparam PackageBorderColor #AAAAAA
 skinparam PackageBackgroundColor #F9F9F9
-skinparam NoteBackgroundColor #FFFDE7
-skinparam NoteBorderColor #F9A825
-skinparam linetype ortho
 left to right direction
-title LafargeHolcim SalesQuest — Use Case Diagram
 
-' ─────────────── ACTORS ───────────────
-actor "Salesperson"      as SP   #LightBlue
-actor "Sales Manager"    as SM   #LightGreen
-actor "Market Manager"   as MM   #LightYellow
-actor "Admin"            as AD   #LightSalmon
-actor "Firebase\n(System)" as SYS #WhiteSmoke
+title Diagramme de Cas d'Utilisation — LafargeHolcim SalesQuest
+
+' ═══ ACTEUR GAUCHE (seul) ═══
+
+actor "Commercial" as SP #LightBlue
 
 ' ══════════════════════════════════════
-'  AUTHENTICATION PACKAGE
-' ══════════════════════════════════════
-package "Authentication" {
-  usecase "Register Account"      as UC_REG
-  usecase "Login"                 as UC_LOG
-  usecase "Logout"                as UC_OUT
-  usecase "Validate Secret Key"   as UC_KEY
-  usecase "Route by Role"         as UC_ROUTE
+package "Authentification" {
+  usecase "Créer un compte"  as UC_REG
+  usecase "Se connecter"     as UC_LOG
+  usecase "Se déconnecter"   as UC_OUT
 }
 
-UC_REG ..> UC_KEY   : <<extend>>\n[privileged roles]
-UC_LOG ..> UC_ROUTE : <<include>>
-
-' ══════════════════════════════════════
-'  SALESPERSON FEATURES
-' ══════════════════════════════════════
-package "Salesperson Features" {
-
-  package "Dashboard & Products" {
-    usecase "View Dashboard"      as UC_DASH
-    usecase "Browse Products"     as UC_PROD
-    usecase "Search / Filter\nProducts" as UC_PFILT
-  }
-
-  package "Sales Submission" {
-    usecase "Submit Sale Claim"   as UC_SALE
-    usecase "Select Product"      as UC_SELP
-    usecase "Attach Proof Image"  as UC_IMG
-    usecase "Preview Point\nEstimate" as UC_EST
-  }
-
-  package "Leaderboard & Rankings" {
-    usecase "View Event\nLeaderboard"    as UC_ELDR
-    usecase "View Progress\nLeaderboard" as UC_PLDR
-    usecase "View Event\nCountdown"      as UC_CNTD
-    usecase "View Podium /\nCongratulations" as UC_POD
-  }
-
-  package "Milestones" {
-    usecase "Track Milestone\nBadges"   as UC_MILE
-    usecase "View Milestone\nProgress"  as UC_MPROG
-  }
-
-  package "Reward Store" {
-    usecase "View Active\nEvent Rewards" as UC_REWD
-    usecase "Redeem Reward"             as UC_RDM
-    usecase "View Reward\nReceipt / PDF" as UC_RCPT
-    usecase "Browse Past\nEvent Results" as UC_PAST
-  }
-
-  package "Profile" {
-    usecase "View / Edit Profile"       as UC_PROF
-    usecase "Upload Profile Photo"      as UC_PHOTO
-  }
+package "Espace Commercial" {
+  usecase "Voir le tableau de bord"    as UC_DASH
+  usecase "Parcourir les produits"     as UC_PROD
+  usecase "Soumettre une vente"        as UC_SALE
+  usecase "Voir le classement"         as UC_LDR
+  usecase "Suivre les jalons"          as UC_MILE
+  usecase "Consulter les récompenses"  as UC_REWD
+  usecase "Modifier le profil"         as UC_PROF
 }
 
-UC_SALE  ..> UC_SELP  : <<include>>
-UC_SALE  ..> UC_IMG   : <<include>>
-UC_SALE  ..> UC_EST   : <<include>>
-UC_PROD  ..> UC_PFILT : <<extend>>
-UC_REWD  ..> UC_RDM   : <<extend>>\n[sufficient points]
-UC_RDM   ..> UC_RCPT  : <<include>>
-UC_PROF  ..> UC_PHOTO : <<extend>>
-UC_ELDR  ..> UC_CNTD  : <<include>>
-UC_ELDR  ..> UC_POD   : <<extend>>\n[rank change]
-UC_MILE  ..> UC_MPROG : <<include>>
-
-' ══════════════════════════════════════
-'  SALES MANAGER FEATURES
-' ══════════════════════════════════════
-package "Sales Manager Features" {
-
-  package "Manager Dashboard" {
-    usecase "View Manager\nDashboard"        as UC_MDASH
-    usecase "View Team Sales\nSummary"       as UC_TSUM
-    usecase "Receive Sale\nNotifications"    as UC_NOTIF
-  }
-
-  package "Sales Approval" {
-    usecase "Manage Sales Claims"            as UC_MGCL
-    usecase "Filter Claims\n(status/date)"   as UC_FILT
-    usecase "Review Sale\nDetails & Proof"   as UC_REV
-    usecase "Approve Sale"                   as UC_APP
-    usecase "Reject Sale"                    as UC_REJ
-    usecase "Auto-Award Points"              as UC_AWD
-    usecase "Auto-Delete\nProof Image"       as UC_DEL
-  }
-
-  package "Product Management (SM)" {
-    usecase "Manage Products\n(SM)"          as UC_SMPROD
-    usecase "Search / Filter\nProducts (SM)" as UC_SMFILT
-  }
+package "Espace Responsable\nCommercial" {
+  usecase "Tableau de bord responsable"  as UC_MDASH
+  usecase "Approuver / Rejeter une vente" as UC_APP
+  usecase "Gérer les produits"           as UC_PROD2
+  usecase "Recevoir des notifications"   as UC_NOTIF
 }
 
-UC_MGCL  ..> UC_FILT  : <<extend>>
-UC_MGCL  ..> UC_REV   : <<include>>
-UC_APP   ..> UC_AWD   : <<include>>
-UC_APP   ..> UC_DEL   : <<include>>
-UC_REJ   ..> UC_DEL   : <<include>>
-UC_SMPROD ..> UC_SMFILT : <<extend>>
-
-' ══════════════════════════════════════
-'  MARKET MANAGER FEATURES
-' ══════════════════════════════════════
-package "Market Manager Features" {
-
-  package "Event Management" {
-    usecase "View Market Manager\nDashboard"   as UC_MMDASH
-    usecase "Create / Update\nSales Event"     as UC_CREV
-    usecase "Set Event Dates"                  as UC_DATES
-    usecase "Configure Event\nRewards"         as UC_CREWD
-    usecase "Monitor Active\nEvent Progress"   as UC_MONIT
-    usecase "View Event Results\n(post-event)" as UC_ERESLT
-    usecase "Process Reward\nDistribution"     as UC_DISTRIB
-  }
+package "Espace Responsable\nMarché" {
+  usecase "Tableau de bord marché"      as UC_MMDASH
+  usecase "Créer un événement"          as UC_CREV
+  usecase "Configurer les récompenses"  as UC_CREWD
+  usecase "Voir les résultats"          as UC_ERESLT
 }
 
-UC_CREV    ..> UC_DATES   : <<include>>
-UC_CREV    ..> UC_CREWD   : <<include>>
-UC_MONIT   ..> UC_ERESLT  : <<extend>>\n[event ended]
-UC_ERESLT  ..> UC_DISTRIB : <<include>>
+UC_CREV ..> UC_CREWD : <<include>>
 
-' ══════════════════════════════════════
-'  ADMIN FEATURES
-' ══════════════════════════════════════
-package "Admin Features" {
-
-  package "User Management" {
-    usecase "View Admin Dashboard"       as UC_ADASH
-    usecase "Manage Users"               as UC_UMGMT
-    usecase "Create User"                as UC_UCRE
-    usecase "Edit User"                  as UC_UEDIT
-    usecase "Delete / Deactivate User"   as UC_UDEL
-    usecase "Filter Users by Role"       as UC_UFILT
-  }
+package "Espace Administrateur" {
+  usecase "Tableau de bord admin"   as UC_ADASH
+  usecase "Gérer les utilisateurs"  as UC_UMGMT
 }
 
-UC_UMGMT ..> UC_UCRE   : <<extend>>
-UC_UMGMT ..> UC_UEDIT  : <<extend>>
-UC_UMGMT ..> UC_UDEL   : <<extend>>
-UC_UMGMT ..> UC_UFILT  : <<extend>>
-
-' ══════════════════════════════════════
-'  SHARED / CROSS-ROLE FEATURES
-' ══════════════════════════════════════
-package "Shared Features (All Roles)" {
-  usecase "View Broadcast Feed"    as UC_BFEED
-  usecase "Post Broadcast"         as UC_BPOST
-  usecase "Filter Broadcast\nby Type" as UC_BFILT
-  usecase "Access Role-Based\nNavigation" as UC_NAV
+package "Fonctionnalités\npartagées" {
+  usecase "Fil d'actualité"    as UC_BFEED
+  usecase "Publier une annonce" as UC_BPOST
 }
 
-UC_BFEED ..> UC_BFILT : <<extend>>
-
-' ══════════════════════════════════════
-'  SYSTEM (FIREBASE) AUTOMATED ACTIONS
-' ══════════════════════════════════════
-package "System Automated Actions" {
-  usecase "Calculate &\nUpdate Ranking"      as UC_RANK
-  usecase "Send Push\nNotification"          as UC_PUSH
-  usecase "Compress Proof\nImage"            as UC_COMP
-  usecase "Cleanup Old\nProof Images"        as UC_CLEAN
+package "Coach IA — Max" {
+  usecase "Ouvrir le coach IA"       as UC_AI_OPEN
+  usecase "Envoyer un message"       as UC_AI_SEND
+  usecase "Recevoir la réponse IA"   as UC_AI_REPLY
 }
 
-' ─────────────── ACTOR → USE CASE LINKS ───────────────
+UC_AI_OPEN ..> UC_AI_SEND  : <<include>>
+UC_AI_SEND ..> UC_AI_REPLY : <<include>>
 
-' All actors share: auth, broadcast, navigation
-SP  --> UC_REG
-SP  --> UC_LOG
-SP  --> UC_OUT
-SM  --> UC_REG
-SM  --> UC_LOG
-SM  --> UC_OUT
-MM  --> UC_REG
-MM  --> UC_LOG
-MM  --> UC_OUT
-AD  --> UC_REG
-AD  --> UC_LOG
-AD  --> UC_OUT
+' ═══ ACTEURS DROITE ═══
+actor "Responsable\nCommercial"  as SM   #LightGreen
+actor "Responsable\nMarché"     as MM   #LightYellow
+actor "Administrateur"          as AD   #LightSalmon
+actor "API Groq (IA)"           as GROQ #LightGray
 
-SP  --> UC_NAV
-SM  --> UC_NAV
-MM  --> UC_NAV
-AD  --> UC_NAV
+' ─── LIENS ───
 
-SP  --> UC_BFEED
-SP  --> UC_BPOST
-SM  --> UC_BFEED
-SM  --> UC_BPOST
-MM  --> UC_BFEED
-MM  --> UC_BPOST
-AD  --> UC_BFEED
-AD  --> UC_BPOST
+SP --> UC_REG
+SP --> UC_LOG
+SP --> UC_OUT
 
-' Salesperson-specific
+SM --> UC_REG
+SM --> UC_LOG
+SM --> UC_OUT
+
+MM --> UC_REG
+MM --> UC_LOG
+MM --> UC_OUT
+
+UC_REG -- AD
+UC_LOG -- AD
+UC_OUT -- AD 
+
 SP --> UC_DASH
 SP --> UC_PROD
 SP --> UC_SALE
-SP --> UC_ELDR
-SP --> UC_PLDR
+SP --> UC_LDR
 SP --> UC_MILE
 SP --> UC_REWD
-SP --> UC_PAST
 SP --> UC_PROF
+SP --> UC_AI_OPEN
 
-' Sales Manager-specific
 SM --> UC_MDASH
-SM --> UC_TSUM
-SM --> UC_NOTIF
-SM --> UC_MGCL
 SM --> UC_APP
-SM --> UC_REJ
-SM --> UC_SMPROD
+SM --> UC_PROD2
+SM --> UC_NOTIF
 
-' Market Manager-specific
 MM --> UC_MMDASH
 MM --> UC_CREV
-MM --> UC_MONIT
 MM --> UC_ERESLT
 
-' Admin-specific
-AD --> UC_ADASH
-AD --> UC_UMGMT
+UC_ADASH -- AD
+UC_UMGMT -- AD
 
-' System automated
-SYS --> UC_RANK
-SYS --> UC_PUSH
-SYS --> UC_COMP
-SYS --> UC_CLEAN
+SP --> UC_BFEED
+SP --> UC_BPOST
+SM --> UC_BFEED
+SM --> UC_BPOST
+MM --> UC_BFEED
+MM --> UC_BPOST
+UC_BFEED -- AD
+UC_BPOST-- AD 
 
-UC_AWD   ..> UC_RANK  : <<include>>
-UC_SALE  ..> UC_COMP  : <<include>>
-UC_APP   ..> UC_PUSH  : <<include>>
-UC_CLEAN ..> UC_DEL   : <<include>>
+UC_AI_REPLY -- GROQ
 
 @enduml

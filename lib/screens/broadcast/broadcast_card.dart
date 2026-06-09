@@ -11,8 +11,6 @@ class BroadcastCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final String? currentUid;
   final String currentUserRole;
-  final bool playConfetti;
-
 //the constructor
   const BroadcastCard({
     super.key,
@@ -20,7 +18,6 @@ class BroadcastCard extends StatelessWidget {
     required this.data,
     required this.currentUid,
     required this.currentUserRole,
-    this.playConfetti = false,
   });
 //the time ago feature
   String _timeAgo(Timestamp? ts) {
@@ -113,7 +110,6 @@ class BroadcastCard extends StatelessWidget {
         data:            data,
         currentUid:      currentUid,
         currentUserRole: currentUserRole,
-        playConfetti:    playConfetti,
       );
     }
 

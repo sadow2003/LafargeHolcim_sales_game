@@ -1,0 +1,28 @@
+@startuml State_Evenement_Vente
+!theme plain
+
+skinparam stateFontSize 12
+skinparam stateArrowFontSize 11
+skinparam stateBorderColor #003366
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateHeaderBackgroundColor #D6E4F0
+skinparam ArrowColor #444444
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 8
+skinparam nodesep 40
+skinparam ranksep 50
+
+title Diagramme États-Transitions\nÉvénement de Vente
+
+state "Inexistant" as E_NON
+state "Actif"      as E_ACT
+state "Terminé"    as E_FIN
+
+[*]   --> E_NON
+E_NON --> E_ACT : créé par resp. marché\n/ définir dates + récompenses
+E_ACT --> E_FIN : date de fin atteinte\n/ calculer classement\n/ sauvegarder résultats\n/ réinitialiser points
+E_FIN --> E_NON : nouvel événement créé
+E_FIN --> [*]
+
+@enduml

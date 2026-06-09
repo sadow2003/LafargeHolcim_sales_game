@@ -1,0 +1,30 @@
+@startuml State_Coach_IA
+!theme plain
+
+skinparam stateFontSize 12
+skinparam stateArrowFontSize 11
+skinparam stateBorderColor #003366
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateHeaderBackgroundColor #D6E4F0
+skinparam ArrowColor #444444
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 8
+skinparam nodesep 40
+skinparam ranksep 50
+
+title Diagramme États-Transitions\nCoach IA — Max
+
+state "Inactif"       as C_IDLE
+state "En chargement" as C_LOAD
+state "Réponse reçue" as C_DONE
+state "Erreur"        as C_ERR
+
+[*]    --> C_IDLE : ouverture / charger prénom
+C_IDLE --> C_LOAD : message envoyé\n/ appel API Groq
+C_LOAD --> C_DONE : réponse reçue\n/ afficher message Max
+C_LOAD --> C_ERR  : timeout / erreur API
+C_DONE --> C_IDLE : prêt pour nouveau message
+C_ERR  --> C_IDLE : afficher message d'erreur
+
+@enduml

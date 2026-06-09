@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
 
-    //only official LafargeHolcim emails are allowed.
+    //only official Holcim emails are allowed.
     if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
       return 'Only @lafargeholcim.com emails are allowed';
     }

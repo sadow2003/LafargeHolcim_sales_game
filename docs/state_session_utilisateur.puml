@@ -1,0 +1,28 @@
+@startuml State_Session_Utilisateur
+!theme plain
+
+skinparam stateFontSize 12
+skinparam stateArrowFontSize 11
+skinparam stateBorderColor #003366
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateHeaderBackgroundColor #D6E4F0
+skinparam ArrowColor #444444
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 8
+skinparam nodesep 40
+skinparam ranksep 50
+
+title Diagramme États-Transitions\nSession Utilisateur
+
+state "Déconnecté"      as S_DEC
+state "Connecté"        as S_CON
+state "Session Expirée" as S_EXP
+
+[*]   --> S_DEC
+S_DEC --> S_CON : connexion réussie\n/ charger profil + rôle
+S_CON --> S_DEC : déconnexion\n/ supprimer token
+S_CON --> S_EXP : token expiré
+S_EXP --> S_DEC : redirection login
+
+@enduml

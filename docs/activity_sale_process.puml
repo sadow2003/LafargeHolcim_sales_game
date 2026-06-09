@@ -1,6 +1,8 @@
-@startuml Sale_Process_Activity
+@startuml Processus_Soumission_Vente
 !theme plain
 
+skinparam ActivityFontSize 11
+skinparam ActivityArrowFontSize 10
 skinparam ActivityBackgroundColor #FFFFFF
 skinparam ActivityBorderColor #003366
 skinparam ActivityDiamondBackgroundColor #FFF9C4
@@ -12,95 +14,73 @@ skinparam PartitionBorderColor #888888
 skinparam PartitionBackgroundColor #F5F5F5
 skinparam NoteBackgroundColor #FFFDE7
 skinparam NoteBorderColor #F9A825
+skinparam padding 4
+skinparam nodesep 15
+skinparam ranksep 20
 
-title Sale Submission Process
+title Diagramme d'Activité — Processus de Soumission d'une Vente
 
-|#E3F2FD| Salesperson |
-|#E8F5E9| Sales Manager |
-|#EBF5FB| System (Firebase) |
-
-|Salesperson|
+|Commercial|
 start
 
-:Open Sale Claim Form;
+:Ouvrir le formulaire de vente;
+:Sélectionner un produit;
+:Saisir la quantité vendue;
+:Joindre une photo de preuve;
+note right : Caméra ou galerie
 
-:Select Product from dropdown;
-
-:Enter Quantity sold;
-
-:Attach Proof Image;
-note right
-  Camera or Gallery
-end note
-
-if (Image selected?) then (no)
-  :Show error\n"Image required";
+if (Photo sélectionnée ?) then (non)
+  :Afficher erreur\n"Preuve requise";
   stop
-else (yes)
+else (oui)
 endif
 
-:Preview estimated points\n(productPoints × quantity);
+:Aperçu des points estimés;
+:Soumettre la demande;
 
-:Submit Claim;
+|Système (Firebase)|
+:Compresser l'image\n(max 1280px);
+:Uploader la preuve;
+:Créer document vente\n(statut : "en_attente");
+:Notifier le responsable;
 
-|System (Firebase)|
-:Compress proof image\n(max 1280px, 70% quality);
+|Responsable Commercial|
+:Recevoir la notification;
+:Consulter les détails\net la preuve;
 
-:Upload image to\nFirebase Storage;
+if (Vente valide ?) then (oui)
+  :Approuver la vente;
 
-:Create Sale document\nstatus = "pending";
-
-:Send push notification\nto Sales Manager;
-
-|Sales Manager|
-:Receive notification\n"New Sale Claim";
-
-:Open Sales Approval screen;
-
-:Review sale details\n(product, quantity, proof image);
-
-if (Is sale valid?) then (yes)
-  :Approve Sale;
-
-  |System (Firebase)|
-  :Check active Sales Event;
-
-  if (Active event exists?) then (yes)
-    :Calculate event points\n(productPoints × quantity);
-    :Add event points to user;
-  else (no)
+  |Système (Firebase)|
+  if (Événement actif ?) then (oui)
+    :Calculer points événement;
+    :Ajouter points événement;
+  else (non)
   endif
 
-  :Add points to totalPoints;
+  :Mettre à jour totalPoints;
+  :Recalculer les rangs;
 
-  :Update progress quantity\n(progressQuantity += quantity);
-
-  :Recalculate all ranks;
-
-  :Check milestone badges;
-
-  if (Milestone reached?) then (yes)
-    :Post milestone broadcast;
-  else (no)
+  if (Jalon atteint ?) then (oui)
+    :Publier annonce jalon;
+  else (non)
   endif
 
-  :Delete proof image\nfrom Storage;
+  :Supprimer la preuve;
+  :Statut → "approuvée";
 
-  :Update Sale status\n= "approved";
+  |Commercial|
+  :Voir points et rang\nmis à jour;
 
-  |Salesperson|
-  :See updated points\n& rank on Leaderboard;
+else (non)
+  :Rejeter la vente;
 
-else (no)
-  :Reject Sale;
+  |Système (Firebase)|
+  :Supprimer la preuve;
+  :Statut → "rejetée";
 
-  |System (Firebase)|
-  :Delete proof image\nfrom Storage;
-
-  :Update Sale status\n= "rejected";
-
-  |Salesperson|
-  :Sale marked as rejected;
+  |Commercial|
+  :Vente marquée rejetée;
 endif
 
 stop

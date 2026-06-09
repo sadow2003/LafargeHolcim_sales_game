@@ -1,41 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160" width="100" height="160">
   
-  <ellipse cx="50" cy="83" rx="38" ry="72" fill="rgba(0,0,0,0.25)"></ellipse>
+  <defs>
+    <linearGradient id="bodyG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFE34D"></stop>
+      <stop offset="0.5" stop-color="#FFD700"></stop>
+      <stop offset="1" stop-color="#D9B400"></stop>
+    </linearGradient>
+  </defs>
 
   
-  <rect x="14" y="6" width="72" height="148" rx="28" ry="28" fill="#FFD700"></rect>
+  <ellipse cx="50" cy="84" rx="40" ry="74" fill="rgba(0,0,0,0.22)"></ellipse>
 
   
-  <path d="M14,34 Q14,6 50,6 Q86,6 86,34 Z" fill="#1A237E"></path>
+  <g fill="#161616">
+    <rect x="1" y="26" width="15" height="27" rx="4"></rect>
+    <rect x="84" y="26" width="15" height="27" rx="4"></rect>
+    <rect x="1" y="104" width="15" height="27" rx="4"></rect>
+    <rect x="84" y="104" width="15" height="27" rx="4"></rect>
+  </g>
+  
+  <g fill="#FFD700">
+    <rect x="6" y="35" width="5" height="9" rx="1"></rect>
+    <rect x="89" y="35" width="5" height="9" rx="1"></rect>
+    <rect x="6" y="113" width="5" height="9" rx="1"></rect>
+    <rect x="89" y="113" width="5" height="9" rx="1"></rect>
+  </g>
 
   
-  <path d="M14,126 Q14,154 50,154 Q86,154 86,126 Z" fill="#1A237E"></path>
+  <rect x="9" y="9" width="82" height="9" rx="3" fill="#1d1d1d"></rect>
+  <rect x="9" y="11" width="82" height="3" fill="#D40000"></rect>
+  
+  <rect x="6" y="5" width="6" height="17" rx="2" fill="#262626"></rect>
+  <rect x="88" y="5" width="6" height="17" rx="2" fill="#262626"></rect>
 
   
-  <rect x="24" y="56" width="52" height="38" rx="10" fill="#1A237E"></rect>
-  
-  <rect x="30" y="60" width="40" height="28" rx="7" fill="rgba(255,255,255,0.12)"></rect>
+  <path d="M50,16&#xA;           C47,16 45,20 45,26&#xA;           L44,40&#xA;           C40,44 38,52 38,60&#xA;           L34,72&#xA;           C30,80 30,96 34,108&#xA;           L40,120&#xA;           C42,128 42,136 44,142&#xA;           L56,142&#xA;           C58,136 58,128 60,120&#xA;           L66,108&#xA;           C70,96 70,80 66,72&#xA;           L62,60&#xA;           C62,52 60,44 56,40&#xA;           L55,26&#xA;           C55,20 53,16 50,16 Z" fill="url(#bodyG)" stroke="#A6850A" stroke-width="1"></path>
 
   
-  <rect x="38" y="6" width="8" height="148" fill="white"></rect>
-  <rect x="54" y="6" width="8" height="148" fill="white"></rect>
+  <path d="M47,18 L53,18 L52,40 L48,40 Z" fill="#D40000"></path>
 
   
-  <path d="M14,34 Q14,6 50,6 Q86,6 86,34 Z" fill="#1A237E"></path>
-  <path d="M14,126 Q14,154 50,154 Q86,126 86,126 Z" fill="#1A237E"></path>
-  <path d="M14,126 Q14,154 50,154 Q86,154 86,126 Z" fill="#1A237E"></path>
+  <path d="M37,70 L34,80 L34,96 L37,104 Z" fill="#1d1d1d" opacity="0.85"></path>
+  <path d="M63,70 L66,80 L66,96 L63,104 Z" fill="#1d1d1d" opacity="0.85"></path>
 
   
-  <rect x="-2" y="16" width="16" height="26" rx="4" fill="#212121"></rect>
-  <rect x="86" y="16" width="16" height="26" rx="4" fill="#212121"></rect>
-  <rect x="-2" y="118" width="16" height="26" rx="4" fill="#212121"></rect>
-  <rect x="86" y="118" width="16" height="26" rx="4" fill="#212121"></rect>
+  <path d="M48,108 L52,108 L51,140 L49,140 Z" fill="#D40000"></path>
 
   
-  <ellipse cx="26" cy="14" rx="10" ry="6" fill="#FFE57F"></ellipse>
-  <ellipse cx="74" cy="14" rx="10" ry="6" fill="#FFE57F"></ellipse>
+  <ellipse cx="50" cy="66" rx="9" ry="12" fill="#0e0e0e"></ellipse>
+  <ellipse cx="50" cy="64" rx="6.5" ry="9" fill="#1c2733"></ellipse>
+  
+  <path d="M41,72 A11,13 0 0,1 59,72" fill="none" stroke="#0a0a0a" stroke-width="2.4"></path>
+  <line x1="50" y1="55" x2="50" y2="60" stroke="#0a0a0a" stroke-width="2.4"></line>
 
   
-  <circle cx="50" cy="96" r="18" fill="white"></circle>
-  <circle cx="50" cy="96" r="18" fill="none" stroke="#FFD700" stroke-width="4"></circle>
+  <g transform="translate(50,30)">
+    <path d="M-4,-5 L4,-5 L4,2 Q4,6 0,7 Q-4,6 -4,2 Z" fill="#FFF200" stroke="#111" stroke-width="0.6"></path>
+    
+    <path d="M-1.4,3.2 C-2,1.5 -1,0.4 0,0.2 C0.2,-1 -0.4,-2 0.4,-2.4 C0.2,-1.4 0.9,-1 1.2,-0.2 C1.6,0.9 0.9,2.4 0.2,3.2 L0.7,3.2 L0.7,3.8 L-1.6,3.8 Z" fill="#111"></path>
+    
+    <rect x="-4" y="-6.4" width="2.7" height="1.5" fill="#009246"></rect>
+    <rect x="-1.3" y="-6.4" width="2.7" height="1.5" fill="#ffffff"></rect>
+    <rect x="1.4" y="-6.4" width="2.6" height="1.5" fill="#CE2B37"></rect>
+  </g>
+
+  
+  <rect x="11" y="141" width="78" height="9" rx="2" fill="#1d1d1d"></rect>
+  <rect x="11" y="143" width="78" height="3" fill="#D40000"></rect>
+  
+  <rect x="13" y="146" width="74" height="1.4" fill="#0a0a0a"></rect>
+  
+  <rect x="8" y="137" width="6" height="19" rx="2" fill="#262626"></rect>
+  <rect x="86" y="137" width="6" height="19" rx="2" fill="#262626"></rect>
 </svg>

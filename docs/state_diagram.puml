@@ -1,0 +1,84 @@
+@startuml Diagramme_Etats_Transitions
+!theme plain
+
+skinparam stateFontSize 11
+skinparam stateArrowFontSize 10
+skinparam stateBorderColor #003366
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateHeaderBackgroundColor #D6E4F0
+skinparam ArrowColor #444444
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 5
+skinparam nodesep 25
+skinparam ranksep 35
+
+title Diagramme États-Transitions — LafargeHolcim SalesQuest
+
+' ══════════════════════════════════════════════════════
+'  1. SESSION UTILISATEUR
+' ══════════════════════════════════════════════════════
+state "Session Utilisateur" as SU {
+
+  state "Déconnecté"      as S_DEC
+  state "Connecté"        as S_CON
+  state "Session Expirée" as S_EXP
+
+  [*]     --> S_DEC
+  S_DEC   --> S_CON  : connexion réussie\n/ charger profil + rôle
+  S_CON   --> S_DEC  : déconnexion\n/ supprimer token
+  S_CON   --> S_EXP  : token expiré
+  S_EXP   --> S_DEC  : redirection login
+}
+
+' ══════════════════════════════════════════════════════
+'  2. DEMANDE DE VENTE
+' ══════════════════════════════════════════════════════
+state "Demande de Vente" as DV {
+
+  state "En Attente"  as V_ATT
+  state "Approuvée"   as V_APP
+  state "Rejetée"     as V_REJ
+
+  [*]     --> V_ATT : soumise par le commercial\n/ uploader preuve + créer document
+  V_ATT   --> V_APP : responsable approuve\n/ attribuer points, recalculer rang\n/ supprimer preuve
+  V_ATT   --> V_REJ : responsable rejette\n/ supprimer preuve
+  V_APP   --> [*]
+  V_REJ   --> [*]
+}
+
+' ══════════════════════════════════════════════════════
+'  3. ÉVÉNEMENT DE VENTE
+' ══════════════════════════════════════════════════════
+state "Événement de Vente" as EV {
+
+  state "Inexistant"   as E_NON
+  state "Actif"        as E_ACT
+  state "Terminé"      as E_FIN
+
+  [*]     --> E_NON
+  E_NON   --> E_ACT : créé par resp. marché\n/ définir dates + récompenses
+  E_ACT   --> E_FIN : date de fin atteinte\n/ calculer classement\n/ sauvegarder résultats\n/ réinitialiser points
+  E_FIN   --> E_NON : nouvel événement créé
+  E_FIN   --> [*]
+}
+
+' ══════════════════════════════════════════════════════
+'  4. COACH IA — MAX
+' ══════════════════════════════════════════════════════
+state "Coach IA — Max" as CI {
+
+  state "Inactif"          as C_IDLE
+  state "En chargement"    as C_LOAD
+  state "Réponse reçue"    as C_DONE
+  state "Erreur"           as C_ERR
+
+  [*]     --> C_IDLE : ouverture / charger prénom
+  C_IDLE  --> C_LOAD : message envoyé\n/ appel API Groq
+  C_LOAD  --> C_DONE : réponse reçue\n/ afficher message Max
+  C_LOAD  --> C_ERR  : timeout / erreur API
+  C_DONE  --> C_IDLE : prêt pour nouveau message
+  C_ERR   --> C_IDLE : afficher message d'erreur
+}
+
+@enduml

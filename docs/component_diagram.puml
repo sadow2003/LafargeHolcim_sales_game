@@ -1,0 +1,106 @@
+@startuml Diagramme_Composants
+!theme plain
+top to bottom direction
+
+skinparam componentFontSize 11
+skinparam componentArrowFontSize 10
+skinparam componentBorderColor #003366
+skinparam componentBackgroundColor #FFFFFF
+skinparam packageBorderColor #888888
+skinparam interfaceBorderColor #003366
+skinparam ArrowColor #444444
+skinparam padding 5
+skinparam nodesep 30
+skinparam ranksep 40
+
+title Diagramme de Composants — LafargeHolcim SalesQuest
+
+' ══════════════════════════════════════
+'  COUCHE PRÉSENTATION
+' ══════════════════════════════════════
+package "Application Mobile Flutter" as FLUTTER #E8F4FD {
+
+  package "Interfaces Utilisateur" as UI #BBDEFB {
+    [Authentification\n(Login / Inscription)]  as C_AUTH
+    [Espace Commercial]                         as C_SP
+    [Espace Resp. Commercial]                   as C_SM
+    [Espace Resp. Marché]                       as C_MM
+    [Espace Administrateur]                     as C_AD
+    [Fil d'Actualité]                           as C_BC
+    [Coach IA — Max]                            as C_AI
+  }
+
+  package "Services Métier" as SVC #C8E6C9 {
+    [Service Notifications]  as S_NOTIF
+    [Service Coach IA]       as S_AI
+    [Service Ventes]         as S_SALE
+    [Service Événements]     as S_EVT
+    [Service Utilisateurs]   as S_USR
+    [Service Classement]     as S_RANK
+  }
+
+  ' ── Interfaces exposées par les services ──
+  interface "IAuthentification"  as I_AUTH
+  interface "IBaseDeDonnées"     as I_DB
+  interface "IStockage"          as I_ST
+  interface "INotificationPush"  as I_FCM
+  interface "ICoachIA"           as I_AI
+
+  ' UI → Services
+  C_AUTH ..> S_USR    : utilise
+  C_SP   ..> S_SALE   : soumet vente
+  C_SP   ..> S_RANK   : consulte classement
+  C_SM   ..> S_SALE   : approuve / rejette
+  C_SM   ..> S_NOTIF  : reçoit alertes
+  C_MM   ..> S_EVT    : configure événement
+  C_AD   ..> S_USR    : gère utilisateurs
+  C_AI   ..> S_AI     : envoie message
+
+  ' Services → Interfaces
+  S_USR   --> I_AUTH  : <<use>>
+  S_SALE  --> I_DB    : <<use>>
+  S_SALE  --> I_ST    : <<use>>
+  S_SALE  --> I_FCM   : <<use>>
+  S_EVT   --> I_DB    : <<use>>
+  S_NOTIF --> I_FCM   : <<use>>
+  S_RANK  --> I_DB    : <<use>>
+  S_USR   --> I_DB    : <<use>>
+  S_AI    --> I_AI    : <<use>>
+}
+
+' ══════════════════════════════════════
+'  FIREBASE PLATFORM
+' ══════════════════════════════════════
+package "Firebase Platform" as FB #FFFDE7 {
+  [Firebase\nAuthentication]       as FB_AUTH
+  [Cloud Firestore\n(Base de données)] as FB_FS
+  [Firebase Storage\n(Fichiers)]   as FB_ST
+  [Firebase Cloud\nMessaging (FCM)] as FB_FCM
+  [Cloud Functions\n(Python)]      as FB_CF
+}
+
+' ══════════════════════════════════════
+'  SERVICES EXTERNES
+' ══════════════════════════════════════
+package "Services Externes" as EXT #FCE4EC {
+  [API Groq\n(Llama 3.1 — LLM)]  as EXT_GROQ
+}
+
+' ══════════════════════════════════════
+'  CONNEXIONS INTERFACES → FIREBASE
+' ══════════════════════════════════════
+I_AUTH --> FB_AUTH  : HTTPS / SDK
+I_DB   --> FB_FS    : SDK Firestore
+I_ST   --> FB_ST    : SDK Storage
+I_FCM  --> FB_FCM   : SDK FCM
+
+' Cloud Functions
+FB_CF  --> FB_FS   : lecture / écriture
+FB_CF  --> FB_FCM  : envoi notifications
+
+' ══════════════════════════════════════
+'  CONNEXION COACH IA → GROQ
+' ══════════════════════════════════════
+I_AI --> EXT_GROQ : HTTP REST\nPOST /chat/completions
+
+@enduml

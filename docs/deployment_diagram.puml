@@ -1,0 +1,72 @@
+@startuml Diagramme_Deploiement
+!theme plain
+left to right direction
+
+skinparam nodeFontSize 11
+skinparam nodeBorderColor #003366
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBorderColor #555555
+skinparam artifactBackgroundColor #F0F4F8
+skinparam ArrowColor #444444
+skinparam ArrowFontSize 9
+skinparam padding 5
+skinparam nodesep 20
+skinparam ranksep 30
+
+title Diagramme de Déploiement — LafargeHolcim SalesQuest
+
+' ══════════════════
+'  APPAREIL MOBILE
+' ══════════════════
+node "Appareil Mobile\n(Android / iOS)" as MOBILE <<device>> #E3F2FD {
+  artifact "Application Flutter\nSalesQuest" as APP
+  artifact ".env (GROQ_API_KEY)"             as ENV
+}
+
+' ══════════════════
+'  FIREBASE PLATFORM
+' ══════════════════
+node "Firebase Platform  —  Google Cloud" as FIREBASE <<cloud>> #FFFDE7 {
+
+  node "Firebase\nAuthentication" as N_AUTH <<server>> #FFF9C4 {
+    artifact "JWT / Tokens" as A_AUTH
+  }
+
+  node "Cloud\nFirestore" as N_FS <<server>> #FFF9C4 {
+    artifact "users · sales · products\nbroadcasts · settings" as A_FS
+  }
+
+  node "Firebase\nStorage" as N_ST <<server>> #FFF9C4 {
+    artifact "Photos profil\nPreuves de vente" as A_ST
+  }
+
+  node "Firebase Cloud\nMessaging" as N_FCM <<server>> #FFF9C4 {
+    artifact "Notifications Push" as A_FCM
+  }
+
+  node "Cloud Functions\n(Python)" as N_CF <<server>> #FFF9C4 {
+    artifact "notify_managers\nauto_close_event" as A_CF
+  }
+}
+
+' ══════════════════
+'  GROQ CLOUD
+' ══════════════════
+node "Groq Cloud" as GROQ <<cloud>> #FCE4EC {
+  artifact "llama-3.1-8b-instant" as A_LLM
+}
+
+' ══════════════════
+'  COMMUNICATIONS
+' ══════════════════
+APP  --> N_AUTH : SDK / HTTPS
+APP  --> N_FS   : SDK / WebSocket
+APP  --> N_ST   : SDK / HTTPS
+APP  --> N_FCM  : SDK / Token
+APP  --> GROQ   : HTTPS REST
+
+N_CF --> N_FS   : Trigger / R-W
+N_CF --> N_FCM  : Multicast Push
+N_FCM --> MOBILE : FCM / APNs
+
+@enduml

@@ -278,7 +278,7 @@ class _RaceCar extends StatelessWidget {
     final bob = sin(ambientPhase * 2 * pi + slot.rank * 1.2) * 1.2;
     final ambientShake = slot.rank == 1 ? sin(ambientPhase * 2 * pi) * 3.0 : 0.0;
 
-    final carH = lm.laneH * 0.80;
+    final carH = lm.laneH * 0.90;
     final carDisplayW = carH;
     final carDisplayH = carH * 0.75;
     final cx = trackWidth * xPct + ambientShake;

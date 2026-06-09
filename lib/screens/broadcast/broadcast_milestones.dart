@@ -1,6 +1,4 @@
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:lafargeholcim_sales_game/utils/app_emojis.dart';
 import 'broadcast_constants.dart';
@@ -29,15 +27,12 @@ class MilestoneBroadcastCard extends StatefulWidget {
   final Map<String, dynamic> data;
   final String? currentUid;
   final String currentUserRole;
-  final bool playConfetti;
-
   const MilestoneBroadcastCard({
     super.key,
     required this.docId,
     required this.data,
     required this.currentUid,
     required this.currentUserRole,
-    this.playConfetti = false,
   });
 
   @override
@@ -45,22 +40,6 @@ class MilestoneBroadcastCard extends StatefulWidget {
 }
 
 class _MilestoneBroadcastCardState extends State<MilestoneBroadcastCard> {
-  late ConfettiController _confetti;
-
-  @override
-  void initState() {
-    super.initState();
-    _confetti = ConfettiController(duration: const Duration(seconds: 3));
-    if (widget.playConfetti) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _confetti.play());
-    }
-  }
-
-  @override
-  void dispose() {
-    _confetti.dispose();
-    super.dispose();
-  }
 
   String _timeAgo(Timestamp? ts) {
     if (ts == null) return '';
@@ -129,11 +108,7 @@ class _MilestoneBroadcastCardState extends State<MilestoneBroadcastCard> {
       end: Alignment.bottomRight,
     );
 
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.topCenter,
-      children: [
-        Container(
+    return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             gradient: bgGradient,
@@ -338,26 +313,6 @@ class _MilestoneBroadcastCardState extends State<MilestoneBroadcastCard> {
               ],
             ),
           ),
-        ),
-
-        // ── Confetti ──────────────────────────────────────────────────────
-        ConfettiWidget(
-          confettiController: _confetti,
-          blastDirection: pi / 2,
-          blastDirectionality: BlastDirectionality.explosive,
-          numberOfParticles: 30,
-          gravity: 0.15,
-          emissionFrequency: 0.05,
-          colors: const [
-            Color(0xFF8DC21F),
-            Color(0xFFFFD700),
-            Color(0xFF00AEEF),
-            Colors.white,
-            Colors.lightGreenAccent,
-          ],
-          shouldLoop: false,
-        ),
-      ],
-    );
+        );
   }
 }
