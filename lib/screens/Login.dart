@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../main.dart';
 import '../services/notification_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -268,66 +267,53 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
 
 
-                // ── Holcim Logo ─────────────────────────────────────
+                // ── Logo ─────────────────────────────────────────────
                 Center(
                   child: SizedBox(
-                    width: 110,
-                    height: 110,
+                    width: 140,
+                    height: 140,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-
-
-
-                        // Top-right circle — cyan to navy (blue half of logo)
+                        // Blue circle — top-right
                         Positioned(
                           top: 0,
                           right: 0,
                           child: Container(
-                            width: 72,
-                            height: 72,
+                            width: 90,
+                            height: 90,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
-                                colors: [kPrimaryColor, kCyanColor],
+                                colors: [Color(0xFF0055CC), Color(0xFF0096E6)],
                                 begin: Alignment.bottomLeft,
                                 end: Alignment.topRight,
                               ),
                             ),
                           ),
                         ),
-
-
-
-                        // Bottom-left circle — green to cyan (green half of logo)
+                        // Teal-green circle — bottom-left
                         Positioned(
                           bottom: 0,
                           left: 0,
                           child: Container(
-                            width: 72,
-                            height: 72,
+                            width: 90,
+                            height: 90,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
-                                colors: [kSecondaryColor, kCyanColor],
+                                colors: [Color(0xFF00B87C), Color(0xFF00AEEF)],
                                 begin: Alignment.bottomLeft,
                                 end: Alignment.topRight,
                               ),
                             ),
                           ),
                         ),
-
-
-                        
-                        // Bold S in the centre
-                        const Text(
-                          'S',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            height: 1,
-                          ),
+                        // Trending-up chart arrow
+                        const Icon(
+                          Icons.trending_up,
+                          size: 58,
+                          color: Colors.white,
                         ),
                       ],
                     ),
