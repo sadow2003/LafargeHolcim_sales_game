@@ -342,7 +342,7 @@ class _ProductCard extends StatelessWidget {
 
 //unit of the product
   String _unitForCategory(String cat) =>
-      cat == 'Concrete' ? 'm³' : 'TON';
+      cat == 'Concrete' ? 'm³' : 'tonnes';
 
   IconData _iconForCategory(String cat) {
     switch (cat) {

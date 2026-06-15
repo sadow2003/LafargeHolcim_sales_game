@@ -1,181 +1,203 @@
-@startuml DiagrammeClasses_SalesQuest
+@startuml Diagramme_Classes_SalesQuest
 !theme plain
-left to right direction
+top to bottom direction
 
-skinparam classBackgroundColor #FFFFFF
+skinparam classFontSize 10
+skinparam classAttributeFontSize 9
+skinparam ArrowFontSize 9
+skinparam ArrowColor #444444s
 skinparam classBorderColor #003366
-skinparam classHeaderBackgroundColor #D6E4F0
-skinparam ArrowColor #444444
-skinparam packageStyle rectangle
-skinparam PackageBorderColor #888888
-skinparam PackageBackgroundColor #F7F7F7
-skinparam classFontSize 11
-skinparam classAttributeFontSize 10
-skinparam padding 4
-skinparam nodesep 30
-skinparam ranksep 40
+skinparam classBackgroundColor #FFFFFF
+skinparam packageBorderColor #888888
+skinparam packageBackgroundColor #FAFAFA
+skinparam padding 3
+skinparam nodesep 18
+skinparam ranksep 28
 
 title Diagramme de Classes — LafargeHolcim SalesQuest
 
-' ══════════════════════════════════════
-'  ÉNUMÉRATION
-' ══════════════════════════════════════
-enum RoleUtilisateur {
-  commercial
-  responsable_commercial
-  responsable_marche
-  admin
+' ═══════════════════════════════════════════
+'  UTILISATEURS
+' ═══════════════════════════════════════════
+
+class User {
+  + uid : String
+  + nom : String
+  + email : String
+  + role : String
+  + fcmToken : String?
+  + photo_Url : String?
 }
 
-' ══════════════════════════════════════
-'  MODÈLES FIRESTORE
-' ══════════════════════════════════════
-package "Modèles Firestore" #EBF5FB {
-
-  class Utilisateur {
-    + uid : String
-    + nom : String
-    + email : String
-    + role : RoleUtilisateur
-    + points : int
-    + rang : int
-    + fcmToken : String
-  }
-
-  class Vente {
-    + id : String
-    + userId : String
-    + produitId : String
-    + quantite : int
-    + statut : String
-    + pointsAttribues : int
-  }
-
-  class Produit {
-    + id : String
-    + nom : String
-    + categorie : String
-    + pointsParUnite : int
-  }
-
-  class Publication {
-    + id : String
-    + auteurId : String
-    + contenu : String
-    + reactions : Map~String, List~
-    + date : Timestamp
-  }
-
-  class EvenementVente {
-    + dateDebut : Timestamp
-    + objectifQuantite : int
-    + recompenses : List~Recompense~
-    + dateMAJ : Timestamp
-  }
-
-  class Recompense {
-    + montant : double
-  }
-
-  class Notification {
-    + id : String
-    + userId : String
-    + titre : String
-    + lu : bool
-  }
-
-  Utilisateur   "1" --> "many" Vente       : soumet
-  Utilisateur   "1" --> "many" Publication : publie
-  Utilisateur   "1" --> "many" Notification : reçoit
-  Vente         "many" --> "1" Produit     : concerne
-  EvenementVente "1" *-- "many" Recompense : contient
-  Utilisateur ..> RoleUtilisateur : a un rôle
+class Commercial {
+  + PointsTotal : int
+  + rank : int
+  + progress_Quality : int
+  --
+  + soumettre_Vente()
+  + classement_vue()
+  + Messager_AI()
+  + collecterRecompenses()
 }
 
-' ══════════════════════════════════════
-'  ÉCRANS PAR RÔLE
-' ══════════════════════════════════════
-package "Écrans" #F0F4F8 {
-
-  class EcranCommercial {
-    - points : int
-    - rang : int
-    --
-    + soumettreVente() : void
-    + voirClassement() : void
-    + voirRecompenses() : void
-  }
-
-  class EcranResponsableCommercial {
-    - ventesPendantes : List~Vente~
-    --
-    + approuverVente(id) : void
-    + rejeterVente(id) : void
-  }
-
-  class EcranResponsableMarche {
-    - evenementActif : EvenementVente
-    --
-    + creerEvenement() : void
-    + voirResultats() : void
-  }
-
-  class EcranAdministrateur {
-    - utilisateurs : List~Utilisateur~
-    --
-    + creerUtilisateur() : void
-    + supprimerUtilisateur(id) : void
-  }
-
-  class FilActualite {
-    - publications : List~Publication~
-    --
-    + chargerFil() : void
-    + publier() : void
-  }
+class ResponsableVente {
+  + Vente_Attends : List~Vente~
+  --
+  + approuverVente()
+  + rejeterVente()
+  + CréerProduit()
+  + ModifierProduit()
+  + supprimerProduit()
 }
 
-' ══════════════════════════════════════
-'  COACH IA — MAX
-' ══════════════════════════════════════
-package "Coach IA — Max" #FFF8E7 {
-
-  class EcranCoachIA {
-    - nomUtilisateur : String
-    - messages : List~MessageChat~
-    - chargement : bool
-    --
-    + envoyerMessage() : void
-    + promptRapide(texte) : void
-  }
-
-  class ServiceCoachIA <<static>> {
-    - {static} urlAPI : String
-    - {static} promptSysteme : String
-    --
-    + {static} envoyerMessage(historique) : Future~String~
-  }
-
-  class MessageChat {
-    + texte : String
-    + estUtilisateur : bool
-    + estErreur : bool
-  }
-
-  EcranCoachIA "1" *-- "many" MessageChat : contient
-  EcranCoachIA ..> ServiceCoachIA         : appelle
+class ResponsableMarché {
+  + Evenement_actif : EvenementVente
+  --
+  + créerEvenement()
+  + afficherResultats()
+  + annulerEvenement()
 }
 
-' ══════════════════════════════════════
-'  DÉPENDANCES ÉCRANS → MODÈLES
-' ══════════════════════════════════════
-EcranCommercial            ..> Vente          : crée
-EcranCommercial            ..> Produit        : consulte
-EcranResponsableCommercial ..> Vente          : approuve / rejette
-EcranResponsableCommercial ..> Notification   : déclenche
-EcranResponsableMarche     ..> EvenementVente : configure
-EcranAdministrateur        ..> Utilisateur    : gère
-FilActualite               ..> Publication    : affiche
-EcranCoachIA               ..> Utilisateur    : charge le nom
+class Administrateur {
+  + Users : List~User~
+  --
+  + créerUtilisateur()
+  + modifierUtilisateur()
+  + supprimerUtilisateur()
+}
+
+' ═══════════════════════════════════════════
+'  IA COACH
+' ═══════════════════════════════════════════
+
+class AI_Coach {
+  + nomCommercial : String
+  + messages : List~String~
+  + apiUrl : String
+  + systemPrompt : String
+  --
+  + envoyerMessage()
+  + prompt()
+}
+
+class ChatMessage {
+  + text : String
+  + isUser : bool
+  + isError : bool
+}
+
+' ═══════════════════════════════════════════
+'  VENTE & PRODUIT
+' ═══════════════════════════════════════════
+
+class Vente {
+  + Id : String
+  + userId : String
+  + productId : String
+  + quantity : int
+  + status : String
+  + Points_gagnants : int
+  + Photo_preuve_Url : String
+  + CreatedAt : TimeStamp
+}
+
+class Produit {
+  + id : String
+  + name : String
+  + category : String
+  + Description : String
+  + pointsPerUnit : int
+}
+
+class Notification {
+  + id : String
+  + userId : String
+  + saleId : String
+  + Timestamp : DateTime
+  + Message : String
+  + titre : String
+}
+
+' ═══════════════════════════════════════════
+'  ÉVÉNEMENT & RÉCOMPENSES
+' ═══════════════════════════════════════════
+
+class EvenementVente {
+  + date_debut : DateTime
+  + date_fin : DateTime
+  + ProductCategory : String
+  + productName : String?
+  + TargetQuantity : int
+  + RecompenseArgent : List~Rewards~
+}
+
+class Rewards {
+  + id : String
+  + Quantity : Double
+  + rank : int
+  + Commercial_id : String?
+  --
+  + RecuitPDF()
+}
+
+' ═══════════════════════════════════════════
+'  BROADCAST & JALONS
+' ═══════════════════════════════════════════
+
+class Broadcast {
+  + id : String
+  + authorId : String
+  + content : String
+  + reactions : String
+  + date : Timestamp
+  + isJaslon : Boolean
+}
+
+class Jaslon {
+  + id : String
+  + Nom_Commercial : String
+  + PointTotal : String
+  + Message : String
+}
+
+' ═══════════════════════════════════════════
+'  HÉRITAGE — tous les rôles héritent de User
+' ═══════════════════════════════════════════
+Commercial       --|> User
+ResponsableVente --|> User
+ResponsableMarché --|> User
+Administrateur   --|> User
+
+' ═══════════════════════════════════════════
+'  ASSOCIATIONS
+' ═══════════════════════════════════════════
+
+' Commercial
+Commercial "1" --> "n" Vente         : soumet
+Commercial "1" --> "n" Rewards       : collecte
+Commercial      --> AI_Coach         : consulte
+
+' Vente
+Vente "n" --> "1" Produit            : concerne
+Vente "1" ..> "1" Notification       : déclenche
+
+' ResponsableVente
+ResponsableVente "1" --> "n" Vente   : gère / approuve
+
+' ResponsableMarché
+ResponsableMarché "1" --> "0..1" EvenementVente : gère
+
+' Administrateur
+Administrateur "1" --> "n" User      : administre
+
+' IA Coach
+AI_Coach "1" *-- "n" ChatMessage     : historique
+
+' Événement
+EvenementVente "1" *-- "n" Rewards   : récompenses
+
+' Broadcast / Jalon
+Jaslon --|> Broadcast                : est un type de
+Broadcast "n" --> "1" User          : publiée par
 
 @enduml

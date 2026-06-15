@@ -16,7 +16,7 @@ class AdminUsersPage extends StatefulWidget {
 }
 
 class _AdminUsersPageState extends State<AdminUsersPage> {
-  // Filter: 'all' | 'salesperson' | 'admin'
+  // Filter: 'all' | 'salesperson' | 'sales-manager' | 'market-manager' | 'admin'
   String _roleFilter = 'all';
 
   // ── Admin-only guard ──────────────────────────────────────────────────────
@@ -90,14 +90,21 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
           // ── Role Filter ────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                _filterChip('All',         'all'),
-                const SizedBox(width: 8),
-                _filterChip('Salesperson', 'salesperson'),
-                const SizedBox(width: 8),
-                _filterChip('Admin',       'admin'),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _filterChip('All',            'all'),
+                  const SizedBox(width: 8),
+                  _filterChip('Salesperson',    'salesperson'),
+                  const SizedBox(width: 8),
+                  _filterChip('Sales Manager',  'sales-manager'),
+                  const SizedBox(width: 8),
+                  _filterChip('Market Manager', 'market-manager'),
+                  const SizedBox(width: 8),
+                  _filterChip('Admin',          'admin'),
+                ],
+              ),
             ),
           ),
 
@@ -237,8 +244,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Their Firestore data will be deleted. '
-                      'The login account requires a server action to fully remove.',
+                      'Their Firestore data will be deleted. ',
                       style: TextStyle(fontSize: 12, color: Colors.orange),
                     ),
                   ),

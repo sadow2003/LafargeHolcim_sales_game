@@ -1,0 +1,49 @@
+@startuml Activity_Soumission_Vente
+!theme plain
+
+skinparam ActivityFontSize 11
+skinparam ActivityArrowFontSize 10
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #003366
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #F9A825
+skinparam ActivityStartColor #003366
+skinparam ActivityEndColor #003366
+skinparam ArrowColor #444444
+skinparam PartitionBorderColor #888888
+skinparam PartitionBackgroundColor #F5F5F5
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 4
+skinparam nodesep 15
+skinparam ranksep 20
+
+title Diagramme d'Activité (1/2) — Soumission d'une Vente
+
+|Commercial|
+start
+
+:Ouvrir le formulaire de vente;
+:Sélectionner un produit;
+:Saisir la quantité vendue;
+:Joindre une photo de preuve;
+note right : Caméra ou galerie
+
+if (Photo sélectionnée ?) then (non)
+  :Afficher erreur\n"Preuve requise";
+  stop
+else (oui)
+endif
+
+:Aperçu des points estimés;
+:Soumettre la demande;
+
+|Système (Firebase)|
+:Compresser l'image\n(max 1280px);
+:Uploader la preuve\n(Firebase Storage);
+:Créer document vente\n(statut : "en_attente");
+:Notifier le responsable commercial;
+
+stop
+
+@enduml

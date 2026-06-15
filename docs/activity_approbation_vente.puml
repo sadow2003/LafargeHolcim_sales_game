@@ -1,0 +1,66 @@
+@startuml Activity_Approbation_Vente
+!theme plain
+
+skinparam ActivityFontSize 11
+skinparam ActivityArrowFontSize 10
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #003366
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #F9A825
+skinparam ActivityStartColor #003366
+skinparam ActivityEndColor #003366
+skinparam ArrowColor #444444
+skinparam PartitionBorderColor #888888
+skinparam PartitionBackgroundColor #F5F5F5
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam padding 4
+skinparam nodesep 15
+skinparam ranksep 20
+
+title Diagramme d'Activité (2/2) — Approbation d'une Vente
+
+|Responsable Commercial|
+start
+
+:Recevoir la notification;
+:Consulter les détails\net la preuve;
+
+if (Vente valide ?) then (oui)
+  :Approuver la vente;
+
+  |Système (Firebase)|
+  if (Événement actif ?) then (oui)
+    :Calculer points événement;
+    :Ajouter points événement;
+  else (non)
+  endif
+
+  :Mettre à jour totalPoints;
+  :Recalculer les rangs;
+
+  if (Jalon atteint ?) then (oui)
+    :Publier annonce jalon;
+  else (non)
+  endif
+
+  :Supprimer la preuve;
+  :Statut → "approuvée";
+
+  |Commercial|
+  :Voir points et rang\nmis à jour;
+
+else (non)
+  :Rejeter la vente;
+
+  |Système (Firebase)|
+  :Supprimer la preuve;
+  :Statut → "rejetée";
+
+  |Commercial|
+  :Vente marquée rejetée;
+endif
+
+stop
+
+@enduml

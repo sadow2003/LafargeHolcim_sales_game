@@ -115,6 +115,10 @@ void showUserDialog(
                     DropdownMenuItem(
                         value: 'salesperson', child: Text('Salesperson')),
                     DropdownMenuItem(
+                        value: 'sales-manager', child: Text('Sales Manager')),
+                    DropdownMenuItem(
+                        value: 'market-manager', child: Text('Market Manager')),
+                    DropdownMenuItem(
                         value: 'admin', child: Text('Admin')),
                   ],
                   onChanged: (v) =>

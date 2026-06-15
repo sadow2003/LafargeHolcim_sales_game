@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -31,16 +32,18 @@ const Color kCyanColor      = Color(0xFF00AEEF); // brand cyan
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await dotenv.load(fileName: ".env"); 
+    await dotenv.load(fileName: ".env");
   } catch (e) {
     print('Error initializing loading .env: $e');
   }
-  
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await NotificationService.instance.init();
+  // Fire-and-forget: notification init (permission dialog, FCM token fetch,
+  // getInitialMessage) must not block runApp — it keeps the screen blank.
+  unawaited(NotificationService.instance.init());
 
   runApp(const MyApp());
 }

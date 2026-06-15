@@ -1,0 +1,34 @@
+@startuml Sequence_Coach_IA
+!theme plain
+autonumber
+
+skinparam sequenceFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceParticipantFontSize 11
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+skinparam responseMessageBelowArrow true
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 10
+skinparam BoxPadding 6
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+
+title Diagramme de Séquence (4/4) — Coach IA Max
+
+actor       "Commercial"    as C
+participant "Application"   as App
+database    "Firestore"     as DB
+participant "API Groq (IA)" as Groq
+
+C   ->  App  : Ouvrir le Coach IA
+App ->  DB   : Récupérer prénom (uid)
+DB  --> App  : Prénom de l'utilisateur
+App --> C    : Message de bienvenue personnalisé
+
+C   ->  App  : Envoyer un message (ou prompt rapide)
+App ->  Groq : POST /chat/completions\n[système + historique]
+Groq --> App : Réponse générée par Max
+App --> C    : Afficher la réponse de Max
+
+@enduml

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,7 +43,13 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your password';
-    if (value.length < 6) return 'Password must be at least 6 characters';
+    if (value.length < 8) return 'Password must be at least 8 characters';
+    // if (!RegExp(r'[a-z]').hasMatch(value)) return 'Password must contain a lowercase letter';
+    // if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Password must contain an uppercase letter';
+    // if (!RegExp(r'[0-9]').hasMatch(value)) return 'Password must contain a number';
+    // if (!RegExp(r'[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\;`~/]').hasMatch(value)) {
+    //   return 'Password must contain a special character';
+    // }
     return null;
   }
 
@@ -141,7 +148,8 @@ class _LoginPageState extends State<LoginPage> {
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 15));
 
       if (!mounted) return;
       //check if the user exists in the fire store, if not it deletes the user authentification
@@ -162,8 +170,10 @@ class _LoginPageState extends State<LoginPage> {
 
       final role = doc.data()?['role'] ?? 'salesperson';
 
-      // Save this device's FCM token so Cloud Functions can notify it
-      await NotificationService.instance.saveTokenForCurrentUser();
+      // Save this device's FCM token so Cloud Functions can notify it.
+      // Fire-and-forget: getToken / the Firestore write can hang on a flaky
+      // connection, and navigation must never wait on it.
+      unawaited(NotificationService.instance.saveTokenForCurrentUser());
 
       if (role == 'admin') {
         // Admins go to the admin dashboard
@@ -205,6 +215,16 @@ class _LoginPageState extends State<LoginPage> {
       //shows the error message below the screen
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      // Non-auth failures (Firestore errors, timeouts...) — without this
+      // catch they were swallowed and the user got no feedback.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login failed: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
       //no matter what happend before this code it will always run the code here
     } finally {

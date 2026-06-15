@@ -25,7 +25,25 @@ class UserCard extends StatelessWidget {
     final role        = data['role']        ?? 'salesperson';
     final totalPoints = data['totalPoints'] ?? 0;
     final rank        = data['rank']        ?? 0;
-    final isAdmin     = role == 'admin';
+    final isSalesManager  = role == 'sales-manager';
+    final isMarketManager = role == 'market-manager';
+    final isAdmin         = role == 'admin';
+
+    final roleColor = isAdmin
+        ? kSecondaryColor
+        : isSalesManager
+            ? Colors.blue.shade700
+            : isMarketManager
+                ? Colors.purple.shade700
+                : kPrimaryColor;
+
+    final roleLabel = isAdmin
+        ? 'Admin'
+        : isSalesManager
+            ? 'Sales Manager'
+            : isMarketManager
+                ? 'Market Manager'
+                : 'Salesperson';
 
     return Card(
       elevation: 2,
@@ -35,14 +53,12 @@ class UserCard extends StatelessWidget {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: isAdmin
-              ? kSecondaryColor.withValues(alpha: 0.15)
-              : kPrimaryColor.withValues(alpha: 0.1),
+          backgroundColor: roleColor.withValues(alpha: 0.15),
           child: Text(
             firstName.isNotEmpty ? firstName[0].toUpperCase() : '?',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isAdmin ? kSecondaryColor : kPrimaryColor,
+              color: roleColor,
             ),
           ),
         ),
@@ -76,22 +92,20 @@ class UserCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isAdmin
-                        ? kSecondaryColor.withValues(alpha: 0.15)
-                        : kPrimaryColor.withValues(alpha: 0.1),
+                    color: roleColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    isAdmin ? 'Admin' : 'Salesperson',
+                    roleLabel,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: isAdmin ? kSecondaryColor : kPrimaryColor,
+                      color: roleColor,
                     ),
                   ),
                 ),
 
-                if (!isAdmin) ...[
+                if (role == 'salesperson') ...[
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

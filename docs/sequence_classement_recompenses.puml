@@ -1,0 +1,37 @@
+@startuml Sequence_Classement_Recompenses
+!theme plain
+autonumber
+
+skinparam sequenceFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceParticipantFontSize 11
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+skinparam responseMessageBelowArrow true
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 10
+skinparam BoxPadding 6
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+
+title Diagramme de Séquence (3/4) — Classement & Récompenses
+
+actor       "Commercial" as C
+participant "Application" as App
+database    "Firestore"   as DB
+
+== Consultation du classement ==
+
+C   ->  App  : Ouvrir le classement
+App ->  DB   : Écouter classement en temps réel
+DB  --> App  : Données classement (points, rangs)
+App --> C    : Afficher podium + rang personnel
+
+== Consultation des récompenses ==
+
+C   ->  App  : Ouvrir la boutique de récompenses
+App ->  DB   : Charger résultat du dernier événement
+DB  --> App  : Gagnants + montants
+App --> C    : Afficher récompenses et jalons atteints
+
+@enduml

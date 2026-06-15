@@ -1,0 +1,49 @@
+@startuml Sequence_Market_Manager
+!theme plain
+autonumber
+
+skinparam sequenceFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceParticipantFontSize 11
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+skinparam responseMessageBelowArrow true
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 10
+skinparam BoxPadding 6
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+
+title Diagramme de Séquence — Responsable Marché
+
+actor       "Resp. Marché"  as MM
+participant "Application"   as App
+database    "Firestore"     as DB
+participant "FCM"           as FCM
+
+== Création d'un événement ==
+
+MM  ->  App : Ouvrir la gestion des événements
+App ->  DB  : Vérifier événement actif existant
+DB --> App  : Aucun événement actif
+
+MM  ->  App : Remplir le formulaire\n(nom, dates, bonus multiplicateur)
+MM  ->  App : Configurer les récompenses\n(montants, paliers)
+MM  ->  App : Confirmer la création
+
+App ->  DB  : Enregistrer l'événement\n(statut : "actif")
+DB --> App  : Événement créé
+
+App ->  FCM : Diffuser notification\n"Nouvel événement lancé !"
+FCM -->  MM : Confirmation envoi
+App --> MM  : "Événement créé avec succès"
+
+== Clôture d'un événement ==
+
+MM  ->  App : Ouvrir l'événement actif
+MM  ->  App : Appuyer sur "Clôturer"
+App ->  DB  : Statut → "terminé"\nCalculer les gagnants
+DB --> App  : Classement final
+App --> MM  : Résultats de l'événement affichés
+
+@enduml

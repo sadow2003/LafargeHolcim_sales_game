@@ -1,0 +1,52 @@
+@startuml Sequence_Sales_Manager
+!theme plain
+autonumber
+
+skinparam sequenceFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceParticipantFontSize 11
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+skinparam responseMessageBelowArrow true
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 10
+skinparam BoxPadding 6
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+
+title Diagramme de Séquence — Responsable Commercial
+
+actor       "Resp. Commercial" as SM
+participant "Application"      as App
+database    "Firestore"        as DB
+participant "FCM"              as FCM
+
+== Réception d'une demande ==
+
+DB   ->  FCM : Nouvelle vente en attente
+FCM  ->  SM  : Notification push
+SM   ->  App : Ouvrir la liste des ventes
+App  ->  DB  : Charger ventes (statut : "en_attente")
+DB  --> App  : Liste des demandes
+App --> SM   : Afficher demandes + preuves
+
+== Approbation / Rejet ==
+
+SM   ->  App : Sélectionner une vente
+
+alt Approuver
+  SM   ->  App : Appuyer sur "Approuver"
+  App  ->  DB  : Statut → "approuvée"\nMise à jour totalPoints + rangs
+  DB  --> App  : Confirmation
+  App  ->  FCM : Notifier le commercial
+  FCM  ->  SM  : Confirmation envoyée
+else Rejeter
+  SM   ->  App : Appuyer sur "Rejeter"
+  App  ->  DB  : Statut → "rejetée"
+  DB  --> App  : Confirmation
+  App  ->  FCM : Notifier le commercial
+end
+
+App --> SM : Tableau de bord mis à jour
+
+@enduml

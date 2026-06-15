@@ -1,0 +1,39 @@
+@startuml Sequence_Authentification
+!theme plain
+autonumber
+
+skinparam sequenceFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceParticipantFontSize 11
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+skinparam responseMessageBelowArrow true
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 10
+skinparam BoxPadding 6
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+
+title Diagramme de Séquence (1/4) — Authentification
+
+actor       "Commercial"    as C
+participant "Application"   as App
+participant "Firebase Auth" as Auth
+database    "Firestore"     as DB
+
+C    -> App  : Ouvrir l'application
+App  -> Auth : Vérifier la session
+
+alt Session active
+  Auth --> App : Utilisateur connecté
+else Session expirée
+  C    -> App  : Saisir email / mot de passe
+  App  -> Auth : Connexion (email, mot de passe)
+  Auth --> App : Token d'authentification
+end
+
+App  -> DB   : Charger profil utilisateur (uid)
+DB  --> App  : nom, points, rang, photo
+App --> C    : Afficher tableau de bord
+
+@enduml

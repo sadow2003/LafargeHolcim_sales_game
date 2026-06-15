@@ -1,128 +1,97 @@
 @startuml LafargeHolcim_SalesQuest_UseCases
 !theme plain
+top to bottom direction
+
 skinparam ActorStyle awesome
-skinparam packageStyle rectangle
-skinparam ArrowColor #555555
 skinparam ActorBorderColor #003366
-skinparam ActorBackgroundColor #E8F0FE
+skinparam ActorFontSize 11
 skinparam UsecaseBorderColor #003366
 skinparam UsecaseBackgroundColor #FFFFFF
-skinparam PackageBorderColor #AAAAAA
-skinparam PackageBackgroundColor #F9F9F9
-left to right direction
+skinparam UsecaseFontSize 10
+skinparam ArrowColor #555555
+skinparam ArrowFontSize 9
+skinparam rectangleBorderColor #003366
+skinparam rectangleBackgroundColor #F9F9F9
+skinparam padding 3
+skinparam nodesep 10
+skinparam ranksep 16
 
-title Diagramme de Cas d'Utilisation — LafargeHolcim SalesQuest
+title Diagramme de Cas d'Utilisation -- LafargeHolcim SalesQuest
 
-' ═══ ACTEUR GAUCHE (seul) ═══
+' ══ ACTEURS ══
+actor "Commercial"        as SP   #LightBlue
+actor "Resp.\nCommercial" as SM   #LightGreen
+actor "Resp.\nMarche"     as MM   #LightYellow
+actor "Administrateur"    as AD   #LightSalmon
+actor "API Groq\n(IA)"    as GROQ #LightGray
 
-actor "Commercial" as SP #LightBlue
+rectangle "SalesQuest" {
 
-' ══════════════════════════════════════
-package "Authentification" {
-  usecase "Créer un compte"  as UC_REG
-  usecase "Se connecter"     as UC_LOG
-  usecase "Se déconnecter"   as UC_OUT
+  ' UC_AUTH au sommet : point d entree commun
+  usecase "S'authentifier" as UC_AUTH
+
+  ' -- blocs principaux --
+  together {
+    usecase "Soumettre\nune vente" as UC_SALE
+    usecase "Joindre\nune preuve"  as UC_IMG
+  }
+  together {
+    usecase "Voir le\nclassement" as UC_LDR
+    usecase "Voir le podium"      as UC_POD
+  }
+  usecase "Consulter les\nrecompenses" as UC_REWD
+  together {
+    usecase "Coach IA -- Max"     as UC_AI
+    usecase "Envoyer un\nmessage" as UC_MSG
+  }
+  together {
+    usecase "Approuver /\nRejeter vente" as UC_APP
+    usecase "Notifier\nle commercial"    as UC_NOTIF
+  }
+  usecase "Gerer les\nproduits"     as UC_PROD
+  together {
+    usecase "Creer un\nevenement"         as UC_EVT
+    usecase "Configurer\nles recompenses" as UC_CONF
+  }
+  usecase "Fil d'actualite"       as UC_BC
+  usecase "Gerer les\nutilisateurs" as UC_USR
 }
 
-package "Espace Commercial" {
-  usecase "Voir le tableau de bord"    as UC_DASH
-  usecase "Parcourir les produits"     as UC_PROD
-  usecase "Soumettre une vente"        as UC_SALE
-  usecase "Voir le classement"         as UC_LDR
-  usecase "Suivre les jalons"          as UC_MILE
-  usecase "Consulter les récompenses"  as UC_REWD
-  usecase "Modifier le profil"         as UC_PROF
-}
+' ══ INCLUDE S'AUTHENTIFIER (tous sauf Groq) ══
+UC_SALE ..> UC_AUTH : <<include>>
+UC_LDR  ..> UC_AUTH : <<include>>
+UC_REWD ..> UC_AUTH : <<include>>
+UC_AI   ..> UC_AUTH : <<include>>
+UC_APP  ..> UC_AUTH : <<include>>
+UC_PROD ..> UC_AUTH : <<include>>
+UC_EVT  ..> UC_AUTH : <<include>>
+UC_BC   ..> UC_AUTH : <<include>>
+UC_USR  ..> UC_AUTH : <<include>>
 
-package "Espace Responsable\nCommercial" {
-  usecase "Tableau de bord responsable"  as UC_MDASH
-  usecase "Approuver / Rejeter une vente" as UC_APP
-  usecase "Gérer les produits"           as UC_PROD2
-  usecase "Recevoir des notifications"   as UC_NOTIF
-}
+' ══ INCLUDE / EXTEND locaux (sub-cas) ══
+UC_SALE ..> UC_IMG   : <<include>>
+UC_LDR  ..> UC_POD   : <<extend>>
+UC_AI   ..> UC_MSG   : <<include>>
+UC_EVT  ..> UC_CONF  : <<include>>
+UC_APP  ..> UC_NOTIF : <<include>>
 
-package "Espace Responsable\nMarché" {
-  usecase "Tableau de bord marché"      as UC_MMDASH
-  usecase "Créer un événement"          as UC_CREV
-  usecase "Configurer les récompenses"  as UC_CREWD
-  usecase "Voir les résultats"          as UC_ERESLT
-}
-
-UC_CREV ..> UC_CREWD : <<include>>
-
-package "Espace Administrateur" {
-  usecase "Tableau de bord admin"   as UC_ADASH
-  usecase "Gérer les utilisateurs"  as UC_UMGMT
-}
-
-package "Fonctionnalités\npartagées" {
-  usecase "Fil d'actualité"    as UC_BFEED
-  usecase "Publier une annonce" as UC_BPOST
-}
-
-package "Coach IA — Max" {
-  usecase "Ouvrir le coach IA"       as UC_AI_OPEN
-  usecase "Envoyer un message"       as UC_AI_SEND
-  usecase "Recevoir la réponse IA"   as UC_AI_REPLY
-}
-
-UC_AI_OPEN ..> UC_AI_SEND  : <<include>>
-UC_AI_SEND ..> UC_AI_REPLY : <<include>>
-
-' ═══ ACTEURS DROITE ═══
-actor "Responsable\nCommercial"  as SM   #LightGreen
-actor "Responsable\nMarché"     as MM   #LightYellow
-actor "Administrateur"          as AD   #LightSalmon
-actor "API Groq (IA)"           as GROQ #LightGray
-
-' ─── LIENS ───
-
-SP --> UC_REG
-SP --> UC_LOG
-SP --> UC_OUT
-
-SM --> UC_REG
-SM --> UC_LOG
-SM --> UC_OUT
-
-MM --> UC_REG
-MM --> UC_LOG
-MM --> UC_OUT
-
-UC_REG -- AD
-UC_LOG -- AD
-UC_OUT -- AD 
-
-SP --> UC_DASH
-SP --> UC_PROD
+' ══ LIENS ACTEURS ══
 SP --> UC_SALE
 SP --> UC_LDR
-SP --> UC_MILE
 SP --> UC_REWD
-SP --> UC_PROF
-SP --> UC_AI_OPEN
+SP --> UC_AI
+SP --> UC_BC
 
-SM --> UC_MDASH
 SM --> UC_APP
-SM --> UC_PROD2
-SM --> UC_NOTIF
+SM --> UC_PROD
+SM --> UC_BC
 
-MM --> UC_MMDASH
-MM --> UC_CREV
-MM --> UC_ERESLT
+MM --> UC_EVT
+MM --> UC_BC
 
-UC_ADASH -- AD
-UC_UMGMT -- AD
+AD --> UC_USR
+AD --> UC_BC
 
-SP --> UC_BFEED
-SP --> UC_BPOST
-SM --> UC_BFEED
-SM --> UC_BPOST
-MM --> UC_BFEED
-MM --> UC_BPOST
-UC_BFEED -- AD
-UC_BPOST-- AD 
-
-UC_AI_REPLY -- GROQ
+GROQ --> UC_AI
 
 @enduml

@@ -37,6 +37,13 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Product',
+            onPressed: () => _showProductForm(context, null, null),
+          ),
+        ],
       ),
 
 
@@ -241,12 +248,6 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
 
 
 
-      // ── Add Product FAB ───────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showProductForm(context, null, null),
-        tooltip: 'Add Product',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -256,7 +257,7 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
 
   // ── Category helpers ────────────────────────────────────────────────────────
   String _unitForCategory(String cat) =>
-      cat == 'Concrete' ? 'm²' : 'TON';
+      cat == 'Concrete' ? 'm³' : 'tonnes';
 
   IconData _iconForCategory(String cat) {
     switch (cat) {
@@ -489,12 +490,11 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
 
 
           TextButton(
-            onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection('products')
-                  .doc(docId)
-                  .delete();
-              if (!context.mounted) return;
+            onPressed: () {
+              // Close the dialog right away — awaiting the delete first hangs
+              // the dialog on a weak connection, because Firestore write
+              // futures only complete once the server acknowledges them.
+              // The local cache applies the delete instantly and syncs later.
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -502,6 +502,19 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
                   backgroundColor: Colors.red,
                 ),
               );
+              FirebaseFirestore.instance
+                  .collection('products')
+                  .doc(docId)
+                  .delete()
+                  .catchError((e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to delete "$name": $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              });
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),

@@ -41,7 +41,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         setState(() {
           _messages[0] = _ChatMessage(
             text:
-                'Hey $_userName! I\'m Max, your personal sales coach. 🏆\n\nAsk me anything — how to handle a tough client, tips to climb the leaderboard, or just need a motivational boost. Let\'s get after it!',
+                'Hey $_userName! I\'m Max, your personal sales coach. 🏆\n\nAsk me anything — how the app works (submitting sales, points, events, rewards), how to handle a tough client, tips to climb the leaderboard, or just a motivational boost. Let\'s get after it!',
             isUser: false,
           );
         });
@@ -53,7 +53,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     _messages.add(
       _ChatMessage(
         text:
-            'Hey! I\'m Max, your personal sales coach. 🏆\n\nAsk me anything — how to handle a tough client, tips to climb the leaderboard, or just need a motivational boost. Let\'s get after it!',
+            'Hey! I\'m Max, your personal sales coach. 🏆\n\nAsk me anything — how the app works (submitting sales, points, events, rewards), how to handle a tough client, tips to climb the leaderboard, or just a motivational boost. Let\'s get after it!',
         isUser: false,
       ),
     );

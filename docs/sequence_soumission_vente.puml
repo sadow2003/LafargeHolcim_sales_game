@@ -1,0 +1,42 @@
+@startuml Sequence_Soumission_Vente
+!theme plain
+autonumber
+
+skinparam sequenceFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceParticipantFontSize 11
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+skinparam responseMessageBelowArrow true
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 10
+skinparam BoxPadding 6
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+
+title Diagramme de Séquence (2/4) — Soumission d'une Vente
+
+actor       "Commercial"       as C
+participant "Application"      as App
+database    "Firestore"        as DB
+participant "Firebase Storage" as Store
+
+C   ->  App  : Ouvrir formulaire de vente
+App ->  DB   : Récupérer liste des produits
+DB  --> App  : Produits disponibles
+App --> C    : Afficher sélecteur de produit
+
+C   ->  App  : Sélectionner produit + saisir quantité
+App --> C    : Aperçu des points estimés
+
+C   ->  App  : Joindre photo de preuve
+App ->  App  : Compresser l'image (max 1280px)
+App ->  Store : Uploader la preuve
+Store --> App : URL de la preuve
+
+App ->  DB   : Créer demande de vente\n{statut : "en_attente"}
+DB  --> App  : Demande enregistrée
+App ->  DB   : Notifier le responsable commercial
+App --> C    : "Vente soumise avec succès !"
+
+@enduml

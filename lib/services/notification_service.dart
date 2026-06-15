@@ -25,6 +25,7 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   StreamSubscription? _notificationSubscription;//firebase listener subscription for notifications collection
+  StreamSubscription<String>? _tokenRefreshSubscription;//token refresh listener — must be replaced on every login so it never writes to a previous user's doc
 
   // ── Initialization ────────────────────────────────────────────────────────
 //for the notification on the phone
@@ -92,10 +93,17 @@ class NotificationService {
   Future<void> clearTokenForCurrentUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+
+    // Stop refreshing the token for a user who is logging out.
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = null;
+
     try {
+      // Firestore writes only complete on server ack — the timeout keeps
+      // logout from hanging forever on a flaky connection.
       await _firestore.collection('users').doc(user.uid).update({
         'fcmToken': FieldValue.delete(),
-      });
+      }).timeout(const Duration(seconds: 5));
       debugPrint('[FCM] Token cleared for ${user.uid}');
     } catch (e) {
       debugPrint('[FCM] Error clearing token: $e');
@@ -113,21 +121,30 @@ class NotificationService {
 
     //get the FCM token for this device and save it in the user's Firestore Document
     try {
-      final token = await _fcm.getToken();
+      // getToken can hang indefinitely on some Android devices.
+      final token =
+          await _fcm.getToken().timeout(const Duration(seconds: 10));
       if (token == null) return;
 
       await _firestore.collection('users').doc(user.uid).update({
         'fcmToken': token,
         'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
-      });
+      }).timeout(const Duration(seconds: 10));
       debugPrint('[FCM] Token saved for ${user.uid}');
 
-      _fcm.onTokenRefresh.listen((newToken) async {
-        await _firestore.collection('users').doc(user.uid).update({
-          'fcmToken': newToken,
-          'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
-        });
-        debugPrint('[FCM] Token refreshed for ${user.uid}');
+      // Replace any listener left over from a previous login — otherwise it
+      // keeps writing refreshed tokens to the previous user's document.
+      await _tokenRefreshSubscription?.cancel();
+      _tokenRefreshSubscription = _fcm.onTokenRefresh.listen((newToken) async {
+        try {
+          await _firestore.collection('users').doc(user.uid).update({
+            'fcmToken': newToken,
+            'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
+          });
+          debugPrint('[FCM] Token refreshed for ${user.uid}');
+        } catch (e) {
+          debugPrint('[FCM] Error saving refreshed token: $e');
+        }
       });
     } catch (e) {
       debugPrint('[FCM] Error saving token: $e');
@@ -230,6 +247,10 @@ class NotificationService {
           );
         }
       }
+    }, onError: (e) {
+      // Without this handler a query failure (e.g. missing Firestore index)
+      // becomes an unhandled async error.
+      debugPrint('[FCM] Notification listener error: $e');
     });
 
     debugPrint('[FCM] Listening for notifications for $uid');
