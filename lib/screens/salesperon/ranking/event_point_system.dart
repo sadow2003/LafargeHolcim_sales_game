@@ -6,8 +6,7 @@ import 'leaderboard_list.dart';
 import 'podium_section.dart';
 import 'ranking_services.dart';
 
-/// Renders the stickman-themed event leaderboard body.
-///
+
 /// How the event point system works:
 ///   - A manager sets a date range (start → end) and top-3 cash prizes.
 ///   - Salespersons earn [totalPoints] by submitting sales approved by a manager.

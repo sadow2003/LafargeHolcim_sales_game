@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
           primary: kPrimaryColor,
           secondary: kSecondaryColor,
         ),
-        useMaterial3: true,
+        useMaterial3: true,//enables Material Design 3 features and styling across the app, giving it a more modern look and feel.
          fontFamily: 'Roboto',
          textTheme: const TextTheme(
           headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: kPrimaryColor),

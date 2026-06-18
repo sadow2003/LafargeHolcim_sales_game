@@ -151,16 +151,6 @@ class ManagerDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Storage cleanup tile — deletes old proof images from Storage + Firestore.
-            _NavTile(
-              icon:     Icons.cleaning_services_outlined,
-              title:    'Clean Up Old Proof Images',
-              subtitle: 'Delete proof images from already verified sales',
-              color:    Colors.orange.shade700,
-              onTap:    () => _runStorageCleanup(context),
-            ),
-            const SizedBox(height: 12),
-
           ],
         ),
       ),
@@ -168,58 +158,7 @@ class ManagerDashboard extends StatelessWidget {
   }
 }
 
-// ── Storage cleanup helper ────────────────────────────────────────────────────
-Future<void> _runStorageCleanup(BuildContext context) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text('Clean up proof images?'),
-      content: const Text(
-        'This will delete all proof images from already approved or rejected '
-        'sales, and remove their URLs from Firestore.\n\nThis cannot be undone.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-          child: const Text('Clean Up'),
-        ),
-      ],
-    ),
-  );
 
-  if (confirmed != true || !context.mounted) return;
-
-  // Show loading dialog.
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
-  );
-
-  final deleted = await ManagerService.cleanupOldProofImages();
-
-  if (!context.mounted) return;
-  Navigator.pop(context); // close loading
-
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text('Done'),
-      content: Text('$deleted proof image${deleted == 1 ? '' : 's'} deleted.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('OK'),
-        ),
-      ],
-    ),
-  );
-}
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 // Listens to a Firestore collection stream and shows the document count.

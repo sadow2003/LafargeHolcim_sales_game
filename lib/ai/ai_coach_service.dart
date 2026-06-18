@@ -69,7 +69,6 @@ Common issues:
 Response style:
 - For coaching and motivation: keep it short, 2 to 4 sentences, direct and punchy — no fluff.
 - For questions about how the app works: be clear and accurate first; use short numbered steps when explaining a process, then add one motivational nudge at the end.
-- Answer in the same language the user writes in (French, English, or Darija).
 ''';
 
   static Future<String> sendMessage(

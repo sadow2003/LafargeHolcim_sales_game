@@ -22,7 +22,7 @@ class _BroadcastScreenState extends State<BroadcastScreen>
   late TabController _tabController;
   String _currentUserRole = 'salesperson';
   // Define the tabs for filtering broadcasts
-  static const _tabs = ['All', 'Milestone'];
+  static const _tabs = ['All', 'Messages', 'Milestones'];
 
   @override
   void initState() {
@@ -47,16 +47,20 @@ class _BroadcastScreenState extends State<BroadcastScreen>
   }
   // Method to build the Firestore stream based on the selected tab filter
   Stream<QuerySnapshot> _buildStream(String filter) {
+    final col = FirebaseFirestore.instance.collection('broadcasts');
     if (filter == 'All') {
-      return FirebaseFirestore.instance
-          .collection('broadcasts')
+      return col.orderBy('createdAt', descending: true).limit(60).snapshots();
+    }
+    if (filter == 'Messages') {
+      return col
+          .where('type', isEqualTo: 'general')
           .orderBy('createdAt', descending: true)
           .limit(60)
           .snapshots();
     }
-    return FirebaseFirestore.instance
-        .collection('broadcasts')
-        .where('type', isEqualTo: filter.toLowerCase())
+    // Milestones
+    return col
+        .where('type', isEqualTo: 'milestone')
         .orderBy('createdAt', descending: true)
         .limit(60)
         .snapshots();

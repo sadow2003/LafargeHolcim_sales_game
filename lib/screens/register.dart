@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../main.dart';
 import '../widgets/gradient_app_bar.dart';
 
-const String _kadminScreat         = 'admin123';
-const String _kManagerScreat       = 'manager123';
+const String _kadminSecret         = 'admin123';
+const String _kManagerSecret       = 'manager123';
 const String _kMarketManagerSecret = 'marketmanager123';
 
 class RegisterScreen extends StatefulWidget {
@@ -111,13 +110,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _registerUser() async {
     if(_formKey.currentState?.validate() != true) return;
-    if (_selectedRole == 'admin' && _adminSecretController.text != _kadminScreat) {
+    if (_selectedRole == 'admin' && _adminSecretController.text != _kadminSecret) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid admin secret key')),
       );
       return;
     }
-    if (_selectedRole == 'sales-manager' && _adminSecretController.text != _kManagerScreat) {
+    if (_selectedRole == 'sales-manager' && _adminSecretController.text != _kManagerSecret) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid sales manager secret key')),
       );

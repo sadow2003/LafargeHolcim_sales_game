@@ -20,6 +20,12 @@ class AppEmojis {
   static final clap         = _e('clap');
   static final zap          = _e('zap');
 
+  static final thumbsUp   = _e('+1');
+  static final thumbsDown = _e('-1');
+  static final heart      = _e('heart');
+  static final smile      = _e('blush');
+  static final cry        = _e('cry');
+
   static final medals = [gold, silver, bronze];
-  static final reactions = [fire, muscle, trophy, clap, zap];
+  static final reactions = [thumbsUp, thumbsDown, heart, fire, smile, cry];
 }
