@@ -79,21 +79,6 @@ Example: `Test@1234`
 
 ---
 
-## User Roles
-
-When registering, select a role from the dropdown. Each role unlocks a different dashboard.
-
-| Role | Dashboard | Secret Key Required |
-|---|---|---|
-| **Salesperson** | Rankings, leaderboard, sale claims, rewards | None |
-| **Sales Manager** | Approve/reject sale claims, manage products | `manager123` |
-| **Market Manager** | Create and manage events and competitions | `marketmanager123` |
-| **Admin** | Full user management and administration | `admin123` |
-
-For testing as a regular salesperson, leave the role as **Salesperson** — no secret key is needed.
-
----
-
 ## App Features by Role
 
 ### Salesperson
