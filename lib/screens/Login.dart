@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/notification_service.dart';
+import '../main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,53 +45,53 @@ class _LoginPageState extends State<LoginPage> {
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your password';
     if (value.length < 8) return 'Password must be at least 8 characters';
-    // if (!RegExp(r'[a-z]').hasMatch(value)) return 'Password must contain a lowercase letter';
-    // if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Password must contain an uppercase letter';
-    // if (!RegExp(r'[0-9]').hasMatch(value)) return 'Password must contain a number';
-    // if (!RegExp(r'[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\;`~/]').hasMatch(value)) {
-    //   return 'Password must contain a special character';
-    // }
+    if (!RegExp(r'[a-z]').hasMatch(value)) return 'Password must contain a lowercase letter';
+    if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Password must contain an uppercase letter';
+    if (!RegExp(r'[0-9]').hasMatch(value)) return 'Password must contain a number';
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\;`~/]').hasMatch(value)) {
+      return 'Password must contain a special character';
+    }
     return null;
   }
 
 
   //______password rest Function____________________________
-  // Future<void> _forgotPassword() async {
-  //   final email = _emailController.text.trim();
-  //   if (email.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text('Enter your email above, then tap Forgot Password.'),
-  //         backgroundColor: Colors.orange,
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //   try {
-  //     //send the email to reset the password__________
-  //     await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-  //     if (!mounted) return;
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter your email above, then tap Forgot Password.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    try {
+      //send the email to reset the password__________
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
 
 
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text('Password reset email sent! Check your inbox.'),
-  //         backgroundColor: Colors.green,
-  //         duration: Duration(seconds: 5),
-  //       ),
-  //     );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset email sent! Check your inbox.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 5),
+        ),
+      );
 
 
-  //   } on FirebaseAuthException catch (e) {
-  //     if (!mounted) return;
-  //     final message = e.code == 'user-not-found'
-  //         ? 'No account found for that email.'
-  //         : 'Failed to send reset email. (${e.code})';
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text(message), backgroundColor: Colors.red),
-  //     );
-  //   }
-  // }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final message = e.code == 'user-not-found'
+          ? 'No account found for that email.'
+          : 'Failed to send reset email. (${e.code})';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   // ── Login Logic ──────────────────────────────────────────────────────────
   Future<void> _loginUser() async {
@@ -108,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = credential.user!;
 
-      //Block login if email is not verified
+      //Block login if email is not verified — disabled during testing
       // if (!user.emailVerified) {
       //   await FirebaseAuth.instance.signOut();
       //   if (!mounted) return;
@@ -416,16 +417,16 @@ class _LoginPageState extends State<LoginPage> {
 
 
                 //____Password Reset text Button____________________
-                // Align(
-                //   alignment: Alignment.centerRight,
-                //   child: TextButton(
-                //     onPressed: _forgotPassword,
-                //     child: const Text(
-                //       'Forgot Password?',
-                //       style: TextStyle(color: kPrimaryColor),
-                //     ),
-                //   ),
-                // ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _forgotPassword,
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
 
                  const SizedBox(height: 12),
 

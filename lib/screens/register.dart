@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/gradient_app_bar.dart';
-
-const String _kadminSecret         = 'admin123';
-const String _kManagerSecret       = 'manager123';
-const String _kMarketManagerSecret = 'marketmanager123';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -109,26 +106,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _registerUser() async {
-    if(_formKey.currentState?.validate() != true) return;
-    if (_selectedRole == 'admin' && _adminSecretController.text != _kadminSecret) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid admin secret key')),
-      );
-      return;
+    if (_formKey.currentState?.validate() != true) return;
+
+    // Validate role secret against .env values (not hardcoded in source)
+    if (_selectedRole != 'salesperson') {
+      final secretsMap = {
+        'admin':          dotenv.env['ADMIN_SECRET']          ?? '',
+        'sales-manager':  dotenv.env['MANAGER_SECRET']        ?? '',
+        'market-manager': dotenv.env['MARKET_MANAGER_SECRET'] ?? '',
+      };
+      if (_adminSecretController.text != secretsMap[_selectedRole]) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid secret key for $_selectedRole')),
+        );
+        return;
+      }
     }
-    if (_selectedRole == 'sales-manager' && _adminSecretController.text != _kManagerSecret) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid sales manager secret key')),
-      );
-      return;
-    }
-    if (_selectedRole == 'market-manager' && _adminSecretController.text != _kMarketManagerSecret) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid market manager secret key')),
-      );
-      return;
-    }
-    setState( () => _isLoading = true);
+
+    setState(() => _isLoading = true);
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -136,44 +131,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       await _saveUserToFirestore(
-        userId: userCredential.user!.uid,
+        userId:    userCredential.user!.uid,
         firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        email: _emailController.text.trim(),
-        role: _selectedRole,
+        lastName:  _lastNameController.text.trim(),
+        email:     _emailController.text.trim(),
+        role:      _selectedRole,
       );
 
-
-      //send an email to a the account to verity that it is the user
+      // Email verification disabled during testing — re-enable before production
       // await userCredential.user!.sendEmailVerification();
       // await FirebaseAuth.instance.signOut();
-      // Navigator.popAndPushNamed(context, '/login');
 
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Account created! '),
+          content: Text('Account created!'),
           duration: Duration(seconds: 6),
           backgroundColor: Colors.green,
         ),
       );
       Navigator.pushReplacementNamed(context, '/login');
-}on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       String message = 'Registration failed';
       if (e.code == 'email-already-in-use') {
         message = 'This email is already in use. Please log in or use a different email.';
       } else if (e.code == 'weak-password') {
         message = 'The password is too weak. Please choose a stronger password.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred: $e')),
       );
     } finally {
-      setState( () => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
