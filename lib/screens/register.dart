@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../widgets/gradient_app_bar.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -68,6 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
    }
 
 
+
   
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Please enter a password';
@@ -87,60 +87,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value != _passwordController.text) return 'Passwords do not match';
     return null;
   }
-   Future<void> _saveUserToFirestore({
-    required String userId,
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String role,
-  }) async {
-    await FirebaseFirestore.instance.collection('users').doc(userId).set({
-      'firstName':   firstName,
-      'lastName':    lastName,
-      'email':       email,
-      'role':        role,         
-      'totalPoints': 0,            
-      'rank':        0,            
-      'createdAt':   FieldValue.serverTimestamp(), 
-    });
-  }
-
   Future<void> _registerUser() async {
     if (_formKey.currentState?.validate() != true) return;
-
-    // Validate role secret against .env values (not hardcoded in source)
-    if (_selectedRole != 'salesperson') {
-      final secretsMap = {
-        'admin':          dotenv.env['ADMIN_SECRET']          ?? '',
-        'sales-manager':  dotenv.env['MANAGER_SECRET']        ?? '',
-        'market-manager': dotenv.env['MARKET_MANAGER_SECRET'] ?? '',
-      };
-      if (_adminSecretController.text != secretsMap[_selectedRole]) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid secret key for $_selectedRole')),
-        );
-        return;
-      }
-    }
-
     setState(() => _isLoading = true);
+
+    UserCredential? userCredential;
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      await _saveUserToFirestore(
-        userId:    userCredential.user!.uid,
-        firstName: _firstNameController.text.trim(),
-        lastName:  _lastNameController.text.trim(),
-        email:     _emailController.text.trim(),
-        role:      _selectedRole,
-      );
+      // Force an ID token refresh so the callable request carries a valid
+      // Firebase Auth token (Gen 2 callable functions reject requests without one).
+      await userCredential.user!.getIdToken(true);
 
-      // Email verification disabled during testing — re-enable before production
-      // await userCredential.user!.sendEmailVerification();
-      // await FirebaseAuth.instance.signOut();
+      final callable = FirebaseFunctions.instance.httpsCallable('createUserProfile');
+      await callable.call({
+        'firstName': _firstNameController.text.trim(),
+        'lastName':  _lastNameController.text.trim(),
+        'email':     _emailController.text.trim(),
+        'role':      _selectedRole,
+        'secret':    _adminSecretController.text,
+      });
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -151,6 +120,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
       Navigator.pushReplacementNamed(context, '/login');
+    } on FirebaseFunctionsException catch (e) {
+      // Roll back the Firebase Auth account so the user can retry cleanly.
+      await userCredential?.user?.delete();
+      await FirebaseAuth.instance.signOut();
+      if (!mounted) return;
+      final message = e.code == 'permission-denied'
+          ? 'Invalid secret key for $_selectedRole.'
+          : 'Registration failed: ${e.message}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     } on FirebaseAuthException catch (e) {
       String message = 'Registration failed';
       if (e.code == 'email-already-in-use') {
@@ -161,6 +141,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
+      await userCredential?.user?.delete();
+      await FirebaseAuth.instance.signOut();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred: $e')),

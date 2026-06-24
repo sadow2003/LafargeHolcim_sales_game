@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 
-  //______password rest Function____________________________
+  //______password reset Function____________________________
   Future<void> _forgotPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
@@ -110,40 +110,41 @@ class _LoginPageState extends State<LoginPage> {
       final user = credential.user!;
 
       //Block login if email is not verified — disabled during testing
-      // if (!user.emailVerified) {
-      //   await FirebaseAuth.instance.signOut();
-      //   if (!mounted) return;
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content: const Text('Please verify your email before logging in.'),
-      //       backgroundColor: Colors.orange,
-      //       duration: const Duration(seconds: 6),
-      //       action: SnackBarAction(
-      //         label: 'Resend',
-      //         textColor: Colors.white,
-      //         onPressed: () async {
-      //           try {
-      //             final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      //               email: _emailController.text.trim(),
-      //               password: _passwordController.text.trim(),
-      //             );
-      //             await cred.user!.sendEmailVerification();
-      //             await FirebaseAuth.instance.signOut();
-      //             if (!mounted) return;
-      //             ScaffoldMessenger.of(context).showSnackBar(
-      //               const SnackBar(
-      //                 content: Text('Verification email resent!'),
-      //                 backgroundColor: Colors.green,
-      //               ),
-      //             );
-      //           } catch (_) {}
-      //         },
-      //       ),
-      //     ),
-      //   );
-      //   setState(() => _isLoading = false);
-      //   return;
-      // }
+      if (!user.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Please verify your email before logging in.'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 6),
+            action: SnackBarAction(
+              label: 'Resend',
+              textColor: Colors.white,
+              onPressed: () async {
+                try {
+                  final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                    email: _emailController.text.trim(),
+                    password: _passwordController.text.trim(),
+                  );
+                  await cred.user!.sendEmailVerification();
+                  await FirebaseAuth.instance.signOut();
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Verification email resent!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (_) {}
+              },
+            ),
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
 
       final uid = user.uid;
       final doc = await FirebaseFirestore.instance

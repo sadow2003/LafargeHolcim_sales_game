@@ -59,10 +59,26 @@ service cloud.firestore {
 
     // ── users collection ──────────────────────────────────────────────────
     match /users/{userId} {
-      allow read:   if isAuthenticated();
-      allow create: if isAuthenticated() && (isOwner(userId) || isAdmin());
-      // isAdminOrManager covers totalPoints resets by market-manager after event close
-      allow update: if isAuthenticated() && (isOwner(userId) || isAdminOrManager());
+      allow read: if isAuthenticated();
+
+      // Self-registration may only create a salesperson document.
+      // Elevated roles (admin / sales-manager / market-manager) are written
+      // exclusively by the createUserProfile Cloud Function (Admin SDK, bypasses
+      // rules) after server-side secret validation.
+      allow create: if isAuthenticated() && (
+        (isOwner(userId) && request.resource.data.role == 'salesperson') ||
+        isAdmin()
+      );
+
+      // Owners may update their own profile fields (name, photo, FCM token…)
+      // but must not touch role, points, or rank — those are privileged fields
+      // managed by admins, managers, and Cloud Functions only.
+      allow update: if isAuthenticated() && (
+        (isOwner(userId) && !request.resource.data.diff(resource.data)
+            .affectedKeys().hasAny(['role', 'totalPoints', 'rank'])) ||
+        isAdminOrManager()
+      );
+
       allow delete: if isAdmin() && !isOwner(userId);
     }
 

@@ -22,6 +22,7 @@ import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_d
 import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_screen.dart';
 import 'package:lafargeholcim_sales_game/ai/ai_coach_screen.dart';
+import 'package:lafargeholcim_sales_game/widgets/require_auth.dart';
 
 
 //primary colors of the application — LafargeHolcim brand palette
@@ -105,24 +106,77 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login',
       //add the routes of the application
       routes: {
-        '/login':            (context) => const LoginPage(),
-        '/register':         (context) => const RegisterScreen(),
-        '/home':             (context) => const HomePage(),
-        '/profile':          (context) => const ProfilePage(),
-        '/products':         (context) => const ProductsPage(),
-        '/saleclaim':        (context) => const SaleClaimPage(),
-        '/rankings':         (context) => const RankingsPage(),
-        '/admin/dashboard':  (context) => const AdminDashboard(),
-        '/admin/users':      (context) => const AdminUsersPage(),
-        '/manager/dashboard': (context) => const ManagerDashboard(),
-        '/manager/products': (context) => const ManagerProductsPage(),
-        '/manager/sales':    (context) => const ManagerSalesManagment(),
-        '/broadcast':                    (context) => const BroadcastScreen(),
-        '/milestones':                   (context) => const MilestoneScreen(),
-        '/market-manager/dashboard':     (context) => const MarketManagerDashboard(),
-        '/market-manager/events':        (context) => const EventManagementPage(),
-        '/reward-store':                 (context) => const RewardStorePage(),
-        '/ai-coach':                     (context) => const AiCoachScreen(),
+        '/login':    (context) => const LoginPage(),
+        '/register': (context) => const RegisterScreen(),
+
+        '/home': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: HomePage(),
+            ),
+        '/profile': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: ProfilePage(),
+            ),
+        '/products': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: ProductsPage(),
+            ),
+        '/saleclaim': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: SaleClaimPage(),
+            ),
+        '/rankings': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: RankingsPage(),
+            ),
+        '/milestones': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: MilestoneScreen(),
+            ),
+        '/reward-store': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: RewardStorePage(),
+            ),
+        '/ai-coach': (context) => const RequireAuth(
+              allowedRoles: ['salesperson'],
+              child: AiCoachScreen(),
+            ),
+
+        '/admin/dashboard': (context) => const RequireAuth(
+              allowedRoles: ['admin'],
+              child: AdminDashboard(),
+            ),
+        '/admin/users': (context) => const RequireAuth(
+              allowedRoles: ['admin'],
+              child: AdminUsersPage(),
+            ),
+
+        '/manager/dashboard': (context) => const RequireAuth(
+              allowedRoles: ['sales-manager'],
+              child: ManagerDashboard(),
+            ),
+        '/manager/products': (context) => const RequireAuth(
+              allowedRoles: ['sales-manager'],
+              child: ManagerProductsPage(),
+            ),
+        '/manager/sales': (context) => const RequireAuth(
+              allowedRoles: ['sales-manager'],
+              child: ManagerSalesManagment(),
+            ),
+
+        '/market-manager/dashboard': (context) => const RequireAuth(
+              allowedRoles: ['market-manager'],
+              child: MarketManagerDashboard(),
+            ),
+        '/market-manager/events': (context) => const RequireAuth(
+              allowedRoles: ['market-manager'],
+              child: EventManagementPage(),
+            ),
+
+        '/broadcast': (context) => const RequireAuth(
+              allowedRoles: ['admin', 'sales-manager', 'market-manager', 'salesperson'],
+              child: BroadcastScreen(),
+            ),
       },
     );
   }
