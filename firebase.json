@@ -1,1 +1,46 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"salesquest-c24e6","appId":"1:864449112171:android:bfe51af132df602ae0e92e","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"salesquest-c24e6","configurations":{"android":"1:864449112171:android:bfe51af132df602ae0e92e","ios":"1:864449112171:ios:5fdc1a42884554aae0e92e","web":"1:864449112171:web:dd85015a25036b87e0e92e"}}}}},"auth":{"providers":{}},"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"storage":{"rules":"storage.rules"},"functions":[{"source":"functions","codebase":"default","runtime":"python312"}]}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "salesquest-c24e6",
+          "appId": "1:864449112171:android:bfe51af132df602ae0e92e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "salesquest-c24e6",
+          "configurations": {
+            "android": "1:864449112171:android:bfe51af132df602ae0e92e",
+            "ios": "1:864449112171:ios:5fdc1a42884554aae0e92e",
+            "web": "1:864449112171:web:dd85015a25036b87e0e92e"
+          }
+        }
+      }
+    }
+  },
+  "auth": { "providers": {} },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": { "rules": "storage.rules" },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "python312"
+    }
+  ],
+  "hosting": {
+    "public": "build/web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

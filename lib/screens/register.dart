@@ -60,9 +60,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
 
     //only official Holcim emails are allowed.
-    if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
-      return 'Only @lafargeholcim.com emails are allowed';
-    }
+    // if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
+    //   return 'Only @lafargeholcim.com emails are allowed';
+    // }
     return null;
    }
 

@@ -1,58 +1,47 @@
 from firebase_functions import firestore_fn, https_fn
-from firebase_functions import scheduler_fn  # DISABLED
+from firebase_functions import scheduler_fn
 from firebase_functions.options import set_global_options
 from firebase_functions.params import SecretParam
 import datetime
 import firebase_admin
 from firebase_admin import firestore as fb_firestore, messaging
 
-# Set global options for all functions in this module.
-set_global_options(max_instances=10)
+set_global_options(max_instance=10)
 
-# Secrets are stored in Google Cloud Secret Manager (never in the client app).
-# Set them once with: firebase functions:secrets:set ADMIN_SECRET
-_ADMIN_SECRET          = SecretParam('ADMIN_SECRET')
-_MANAGER_SECRET        = SecretParam('MANAGER_SECRET')
+_ADMIN_SECRET = SecretParam('ADMIN_SECRET')
+_MANAGER_SECRET = SecretParam('MANAGER_SECRET')
 _MARKET_MANAGER_SECRET = SecretParam('MARKET_MANAGER_SECRET')
-_GROQ_API_KEY          = SecretParam('GROQ_API_KEY')
+_GROQ_API_KEY = SecretParam(_GROQ_API_KEY)
 
-# Initialize Firebase Admin SDK eagerly at module load time.
-# The firebase-functions SDK validates auth tokens (via firebase_admin.auth.verify_id_token)
-# BEFORE our function body runs, so the app must exist before any request arrives.
 try:
     _app = firebase_admin.get_app()
 except ValueError:
     _app = firebase_admin.initialize_app()
 
 
-# Triggers automatically when a new document is created in the "sales" collection.
-# Sends a push notification to all sales-managers about the new claim.
-@firestore_fn.on_document_created(document="sales/{saleId}")
-def notify_managers_on_new_sale(event):
-    # Extract relevant sale details from the newly created document, with safe defaults if fields are missing
-    data         = event.data.to_dict() if event.data else {}
-    user_name    = data.get("userName",    "A salesperson")
-    product_name = data.get("productName", "a product")
-    quantity     = data.get("quantity",    0)
 
-    # Query Firestore for all users with the "sales-manager" role and collect their FCM push tokens
-    db     = fb_firestore.client()
-    tokens = []
+@firestore_fn.on_documentcreated(document="sales/{salesId}")
+def notify_manager_on_new_sales(event):
+    data = event.data.to_dict() if event.data else {}
+    user_name =data.get("userName","A salesperson")
+    product_name = data.get("productName","a product")
+    quantity = data.get("quantity" , 0)
+
+    db = fb_firestore.client()
+    token = []
     for doc in db.collection("users").where("role", "==", "sales-manager").stream():
         token = (doc.to_dict() or {}).get("fcmToken")
         if token:
-            tokens.append(token)
+            token.append(token)
 
-    # No managers have a registered device token — nothing to notify, exit early
     if not tokens:
         return
-
-    # Send a single multicast push notification to all collected manager tokens at once
+    
     messaging.send_each_for_multicast(
         messaging.MulticastMessage(
             notification=messaging.Notification(
                 title="New Sale Claim",
-                body=f"{user_name} submitted {quantity}x {product_name}",
+                body=f"{user_name} submitted {quantity} x {product_name}",
             ),
             android=messaging.AndroidConfig(priority="high"),
             tokens=tokens,
@@ -60,36 +49,32 @@ def notify_managers_on_new_sale(event):
     )
 
 
-# Validates the role secret server-side and writes the user profile document.
-# Secrets live in Cloud Secret Manager — never in the client app binary.
-# Deploy secrets once with: firebase functions:secrets:set ADMIN_SECRET
-@https_fn.on_call(secrets=[_ADMIN_SECRET, _MANAGER_SECRET, _MARKET_MANAGER_SECRET])
+@http_fn.on_call(secerts=[_ADMIN_SECRET,_MANAGER_SECRET,_MARKET_MANAGER_SECRET])
 def createUserProfile(req: https_fn.CallableRequest):
     if req.auth is None:
         raise https_fn.HttpsError(
             code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
             message="Must be signed in.",
         )
+    data = req.data or {}
+    uid = req.auth.uid
+    first_name= str(data.get("firstName", "")).strip()
+    last_name = str(data.get("lastName", "")).strip()
+    email = str(data.get("email", "")).strip()
+    role = str(data.get("role", "salesperson"))
+    secret = str(data.get("secret", ""))
 
-    data       = req.data or {}
-    uid        = req.auth.uid
-    first_name = str(data.get("firstName", "")).strip()
-    last_name  = str(data.get("lastName",  "")).strip()
-    email      = str(data.get("email",     "")).strip()
-    role       = str(data.get("role",      "salesperson"))
-    secret     = str(data.get("secret",    ""))
-
-    allowed_roles = {"salesperson", "admin", "sales-manager", "market-manager"}
+    allowed_roles = {"salesperson","admin", "sales-manager","market-manager"}
     if role not in allowed_roles:
-        raise https_fn.HttpsError(
+        raise https_fn_HttpsError(
             code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
-            message="Invalid role.",
+            message = "Invalid role",
         )
-
-    if role != "salesperson":
+    
+    if role!= "salesperson":
         expected = {
-            "admin":          _ADMIN_SECRET.value,
-            "sales-manager":  _MANAGER_SECRET.value,
+            "admin": _ADMIN_SECRET.value,
+            "sales_manager": _MANAGER_SECRET.value,
             "market-manager": _MARKET_MANAGER_SECRET.value,
         }[role]
         if not expected or secret != expected:
@@ -97,20 +82,18 @@ def createUserProfile(req: https_fn.CallableRequest):
                 code=https_fn.FunctionsErrorCode.PERMISSION_DENIED,
                 message="Invalid secret for the requested role.",
             )
-
     db = fb_firestore.client()
     db.collection("users").document(uid).set({
-        "firstName":   first_name,
-        "lastName":    last_name,
-        "email":       email,
-        "role":        role,
-        "totalPoints": 0,
-        "rank":        0,
-        "createdAt":   datetime.datetime.now(datetime.timezone.utc),
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email,
+        "role": role,
+        "totalPoints":0,
+        "rank":0,
+        "createdAt": datetime.datetime.now(datetime.timezone.utc),
     })
 
-    return {"success": True}
-
+    return{"success":True}
 
 _SYSTEM_PROMPT = """You are Max, an elite sales coach for SalesQuest — Holcim Maroc's gamified sales competition platform.
 Your job is to coach, inspire, and give practical advice to sales representatives who sell building materials: cement, concrete, aggregates, and ready-mix products.
@@ -141,26 +124,26 @@ def getAiCoachReply(req: https_fn.CallableRequest):
             code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
             message="Must be signed in.",
         )
-
-    messages = (req.data or {}).get("messages", [])
+    
+    messages = (req.data or {}).get("messages",[])
     if not messages:
         raise https_fn.HttpsError(
             code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
             message="messages is required.",
         )
-
+    
     try:
         from groq import Groq
         client = Groq(api_key=_GROQ_API_KEY.value.strip())
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "system", "content": _SYSTEM_PROMPT}] + messages,
+            model="llama-3.1_8b-instant",
+            messages=[{"role":"system","content":_SYSTEM_PROMPT}] + messages,
             max_tokens=600,
-            temperature=0.85,
+            temperature= 0.85,
         )
         return {"reply": completion.choices[0].message.content}
     except Exception as e:
-        print(f"[getAiCoachReply] Error: {type(e).__name__}: {e}")
+        print(f"[getAiCoachReply] Error: {type(e).__name__}:{e}")
         raise https_fn.HttpsError(
             code=https_fn.FunctionsErrorCode.INTERNAL,
             message=str(e),

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lafargeholcim_sales_game/services/notification_service.dart';
 import 'package:lafargeholcim_sales_game/firebase_options.dart';
@@ -42,9 +44,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Fire-and-forget: notification init (permission dialog, FCM token fetch,
-  // getInitialMessage) must not block runApp — it keeps the screen blank.
-  unawaited(NotificationService.instance.init());
+  await FirebaseAppCheck.instance.activate(
+    providerWeb: WebDebugProvider(),
+    providerAndroid: const AndroidDebugProvider(),
+    providerApple: const AppleDebugProvider(),
+  );
+
+  // flutter_local_notifications does not support web — skip on web platform.
+  if (!kIsWeb) {
+    unawaited(NotificationService.instance.init());
+  }
 
   runApp(const MyApp());
 }
