@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 // ── Event countdown banner ───────────────────────────────────────────────────
 
 class EventCountdownBanner extends StatefulWidget {
-  const EventCountdownBanner();
+  const EventCountdownBanner({super.key});
 
   @override
   State<EventCountdownBanner> createState() => _EventCountdownBannerState();

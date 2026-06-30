@@ -29,8 +29,8 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(title),
-      automaticallyImplyLeading: automaticallyImplyLeading,
-      leading: leading,
+      automaticallyImplyLeading: automaticallyImplyLeading,//if true, automatically adds a back button or menu button based on the navigation stack
+      leading: leading,//if provided, this widget will be displayed at the leading position of the app bar, typically on the left side
       actions: actions,
       bottom: bottom,
       // Transparent so the flexibleSpace gradient shows through.

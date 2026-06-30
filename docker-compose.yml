@@ -1,0 +1,33 @@
+services:
+  ollama:
+    image: ollama/ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # Uncomment if you have an NVIDIA GPU:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  api:
+    build: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2:3b
+      - FIREBASE_CREDENTIALS=serviceAccountKey.json
+    volumes:
+      # Mount your Firebase service account key into the container.
+      # Get it from: Firebase Console → Project Settings → Service accounts → Generate new private key
+      - ./server/serviceAccountKey.json:/app/serviceAccountKey.json:ro
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

@@ -41,7 +41,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         setState(() {
           _messages[0] = _ChatMessage(
             text:
-                'Hey $_userName! I\'m Max, your personal sales coach. 🏆\n\nAsk me anything — how the app works (submitting sales, points, events, rewards), how to handle a tough client, tips to climb the leaderboard, or just a motivational boost. Let\'s get after it!',
+                'Hey $_userName! I\'m Max, your personal sales coach.\n\nAsk me anything — how the app works (submitting sales, points, events, rewards), how to handle a tough client, tips to climb the leaderboard, or just a motivational boost. Let\'s get after it!',
             isUser: false,
           );
         });
@@ -53,7 +53,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     _messages.add(
       _ChatMessage(
         text:
-            'Hey! I\'m Max, your personal sales coach. 🏆\n\nAsk me anything — how the app works (submitting sales, points, events, rewards), how to handle a tough client, tips to climb the leaderboard, or just a motivational boost. Let\'s get after it!',
+            'Hey! I\'m Max, your personal sales coach.\n\nAsk me anything — how the app works (submitting sales, points, events, rewards), how to handle a tough client, tips to climb the leaderboard, or just a motivational boost. Let\'s get after it!',
         isUser: false,
       ),
     );
@@ -123,6 +123,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
       body: Column(
         children: [
           _CoachHeader(userName: _userName),
+          const _ConfidentialityBanner(),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -208,6 +209,34 @@ class _CoachHeader extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// ── Confidentiality disclaimer ─────────────────────────────────────────────────
+
+class _ConfidentialityBanner extends StatelessWidget {
+  const _ConfidentialityBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      color: const Color(0xFFFFF8E1),
+      child: Row(
+        children: const [
+          Icon(Icons.info_outline, size: 14, color: Color(0xFFF9A825)),
+          SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              'Do not share client names, deal values, or confidential information.',
+              style: TextStyle(fontSize: 11, color: Color(0xFF7B6000)),
+            ),
           ),
         ],
       ),

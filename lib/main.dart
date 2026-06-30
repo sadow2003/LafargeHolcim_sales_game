@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:lafargeholcim_sales_game/ai/ai_coach_screen.dart';
 import 'package:lafargeholcim_sales_game/services/notification_service.dart';
 import 'package:lafargeholcim_sales_game/firebase_options.dart';
 import 'package:lafargeholcim_sales_game/screens/login.dart';
@@ -23,7 +24,7 @@ import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone
 import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_screen.dart';
-import 'package:lafargeholcim_sales_game/ai/ai_coach_screen.dart';
+//import 'package:lafargeholcim_sales_game/screens/maintenance_screen.dart';
 import 'package:lafargeholcim_sales_game/widgets/require_auth.dart';
 
 
@@ -45,9 +46,7 @@ void main() async {
   );
 
   await FirebaseAppCheck.instance.activate(
-    providerWeb: WebDebugProvider(),
-    providerAndroid: const AndroidDebugProvider(),
-    providerApple: const AppleDebugProvider(),
+    providerWeb: ReCaptchaV3Provider('6LdYDjQtAAAAAHZJ69lXkdeviS6ecPGwkfSQLdeU'),
   );
 
   // flutter_local_notifications does not support web — skip on web platform.
@@ -64,10 +63,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      //disables the red "DEBUG" banner that Flutter shows in the top-right corner of the app during development.
       debugShowCheckedModeBanner: false,
       title: 'SalesQuest',
-
       //global default theme style of the application , any page that doesnt override the style will inherit from this
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -148,8 +145,8 @@ class MyApp extends StatelessWidget {
             ),
         '/ai-coach': (context) => const RequireAuth(
               allowedRoles: ['salesperson'],
-              child: AiCoachScreen(),
-            ),
+              child: AiCoachScreen()
+        ),
 
         '/admin/dashboard': (context) => const RequireAuth(
               allowedRoles: ['admin'],

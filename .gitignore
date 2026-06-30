@@ -18,6 +18,12 @@ migrate_working_dir/
 *.env
 dotenv.env
 
+# Firebase service account keys — NEVER commit these
+serviceAccountKey.json
+*serviceAccountKey*.json
+*service_account*.json
+*-firebase-adminsdk-*.json
+
 # IntelliJ related
 *.iml
 *.ipr

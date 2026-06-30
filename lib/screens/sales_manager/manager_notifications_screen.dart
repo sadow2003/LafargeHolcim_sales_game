@@ -157,7 +157,7 @@ class ManagerNotificationsScreen extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: docs.length,
-            separatorBuilder: (_, _i) =>
+            separatorBuilder: (_, i) =>
                 const Divider(height: 1, indent: 16, endIndent: 16),
             itemBuilder: (context, i) {
               final doc = docs[i];

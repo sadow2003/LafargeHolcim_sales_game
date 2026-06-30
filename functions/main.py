@@ -65,6 +65,11 @@ def notify_managers_on_new_sale(event):
 # Deploy secrets once with: firebase functions:secrets:set ADMIN_SECRET
 @https_fn.on_call(secrets=[_ADMIN_SECRET, _MANAGER_SECRET, _MARKET_MANAGER_SECRET])
 def createUserProfile(req: https_fn.CallableRequest):
+    if req.app is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="App Check verification failed.",
+        )
     if req.auth is None:
         raise https_fn.HttpsError(
             code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
@@ -136,6 +141,11 @@ Response style:
 
 @https_fn.on_call(secrets=[_GROQ_API_KEY])
 def getAiCoachReply(req: https_fn.CallableRequest):
+    if req.app is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="App Check verification failed.",
+        )
     if req.auth is None:
         raise https_fn.HttpsError(
             code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,

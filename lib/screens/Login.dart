@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 6),
             action: SnackBarAction(
-              label: 'Resend',
+              label: 'Send',
               textColor: Colors.white,
               onPressed: () async {
                 try {
@@ -228,7 +228,6 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.red,
         ),
       );
-      //no matter what happend before this code it will always run the code here
     } finally {
       //if the widejet still exists then you can get out of the loading state
       if (mounted) setState(() => _isLoading = false);

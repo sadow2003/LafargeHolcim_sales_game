@@ -1,8 +1,9 @@
-import 'dart:typed_data';
+import 'dart:typed_data';//for the image proof
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart'; // Camera / gallery picker
 import 'package:lafargeholcim_sales_game/widgets/_buildDrawer.dart';
 import '../../main.dart';
@@ -464,9 +465,12 @@ class _SaleClaimPageState extends State<SaleClaimPage> {
 
               TextFormField(
                 controller: _quantityCtrl,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                ],
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.numbers),
+                  prefixIcon: const Icon(Icons.local_shipping_outlined),
                   hintText:   'e.g. 10',
                   suffixText: (_selectedProductCategory ?? '').toLowerCase().contains('concrete')
                       ? 'm³'
