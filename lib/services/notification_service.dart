@@ -301,4 +301,35 @@ class NotificationService {
       debugPrint('[FCM] Error sending sale claim notification: $e');
     }
   }
+
+  // ── Send sale-claim decision notification to the salesperson ──────────────
+
+  // Call this from the manager app after a sale claim is approved or rejected.
+  static Future<void> sendSaleClaimDecisionNotification({
+    required String userId,
+    required String productName,
+    required int quantity,
+    required String saleId,
+    required bool approved,
+    int pointsAwarded = 0,
+  }) async {
+    try {
+      final title = approved ? 'Sale Approved' : 'Sale Rejected';
+      final body = approved
+          ? 'Your claim for ${quantity}x $productName was approved. +$pointsAwarded points!'
+          : 'Your claim for ${quantity}x $productName was rejected.';
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': userId,
+        'saleId': saleId,
+        'title': title,
+        'body': body,
+        'read': false,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      debugPrint('[FCM] Decision notification sent to $userId');
+    } catch (e) {
+      debugPrint('[FCM] Error sending sale decision notification: $e');
+    }
+  }
 }

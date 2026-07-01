@@ -290,84 +290,11 @@ class _LoginPageState extends State<LoginPage> {
 
                 // ── Logo ─────────────────────────────────────────────
                 Center(
-                  child: SizedBox(
-                    width: 140,
-                    height: 140,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Blue circle — top-right
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Container(
-                            width: 90,
-                            height: 90,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF0055CC), Color(0xFF0096E6)],
-                                begin: Alignment.bottomLeft,
-                                end: Alignment.topRight,
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Teal-green circle — bottom-left
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          child: Container(
-                            width: 90,
-                            height: 90,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF00B87C), Color(0xFF00AEEF)],
-                                begin: Alignment.bottomLeft,
-                                end: Alignment.topRight,
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Trending-up chart arrow
-                        const Icon(
-                          Icons.trending_up,
-                          size: 58,
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
+                  child: Image.asset(
+                    'assets/images/SalesQuest_Logo8.png',
+                    width: 500,
                   ),
                 ),
-
-
-
-                const SizedBox(height: 20),
-
-
-
-                const Text(
-                  'SalesQuest',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-
-
-
-
-                const Text(
-                  'Holcim Maroc',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.white70),
-                ),
-
-
-
 
                 const SizedBox(height: 40),
 
@@ -417,18 +344,18 @@ class _LoginPageState extends State<LoginPage> {
 
 
                 //____Password Reset text Button____________________
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _forgotPassword,
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: TextButton(
+                //     onPressed: _forgotPassword,
+                //     child: const Text(
+                //       'Forgot Password?',
+                //       style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
+                //     ),
+                //   ),
+                // ),
 
-                 const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
 
 

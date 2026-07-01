@@ -33,7 +33,7 @@ class NotificationBell extends StatelessWidget {
           onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const ManagerNotificationsScreen(),
+              builder: (_) => const NotificationsScreen(),
             ),
           ),
           icon: Stack(
@@ -79,8 +79,8 @@ class NotificationBell extends StatelessWidget {
 
 
 // ── Notifications screen ─────────────────────────────────────────────────────
-class ManagerNotificationsScreen extends StatelessWidget {
-  const ManagerNotificationsScreen({super.key});
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({super.key});
 
   Future<void> _markAllRead(String uid) async {
     final snap = await FirebaseFirestore.instance

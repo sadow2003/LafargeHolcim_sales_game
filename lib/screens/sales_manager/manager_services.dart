@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import '../broadcast/broadcast_milestones.dart';
+import '../../services/notification_service.dart';
 
 class ManagerService {
   ManagerService._();
@@ -104,6 +105,16 @@ class ManagerService {
       quantity,
     );
 
+    // Step 9: Notify the salesperson that their claim was approved.
+    await NotificationService.sendSaleClaimDecisionNotification(
+      userId: userId,
+      productName: data['productName'] as String? ?? '',
+      quantity: quantity,
+      saleId: saleId,
+      approved: true,
+      pointsAwarded: pointsAwarded,
+    );
+
     return pointsAwarded;
   }
 
@@ -174,6 +185,17 @@ class ManagerService {
     });
 
     await deleteProofImage(data['proofImageUrl'] as String?);
+
+    final userId = data['userId'] as String?;
+    if (userId != null) {
+      await NotificationService.sendSaleClaimDecisionNotification(
+        userId: userId,
+        productName: data['productName'] as String? ?? '',
+        quantity: (data['quantity'] ?? 0) as int,
+        saleId: saleId,
+        approved: false,
+      );
+    }
   }
 
   // ── Recalculate Ranks ───────────────────────────────────────────────────────

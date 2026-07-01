@@ -47,6 +47,12 @@ void main() async {
 
   await FirebaseAppCheck.instance.activate(
     providerWeb: ReCaptchaV3Provider('6LdYDjQtAAAAAHZJ69lXkdeviS6ecPGwkfSQLdeU'),
+    providerAndroid: kDebugMode
+        ? const AndroidDebugProvider()
+        : const AndroidPlayIntegrityProvider(),
+    providerApple: kDebugMode
+        ? const AppleDebugProvider()
+        : const AppleAppAttestProvider(),
   );
 
   // flutter_local_notifications does not support web — skip on web platform.

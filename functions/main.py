@@ -60,6 +60,49 @@ def notify_managers_on_new_sale(event):
     )
 
 
+# Triggers when a sale document's status changes (manager approves/rejects it).
+# Sends a push notification back to the salesperson who submitted the claim.
+@firestore_fn.on_document_updated(document="sales/{saleId}")
+def notify_salesperson_on_sale_decision(event):
+    before = event.data.before.to_dict() if event.data and event.data.before else {}
+    after  = event.data.after.to_dict()  if event.data and event.data.after  else {}
+
+    before_status = before.get("status", "pending")
+    after_status  = after.get("status", "pending")
+
+    # Only notify on the transition into a decided state, not on every edit.
+    if before_status == after_status or after_status not in ("approved", "rejected"):
+        return
+
+    user_id      = after.get("userId")
+    product_name = after.get("productName", "a product")
+    quantity     = after.get("quantity", 0)
+    points       = after.get("pointsAwarded", 0)
+    if not user_id:
+        return
+
+    db   = fb_firestore.client()
+    user = db.collection("users").document(user_id).get().to_dict() or {}
+    token = user.get("fcmToken")
+    if not token:
+        return
+
+    if after_status == "approved":
+        title = "Sale Approved"
+        body  = f"Your claim for {quantity}x {product_name} was approved. +{points} points!"
+    else:
+        title = "Sale Rejected"
+        body  = f"Your claim for {quantity}x {product_name} was rejected."
+
+    messaging.send(
+        messaging.Message(
+            notification=messaging.Notification(title=title, body=body),
+            android=messaging.AndroidConfig(priority="high"),
+            token=token,
+        )
+    )
+
+
 # Validates the role secret server-side and writes the user profile document.
 # Secrets live in Cloud Secret Manager — never in the client app binary.
 # Deploy secrets once with: firebase functions:secrets:set ADMIN_SECRET
@@ -163,7 +206,7 @@ def getAiCoachReply(req: https_fn.CallableRequest):
         from groq import Groq
         client = Groq(api_key=_GROQ_API_KEY.value.strip())
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
             messages=[{"role": "system", "content": _SYSTEM_PROMPT}] + messages,
             max_tokens=600,
             temperature=0.85,

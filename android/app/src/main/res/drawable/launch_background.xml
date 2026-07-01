@@ -6,7 +6,7 @@
         android:height="120dp"
         android:gravity="center">
         <bitmap
-            android:src="@mipmap/ic_launcher"
+            android:src="@drawable/splash_icon"
             android:gravity="fill" />
     </item>
 </layer-list>

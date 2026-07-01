@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../main.dart';
 import '../../widgets/_buildDrawer.dart';
 import '../../widgets/gradient_app_bar.dart';
+import '../notifications_screen.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -22,7 +23,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GradientAppBar(title: 'Dashboard'),
+      appBar: GradientAppBar(
+        title: 'Dashboard',
+        actions: const [NotificationBell()],
+      ),
       drawer: const AppDrawer(), // Side menu — defined in _buildDrawer.dart
 
 

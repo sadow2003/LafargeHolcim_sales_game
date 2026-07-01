@@ -81,10 +81,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
-    - assets/images/app_logo.png
-    - assets/images/racecar_gold.svg
-    - assets/images/racecar_silver.svg
-    - assets/images/racecar_bronze.svg
+    - assets/images/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
