@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
-import 'broadcast_constants.dart';
 
 class PostBroadcastSheet extends StatefulWidget {
   final User? currentUser;
@@ -23,7 +22,6 @@ class PostBroadcastSheet extends StatefulWidget {
 }
 
 class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
-  String _selectedType = 'general';
   final _contentCtrl = TextEditingController();
   bool _posting = false;
 
@@ -51,7 +49,7 @@ class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
       'authorName': authorName,
       'authorRole': userData?['role'] ?? 'salesperson',
       'authorPhotoUrl': userData?['photoUrl'],
-      'type': _selectedType,
+      'type': 'general',
       'content': text,
       'pointsAtTime': userData?['totalPoints'] ?? 0,
       'rankAtTime': widget.currentRank > 0 ? widget.currentRank : null,
@@ -113,54 +111,6 @@ class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
 
           const SizedBox(height: 18),
 
-          // type selector
-          Row(
-            children: broadcastTypes.map((t) {
-              final isSelected = _selectedType == t['key'];
-              final color = t['color'] as Color;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedType = t['key'] as String),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? color.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isSelected
-                            ? color
-                            : Colors.white.withValues(alpha: 0.1),
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(t['icon'] as IconData,
-                            color: isSelected ? color : Colors.white38,
-                            size: 20),
-                        const SizedBox(height: 4),
-                        Text(
-                          t['label'] as String,
-                          style: TextStyle(
-                              color: isSelected ? color : Colors.white38,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 16),
-
           // text input
           TextField(
             controller: _contentCtrl,
@@ -168,9 +118,9 @@ class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
             maxLength: 280,
 
             style: const TextStyle(color: Colors.white),
-           
+
             decoration: InputDecoration(
-              hintText: broadcastHints[_selectedType],
+              hintText: 'Share something with your team...',
               hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.05),

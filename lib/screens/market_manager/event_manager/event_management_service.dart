@@ -70,6 +70,16 @@ class EventManagementService {
 
     batch.set(_db.collection('settings').doc('salesEvent'), payload);
     await batch.commit();
+
+    await _postEventBroadcast(
+      'New Sales Event Started!\n'
+      '${_filterLabel(productCategory, productName)} — Target: '
+      '$targetQuantity ${_unitLabel(productCategory)}.\n'
+      'Ends ${_fmtDateTime(range.end)}.',
+      phase:       'started',
+      category:    productCategory,
+      productName: productName,
+    );
   }
 
   /// Closes the event: saves winners + all participants, deletes the event doc,
@@ -85,6 +95,17 @@ class EventManagementService {
     await _saveLastEventResult(allRanked, rawRewards);
     await _db.collection('settings').doc('salesEvent').delete();
     await _resetAllSalespersonPoints();
+
+    final category    = eventData['productCategory'] as String? ?? '';
+    final productName = eventData['productName']      as String?;
+    await _postEventBroadcast(
+      'Sales Event Ended!\n'
+      '${_filterLabel(category, productName)} — the sales window is now '
+      'closed. Check the Rewards screen for the results!',
+      phase:       'ended',
+      category:    category,
+      productName: productName,
+    );
   }
 
   // ── Rank ALL participants by their current totalPoints ───────────────────
@@ -138,6 +159,58 @@ class EventManagementService {
       'closedAt':     FieldValue.serverTimestamp(),
       'winners':      winners,
       'participants': participants,
+    });
+  }
+
+  // ── Broadcast helpers ─────────────────────────────────────────────────────
+
+  // Describes the progress filter: the specific product if one was chosen,
+  // otherwise just the category.
+  static String _filterLabel(String category, String? productName) =>
+      (productName != null && productName.isNotEmpty)
+          ? 'Product: $productName'
+          : 'Category: $category';
+
+  static String _unitLabel(String category) =>
+      category == 'Concrete' ? 'm³' : 'tonnes';
+
+  static String _fmtDateTime(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}  '
+      '${d.hour.toString().padLeft(2, '0')}:'
+      '${d.minute.toString().padLeft(2, '0')}';
+
+  // Posts a system broadcast authored by the current market manager.
+  //
+  // [phase] and [category]/[productName] are stored alongside the free-text
+  // [content] so the broadcast UI can style start vs. end events differently
+  // and highlight the product/category the event is about, without having
+  // to parse it back out of the message text.
+  static Future<void> _postEventBroadcast(
+    String content, {
+    required String phase,
+    required String category,
+    String? productName,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final userDoc  = await _db.collection('users').doc(uid).get();
+    final userData = userDoc.data() ?? {};
+    final authorName =
+        '${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}'.trim();
+
+    await _db.collection('broadcasts').add({
+      'authorId':        uid,
+      'authorName':      authorName.isNotEmpty ? authorName : 'System',
+      'authorRole':      'market-manager',
+      'type':            'event',
+      'content':         content,
+      'eventPhase':      phase,
+      'eventCategory':   category,
+      if (productName != null && productName.isNotEmpty)
+        'eventProductName': productName,
+      'reactions':       {},
+      'createdAt':       FieldValue.serverTimestamp(),
     });
   }
 

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
-import 'broadcast_constants.dart';
 
 class EditBroadcastSheet extends StatefulWidget {
   final String docId;
@@ -22,14 +21,12 @@ class EditBroadcastSheet extends StatefulWidget {
 
 
 class _EditBroadcastSheetState extends State<EditBroadcastSheet> {
-  late String _selectedType;
   late TextEditingController _contentCtrl;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedType = widget.initialType;
     _contentCtrl = TextEditingController(text: widget.initialContent);
   }
 
@@ -48,7 +45,6 @@ class _EditBroadcastSheetState extends State<EditBroadcastSheet> {
         .collection('broadcasts')
         .doc(widget.docId)
         .update({
-      'type': _selectedType,
       'content': text,
       'editedAt': FieldValue.serverTimestamp(),
     });
@@ -93,52 +89,6 @@ class _EditBroadcastSheetState extends State<EditBroadcastSheet> {
           ),
           const SizedBox(height: 18),
 
-          // type selector
-          Row(
-            children: broadcastTypes.map((t) {
-              final isSelected = _selectedType == t['key'];
-              final color = t['color'] as Color;
-              return Expanded(
-
-                child: GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedType = t['key'] as String),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? color.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isSelected
-                            ? color
-                            : Colors.white.withValues(alpha: 0.1),
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Column(children: [
-                      Icon(t['icon'] as IconData,
-                          color: isSelected ? color : Colors.white38,
-                          size: 20),
-                      const SizedBox(height: 4),
-                      Text(
-                        t['label'] as String,
-                        style: TextStyle(
-                            color: isSelected ? color : Colors.white38,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ]),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 16),
           // content input
           TextField(
             controller: _contentCtrl,

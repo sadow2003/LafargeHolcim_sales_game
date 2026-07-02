@@ -22,7 +22,7 @@ class _BroadcastScreenState extends State<BroadcastScreen>
   late TabController _tabController;
   String _currentUserRole = 'salesperson';
   // Define the tabs for filtering broadcasts
-  static const _tabs = ['All', 'Messages', 'Milestones'];
+  static const _tabs = ['All', 'Messages', 'Milestones', 'Events'];
 
   @override
   void initState() {
@@ -54,6 +54,13 @@ class _BroadcastScreenState extends State<BroadcastScreen>
     if (filter == 'Messages') {
       return col
           .where('type', isEqualTo: 'general')
+          .orderBy('createdAt', descending: true)
+          .limit(60)
+          .snapshots();
+    }
+    if (filter == 'Events') {
+      return col
+          .where('type', isEqualTo: 'event')
           .orderBy('createdAt', descending: true)
           .limit(60)
           .snapshots();

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../main.dart';
 import 'broadcast_constants.dart';
 import 'broadcast_milestones.dart';
+import 'broadcast_event.dart';
 import 'broadcast_edit_sheet.dart';
 
 
@@ -114,6 +115,16 @@ class BroadcastCard extends StatelessWidget {
     }
 
     final type = (data['type'] as String? ?? 'general').toLowerCase();
+
+    // Event posts get a special themed card
+    if (type == 'event') {
+      return EventBroadcastCard(
+        docId:           docId,
+        data:            data,
+        currentUid:      currentUid,
+        currentUserRole: currentUserRole,
+      );
+    }
     
     final typeColor =
         broadcastTypeColors[type] ?? const Color(0xFFB0B0B0);
