@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../leaderboard_themes/stickman_theme.dart';
 import '../leaderboard_themes/racecar_theme.dart';
 import '../leaderboard_themes/top_contributors_theme.dart';
 
-enum PodiumTheme { stickman, raceCar, topContributors }
+enum PodiumTheme { raceCar, topContributors }
 
 // ── Podium section (animated podium only, theme is fixed per system) ─────────
 
@@ -53,17 +52,7 @@ class PodiumSection extends StatelessWidget {
                   targetQuantity: targetQuantity,
                 );
               }
-              if (selectedTheme == PodiumTheme.topContributors) {
-                return TopContributorsPodium(
-                  top1:         top1,
-                  top2:         top2,
-                  top3:         top3,
-                  phase:        climbController.value,
-                  currentUid:   currentUid,
-                  podiumHeight: podiumHeight,
-                );
-              }
-              return StickmanPodium(
+              return TopContributorsPodium(
                 top1:         top1,
                 top2:         top2,
                 top3:         top3,

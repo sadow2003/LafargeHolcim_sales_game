@@ -44,10 +44,10 @@ package "Application Mobile Flutter" as FLUTTER #E8F4FD {
   interface "IBaseDeDonnées"     as I_DB
   interface "IStockage"          as I_ST
   interface "INotificationPush"  as I_FCM
-  interface "ICoachIA"           as I_AI
+  interface "ICloudFunctions"    as I_CF
 
   ' UI → Services
-  C_AUTH ..> S_USR    : utilise
+  C_AUTH ..> S_USR    : utilise / inscription
   C_SP   ..> S_SALE   : soumet vente
   C_SP   ..> S_RANK   : consulte classement
   C_SM   ..> S_SALE   : approuve / rejette
@@ -58,14 +58,15 @@ package "Application Mobile Flutter" as FLUTTER #E8F4FD {
 
   ' Services → Interfaces
   S_USR   --> I_AUTH  : <<use>>
+  S_USR   --> I_CF    : <<use>> createUserProfile
   S_SALE  --> I_DB    : <<use>>
   S_SALE  --> I_ST    : <<use>>
-  S_SALE  --> I_FCM   : <<use>>
   S_EVT   --> I_DB    : <<use>>
-  S_NOTIF --> I_FCM   : <<use>>
+  S_NOTIF --> I_FCM   : <<use>> réception push
+  S_NOTIF --> I_DB    : <<use>> token FCM (save/clear)
   S_RANK  --> I_DB    : <<use>>
   S_USR   --> I_DB    : <<use>>
-  S_AI    --> I_AI    : <<use>>
+  S_AI    --> I_CF    : <<use>> getAiCoachReply
 }
 
 ' ══════════════════════════════════════
@@ -76,14 +77,14 @@ package "Firebase Platform" as FB #FFFDE7 {
   [Cloud Firestore\n(Base de données)] as FB_FS
   [Firebase Storage\n(Fichiers)]   as FB_ST
   [Firebase Cloud\nMessaging (FCM)] as FB_FCM
-  [Cloud Functions\n(Python)]      as FB_CF
+  [Cloud Functions\n(Python 3.12)\ncreateUserProfile · getAiCoachReply\nnotify_managers_on_new_sale\nnotify_salesperson_on_sale_decision] as FB_CF
 }
 
 ' ══════════════════════════════════════
 '  SERVICES EXTERNES
 ' ══════════════════════════════════════
 package "Services Externes" as EXT #FCE4EC {
-  [API Groq\n(Llama 3.1 — LLM)]  as EXT_GROQ
+  [API Groq\n(llama-4-scout-17b-16e-instruct)]  as EXT_GROQ
 }
 
 ' ══════════════════════════════════════
@@ -93,14 +94,17 @@ I_AUTH --> FB_AUTH  : HTTPS / SDK
 I_DB   --> FB_FS    : SDK Firestore
 I_ST   --> FB_ST    : SDK Storage
 I_FCM  --> FB_FCM   : SDK FCM
+I_CF   --> FB_CF    : Callable / HTTPS
 
-' Cloud Functions
+' Cloud Functions triggers déclenchés par des écritures Firestore
+FB_FS  --> FB_CF   : Trigger onCreate / onUpdate\n(sales/{saleId})
 FB_CF  --> FB_FS   : lecture / écriture
 FB_CF  --> FB_FCM  : envoi notifications
 
 ' ══════════════════════════════════════
-'  CONNEXION COACH IA → GROQ
+'  CONNEXION COACH IA → GROQ (via Cloud Functions — la clé API
+'  Groq est un secret serveur, jamais exposée au client)
 ' ══════════════════════════════════════
-I_AI --> EXT_GROQ : HTTP REST\nPOST /chat/completions
+FB_CF --> EXT_GROQ : HTTPS REST\nPOST /chat/completions
 
 @enduml

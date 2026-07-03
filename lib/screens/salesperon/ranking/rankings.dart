@@ -160,7 +160,7 @@ class _RankingsPageState extends State<RankingsPage>
                         return TabBarView(
                           controller: _tabController,
                           children: [
-                            // ── Event: stickman leaderboard ───────────
+                            // ── Event: top contributors leaderboard ───
                             EventLeaderboardBody(
                               docs:              docs,
                               currentUid:        _currentUser?.uid,

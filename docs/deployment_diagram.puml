@@ -20,7 +20,7 @@ title Diagramme de Déploiement — LafargeHolcim SalesQuest
 ' ══════════════════
 node "Appareil Mobile\n(Android / iOS)" as MOBILE <<device>> #E3F2FD {
   artifact "Application Flutter\nSalesQuest" as APP
-  artifact ".env (GROQ_API_KEY)"             as ENV
+  artifact "Firebase App Check\n(Play Integrity / DeviceCheck)" as A_APPCHECK
 }
 
 ' ══════════════════
@@ -44,8 +44,8 @@ node "Firebase Platform  —  Google Cloud" as FIREBASE <<cloud>> #FFFDE7 {
     artifact "Notifications Push" as A_FCM
   }
 
-  node "Cloud Functions\n(Python)" as N_CF <<server>> #FFF9C4 {
-    artifact "notify_managers\nauto_close_event" as A_CF
+  node "Cloud Functions\n(Python 3.12)" as N_CF <<server>> #FFF9C4 {
+    artifact "createUserProfile\ngetAiCoachReply\nnotify_managers_on_new_sale\nnotify_salesperson_on_sale_decision" as A_CF
   }
 }
 
@@ -53,7 +53,7 @@ node "Firebase Platform  —  Google Cloud" as FIREBASE <<cloud>> #FFFDE7 {
 '  GROQ CLOUD
 ' ══════════════════
 node "Groq Cloud" as GROQ <<cloud>> #FCE4EC {
-  artifact "llama-3.1-8b-instant" as A_LLM
+  artifact "llama-4-scout-17b-16e-instruct" as A_LLM
 }
 
 ' ══════════════════
@@ -63,10 +63,13 @@ APP  --> N_AUTH : SDK / HTTPS
 APP  --> N_FS   : SDK / WebSocket
 APP  --> N_ST   : SDK / HTTPS
 APP  --> N_FCM  : SDK / Token
-APP  --> GROQ   : HTTPS REST
+APP  --> N_CF   : Callable / HTTPS
+APP  ..> A_APPCHECK : attests
 
-N_CF --> N_FS   : Trigger / R-W
-N_CF --> N_FCM  : Multicast Push
+N_CF --> N_FS   : R-W
+N_CF --> GROQ   : HTTPS REST
+N_FS --> N_CF   : Trigger (onCreate / onUpdate)
+N_CF --> N_FCM  : Multicast / Unicast Push
 N_FCM --> MOBILE : FCM / APNs
 
 @enduml

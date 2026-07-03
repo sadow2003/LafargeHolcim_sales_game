@@ -5,7 +5,7 @@ top to bottom direction
 skinparam classFontSize 10
 skinparam classAttributeFontSize 9
 skinparam ArrowFontSize 9
-skinparam ArrowColor #444444s
+skinparam ArrowColor #444444
 skinparam classBorderColor #003366
 skinparam classBackgroundColor #FFFFFF
 skinparam packageBorderColor #888888
@@ -13,72 +13,96 @@ skinparam packageBackgroundColor #FAFAFA
 skinparam padding 3
 skinparam nodesep 18
 skinparam ranksep 28
+skinparam noteBackgroundColor #FFF9C4
+skinparam noteBorderColor #999999
 
-title Diagramme de Classes — LafargeHolcim SalesQuest
+title Diagramme de Classes — LafargeHolcim SalesQuest\n(reflète les documents Firestore et services réels, pas des classes du code)
 
 ' ═══════════════════════════════════════════
-'  UTILISATEURS
+'  UTILISATEURS  — document Firestore "users"
 ' ═══════════════════════════════════════════
 
 class User {
   + uid : String
-  + nom : String
+  + firstName : String
+  + lastName : String
   + email : String
   + role : String
-  + fcmToken : String?
-  + photo_Url : String?
-}
-
-class Commercial {
-  + PointsTotal : int
+  + totalPoints : int
   + rank : int
-  + progress_Quality : int
+  + progressQuantity : int
+  + fcmToken : String?
+  + photoUrl : String?
+  + createdAt : Timestamp
+}
+note right of User
+  Un seul document Firestore par utilisateur ;
+  "Commercial / ResponsableVente / ResponsableMarché /
+  Administrateur" ne sont pas des sous-classes réelles,
+  seulement des valeurs du champ **role**.
+end note
+
+class Commercial <<role: salesperson>> {
   --
-  + soumettre_Vente()
-  + classement_vue()
-  + Messager_AI()
-  + collecterRecompenses()
+  + submitSale()
+  + viewRanking()
+  + openAiCoach()
+  + viewRewardStore()
 }
 
-class ResponsableVente {
-  + Vente_Attends : List~Vente~
+class ResponsableVente <<role: sales-manager>> <<service>> {
   --
-  + approuverVente()
-  + rejeterVente()
-  + CréerProduit()
-  + ModifierProduit()
-  + supprimerProduit()
+  + approveSale()
+  + rejectSale()
+  + createProduct()
+  + updateProduct()
+  + deleteProduct()
+  + recalculateRanks()
+  + checkMilestone()
+  + cleanupOldProofImages()
 }
+note right of ResponsableVente
+  Implémenté par ManagerService (méthodes statiques)
+  operant sur les collections "sales" / "products".
+end note
 
-class ResponsableMarché {
-  + Evenement_actif : EvenementVente
+class ResponsableMarché <<role: market-manager>> <<service>> {
   --
-  + créerEvenement()
-  + afficherResultats()
-  + annulerEvenement()
+  + createEvent()
+  + deleteEvent()
+  + displayResults()
 }
+note right of ResponsableMarché
+  Implémenté par EventManagementService (méthodes statiques).
+  L'événement actif n'est pas stocké sur l'objet : il est lu
+  en direct via eventStream() sur settings/salesEvent.
+end note
 
-class Administrateur {
-  + Users : List~User~
+class Administrateur <<role: admin>> <<service>> {
   --
-  + créerUtilisateur()
-  + modifierUtilisateur()
-  + supprimerUtilisateur()
+  + createUser()
+  + updateUser()
+  + deleteUser()
+  + recalculateRanks()
 }
+note right of Administrateur
+  Implémenté par UserService (méthodes statiques),
+  pas de champ "users : List<User>" en mémoire.
+end note
 
 ' ═══════════════════════════════════════════
 '  IA COACH
 ' ═══════════════════════════════════════════
 
-class AI_Coach {
-  + nomCommercial : String
-  + messages : List~String~
-  + apiUrl : String
-  + systemPrompt : String
+class AiCoachService <<service>> {
   --
-  + envoyerMessage()
-  + prompt()
+  + sendMessage(history: List~Map~) : String
 }
+note right of AiCoachService
+  Appelle la Cloud Function "getAiCoachReply".
+  Le systemPrompt (personnalité "Max") vit uniquement
+  côté serveur (functions/main.py), jamais dans le client.
+end note
 
 class ChatMessage {
   + text : String
@@ -87,86 +111,126 @@ class ChatMessage {
 }
 
 ' ═══════════════════════════════════════════
-'  VENTE & PRODUIT
+'  VENTE & PRODUIT — collections "sales" / "products"
 ' ═══════════════════════════════════════════
 
 class Vente {
-  + Id : String
+  + id : String
   + userId : String
+  + userName : String
   + productId : String
+  + productName : String
+  + productCategory : String
   + quantity : int
   + status : String
-  + Points_gagnants : int
-  + Photo_preuve_Url : String
-  + CreatedAt : TimeStamp
+  + pointsAwarded : int
+  + proofImageUrl : String
+  + createdAt : Timestamp
 }
 
 class Produit {
   + id : String
   + name : String
   + category : String
-  + Description : String
-  + pointsPerUnit : int
+  + description : String
+  + productPoints : int
 }
 
 class Notification {
   + id : String
   + userId : String
   + saleId : String
-  + Timestamp : DateTime
-  + Message : String
-  + titre : String
+  + title : String
+  + body : String
+  + read : bool
+  + timestamp : Timestamp
+  --
+  + markAsRead()
 }
+note right of Notification
+  Distinct des pushs FCM envoyés directement par les
+  Cloud Functions (title/body uniquement, non persistés).
+end note
 
 ' ═══════════════════════════════════════════
-'  ÉVÉNEMENT & RÉCOMPENSES
+'  ÉVÉNEMENT & RÉCOMPENSES — doc "settings/salesEvent"
 ' ═══════════════════════════════════════════
 
 class EvenementVente {
-  + date_debut : DateTime
-  + date_fin : DateTime
-  + ProductCategory : String
+  + startDate : DateTime
+  + endDate : DateTime
+  + productCategory : String
+  + productId : String?
   + productName : String?
-  + TargetQuantity : int
-  + RecompenseArgent : List~Rewards~
+  + targetQuantity : int
+  + rewards : Map~String, MoneyReward~
+  + createdBy : String
+  + updatedAt : Timestamp
+}
+note right of EvenementVente
+  "rewards" est une Map indexée par rang ("1"/"2"/"3"),
+  pas une List.
+end note
+
+class MoneyReward {
+  + amount : double
 }
 
-class Rewards {
-  + id : String
-  + Quantity : Double
+class EventResult {
   + rank : int
-  + Commercial_id : String?
+  + userId : String
+  + userName : String
+  + rewardAmount : double
+  + closedAt : Timestamp
+}
+note right of EventResult
+  Snapshot du classement final, stocké dans
+  settings/lastEventResult à la clôture de l'événement.
+end note
+
+class RewardReceiptPdf <<service>> {
   --
-  + RecuitPDF()
+  + share(userName, rank, rewardAmount, closedAt, userId)
 }
 
 ' ═══════════════════════════════════════════
-'  BROADCAST & JALONS
+'  BROADCAST & JALONS — collection "broadcasts"
 ' ═══════════════════════════════════════════
 
 class Broadcast {
   + id : String
   + authorId : String
+  + authorName : String
+  + authorRole : String
+  + authorPhotoUrl : String?
   + content : String
-  + reactions : String
-  + date : Timestamp
-  + isJaslon : Boolean
+  + reactions : Map~String, List~String~~
+  + createdAt : Timestamp
+  + type : String
+  + isMilestone : bool?
+  + pointsAtTime : int?
+  + rankAtTime : int?
+  + eventPhase : String?
+  + eventCategory : String?
+  + eventProductName : String?
+  + awardedUserId : String?
+  + awardedUserName : String?
+  + milestoneCount : int?
 }
-
-class Jaslon {
-  + id : String
-  + Nom_Commercial : String
-  + PointTotal : String
-  + Message : String
-}
+note right of Broadcast
+  "type" ∈ {general, event, milestone}. Un "Jalon" (milestone)
+  n'est PAS une sous-classe : c'est le même document Broadcast
+  avec type="milestone" / isMilestone=true.
+  "reactions" est une Map emoji → liste d'userId, pas un String.
+end note
 
 ' ═══════════════════════════════════════════
-'  HÉRITAGE — tous les rôles héritent de User
+'  HÉRITAGE — rôles au sein de "users" (conceptuel)
 ' ═══════════════════════════════════════════
-Commercial       --|> User
-ResponsableVente --|> User
-ResponsableMarché --|> User
-Administrateur   --|> User
+Commercial       ..|> User : role
+ResponsableVente ..|> User : role
+ResponsableMarché ..|> User : role
+Administrateur   ..|> User : role
 
 ' ═══════════════════════════════════════════
 '  ASSOCIATIONS
@@ -174,15 +238,16 @@ Administrateur   --|> User
 
 ' Commercial
 Commercial "1" --> "n" Vente         : soumet
-Commercial "1" --> "n" Rewards       : collecte
-Commercial      --> AI_Coach         : consulte
+Commercial      --> AiCoachService   : consulte
+Commercial "1" --> "n" EventResult   : peut recevoir
 
 ' Vente
 Vente "n" --> "1" Produit            : concerne
-Vente "1" ..> "1" Notification       : déclenche
+Vente "1" ..> "1" Notification       : déclenche (trigger Firestore)
 
 ' ResponsableVente
 ResponsableVente "1" --> "n" Vente   : gère / approuve
+ResponsableVente "1" --> "n" Produit : gère
 
 ' ResponsableMarché
 ResponsableMarché "1" --> "0..1" EvenementVente : gère
@@ -191,13 +256,14 @@ ResponsableMarché "1" --> "0..1" EvenementVente : gère
 Administrateur "1" --> "n" User      : administre
 
 ' IA Coach
-AI_Coach "1" *-- "n" ChatMessage     : historique
+AiCoachService "1" *-- "n" ChatMessage : historique (local, non persisté)
 
 ' Événement
-EvenementVente "1" *-- "n" Rewards   : récompenses
+EvenementVente "1" *-- "n" MoneyReward : rewards (par rang)
+EvenementVente "1" ..> "1" EventResult : clôture vers
+EventResult ..> RewardReceiptPdf       : génère
 
 ' Broadcast / Jalon
-Jaslon --|> Broadcast                : est un type de
-Broadcast "n" --> "1" User          : publiée par
+Broadcast "n" --> "1" User          : publié par
 
 @enduml
