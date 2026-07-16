@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';//in simple terms: it provides a way to check if the app is running in debug mode or release mode, which can be useful for enabling or disabling certain features or behaviors based on the build configuration.
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -24,7 +24,6 @@ import 'package:lafargeholcim_sales_game/screens/salesperon/milestones/milestone
 import 'package:lafargeholcim_sales_game/screens/market_manager/market_manager_dashboard.dart';
 import 'package:lafargeholcim_sales_game/screens/market_manager/event_manager/event_management.dart';
 import 'package:lafargeholcim_sales_game/screens/salesperon/reward_store/reward_screen.dart';
-//import 'package:lafargeholcim_sales_game/screens/maintenance_screen.dart';
 import 'package:lafargeholcim_sales_game/widgets/require_auth.dart';
 
 
@@ -34,7 +33,7 @@ const Color kSecondaryColor = Color(0xFF8DC21F);
 const Color kCyanColor      = Color(0xFF00AEEF); // brand cyan
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();//ensures that the Flutter framework is fully initialized before running the app, which is necessary for certain operations like Firebase initialization.
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
@@ -42,22 +41,19 @@ void main() async {
   }
 
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: DefaultFirebaseOptions.currentPlatform,//initializes the Firebase app with the default options for the current platform (e.g., Android, iOS, web) specified in the DefaultFirebaseOptions class.
   );
 
   await FirebaseAppCheck.instance.activate(
-    providerWeb: ReCaptchaV3Provider('6LdYDjQtAAAAAHZJ69lXkdeviS6ecPGwkfSQLdeU'),
+    providerWeb: ReCaptchaV3Provider('6Ldf3TMtAAAAAIoACFAtToZv-Ww_N8h7MImmtIYX'),
     providerAndroid: kDebugMode
         ? const AndroidDebugProvider()
         : const AndroidPlayIntegrityProvider(),
-    providerApple: kDebugMode
-        ? const AppleDebugProvider()
-        : const AppleAppAttestProvider(),
   );
 
   // flutter_local_notifications does not support web — skip on web platform.
   if (!kIsWeb) {
-    unawaited(NotificationService.instance.init());
+    unawaited(NotificationService.instance.init());//initializes the notification service for the app, allowing it to handle local notifications. The unawaited function is used to indicate that the initialization can run asynchronously without blocking the main thread.
   }
 
   runApp(const MyApp());

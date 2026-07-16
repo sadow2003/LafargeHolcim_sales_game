@@ -35,17 +35,16 @@ class NotificationService {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-        // iOS initialization with permission requests
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
-
+    //     // iOS initialization with permission requests
+    // const DarwinInitializationSettings iosSettings =
+    //     DarwinInitializationSettings(
+    //       requestAlertPermission: true,
+    //       requestBadgePermission: true,
+    //       requestSoundPermission: true,
+    //     );
         // Combine platform settings
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+        InitializationSettings(android: androidSettings);
 
     await _notificationsPlugin.initialize(initializationSettings);
   }
@@ -60,21 +59,21 @@ class NotificationService {
 
 
     // Request permissions on iOS (no-op on Android)
-    final settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // final settings = await _fcm.requestPermission(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
 
     // For debugging: print the permission status
-    debugPrint('[FCM] Permission: ${settings.authorizationStatus}');
+    // debugPrint('[FCM] Permission: ${settings.authorizationStatus}');
 
     // On iOS, this controls whether notifications are shown when the app is in the foreground
-    await _fcm.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // await _fcm.setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
 
     //initialize the local notifications plugin
     await initialize();

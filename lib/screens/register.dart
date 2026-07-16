@@ -52,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
-  // email must be a valid @lafargeholcim.com address.
+  // email must be a valid @holcim.com address.
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your email';
 
@@ -60,8 +60,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
 
     //only official Holcim emails are allowed.
-    if (!value.toLowerCase().endsWith('@lafargeholcim.com')) {
-      return 'Only @lafargeholcim.com emails are allowed';
+    if (!value.toLowerCase().endsWith('@holcim.com')) {
+      return 'Only @holcim.com emails are allowed';
     }
     return null;
    }
@@ -249,7 +249,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
-                    hintText: 'yourname@lafargeholcim.com',
+                    hintText: 'yourname@holcim.com',
                   ),
                   validator: _validateEmail,
                 ),

@@ -50,61 +50,49 @@ class ManagerService {
     final userId    = data['userId']    as String?;
     final productId = data['productId'] as String?;
     final quantity  = (data['quantity'] ?? 0) as int;
-
     if (userId == null || productId == null) {
       throw Exception('Missing userId or productId on sale document.');
     }
-
     // Step 1: Fetch product point value and category.
     final productDoc    = await _db.collection('products').doc(productId).get();
     final productPoints = (productDoc.data()?['productPoints'] ?? 0) as int;
     final productCat    = (productDoc.data()?['category']      ?? '') as String;
-
     // Step 2: Award points only when the product matches the active event filter
-    //         (productCategory required; productId optional).
     final pointsAwarded = await _eventPointsAwarded(
       productId:     productId,
       category:      productCat,
       productPoints: productPoints,
       quantity:      quantity,
     );
-
     // Step 3: Update sale document — mark approved, clear proof image.
     await _db.collection('sales').doc(saleId).update({
       'status':        'approved',
       'pointsAwarded': pointsAwarded,
       'proofImageUrl': FieldValue.delete(),
     });
-
     // Step 4: Delete the proof image from Storage.
     await deleteProofImage(data['proofImageUrl'] as String?);
-
     // Step 5: Add points to salesperson (skip if 0 — non-matching product).
     if (pointsAwarded > 0) {
       await _db.collection('users').doc(userId).update({
         'totalPoints': FieldValue.increment(pointsAwarded),
       });
     }
-
     // Step 6: Increment progress quantity if the product matches the active
-    //         event's progress challenge filter (category + optional productId).
     await _incrementProgressIfMatches(
       userId:    userId,
       productId: productId,
       category:  productCat,
       quantity:  quantity,
     );
-
     // Step 7: Recalculate all ranks.
     await recalculateRanks();
-
     // Step 8: Check milestone.
     await checkMilestone(
       userId,
       data['userName'] as String? ?? '',
       quantity,
     );
-
     // Step 9: Notify the salesperson that their claim was approved.
     await NotificationService.sendSaleClaimDecisionNotification(
       userId: userId,
@@ -114,10 +102,8 @@ class ManagerService {
       approved: true,
       pointsAwarded: pointsAwarded,
     );
-
     return pointsAwarded;
   }
-
   // ── Event points filter ──────────────────────────────────────────────────────
   // Returns productPoints × quantity if the product matches the active event's
   // category/product filter, or 0 if it does not. Falls back to awarding full

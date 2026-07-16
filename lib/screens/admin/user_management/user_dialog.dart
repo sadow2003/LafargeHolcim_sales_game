@@ -69,10 +69,10 @@ void showUserDialog(
                   decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: const Icon(Icons.email_outlined),
-                    hintText: 'name@lafargeholcim.com',
+                    hintText: 'name@holcim.com',
                     helperText: isEdit
                         ? 'Email cannot be changed here'
-                        : 'Must be a @lafargeholcim.com address',
+                        : 'Must be a @holcim.com address',
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),

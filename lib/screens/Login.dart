@@ -132,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Verification email resent!'),
+                      content: Text('Verification email sent!'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -309,7 +309,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
-                    hintText: 'yourname@lafargeholcim.com',
+                    hintText: 'yourname@holcim.com',
                   ),
                   validator: _validateEmail,
                 ),

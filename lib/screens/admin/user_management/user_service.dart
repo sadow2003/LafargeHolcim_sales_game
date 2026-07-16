@@ -23,8 +23,8 @@ class UserService {
       snack('Please fill in all fields.', Colors.red);
       return;
     }
-    if (!email.toLowerCase().endsWith('@lafargeholcim.com')) {
-      snack('Email must be a @lafargeholcim.com address.', Colors.red);
+    if (!email.toLowerCase().endsWith('@holcim.com')) {
+      snack('Email must be a @holcim.com address.', Colors.red);
       return;
     }
     if (password.length < 8) {

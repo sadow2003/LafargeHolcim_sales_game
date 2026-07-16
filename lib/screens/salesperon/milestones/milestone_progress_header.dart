@@ -81,12 +81,11 @@ class MilestoneProgressHeader extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   
                   const Spacer(),
-
-
-
+                  
+                  
                   Text(
                     'Next: $next',
                     style: const TextStyle(

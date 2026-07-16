@@ -21,10 +21,70 @@ class _ProfilePageState extends State<ProfilePage>{
   bool _uploadingPhoto = false;
   String? _photoUrl;
 
+  String? _firstName;
+  String? _lastName;
+  bool _editingName = false;
+  bool _savingName = false;
+  late final TextEditingController _nameController;
+  final FocusNode _nameFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
+    _nameFocusNode.addListener(() {
+      if (!_nameFocusNode.hasFocus && _editingName) {
+        _saveName();
+      }
+    });
     _loadPhotoUrl();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nameFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _startEditingName(String firstName, String lastName) {
+    _nameController.text = '$firstName $lastName'.trim();
+    setState(() => _editingName = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _nameFocusNode.requestFocus();
+      _nameController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _nameController.text.length,
+      );
+    });
+  }
+
+  Future<void> _saveName() async {
+    final fullName = _nameController.text.trim();
+    if (fullName.isEmpty) {
+      setState(() => _editingName = false);
+      return;
+    }
+
+    final parts = fullName.split(RegExp(r'\s+'));
+    final newFirstName = parts.first;
+    final newLastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+
+    setState(() {
+      _editingName = false;
+      _savingName = true;
+      _firstName = newFirstName;
+      _lastName = newLastName;
+    });
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUser.uid)
+          .update({'firstName': newFirstName, 'lastName': newLastName});
+    } finally {
+      if (mounted) setState(() => _savingName = false);
+    }
   }
 
   Future<void> _loadPhotoUrl() async {
@@ -117,8 +177,8 @@ class _ProfilePageState extends State<ProfilePage>{
           }
           // extract all the info from the documents
           final data        = snapshot.data!.data() as Map<String, dynamic>;
-          final firstName   = data['firstName']   ?? 'Unknown';
-          final lastName    = data['lastName']    ?? '';
+          final firstName   = _firstName ?? data['firstName']   ?? 'Unknown';
+          final lastName    = _lastName  ?? data['lastName']    ?? '';
           final email       = data['email']       ?? '';
           final role        = data['role']        ?? 'salesperson';
           //if total points is not there then you can use the old ponits if they also not there use 0
@@ -172,13 +232,55 @@ class _ProfilePageState extends State<ProfilePage>{
                 const SizedBox(height: 12),
 
               //____Name________________
-                Text(
-                  '$firstName $lastName',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: kPrimaryColor,
-                  ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: _editingName
+                      ? SizedBox(
+                          key: const ValueKey('name-edit'),
+                          width: 240,
+                          child: TextField(
+                            controller: _nameController,
+                            focusNode: _nameFocusNode,
+                            textAlign: TextAlign.center,
+                            autofocus: true,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: kPrimaryColor,
+                            ),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              border: UnderlineInputBorder(),
+                            ),
+                            onSubmitted: (_) => _saveName(),
+                          ),
+                        )
+                      : GestureDetector(
+                          key: const ValueKey('name-display'),
+                          onTap: () => _startEditingName(firstName, lastName),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '$firstName $lastName',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              _savingName
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : Icon(Icons.edit,
+                                      size: 16, color: Colors.grey.shade400),
+                            ],
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 6),

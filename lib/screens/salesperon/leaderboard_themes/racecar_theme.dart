@@ -207,9 +207,6 @@ class _DriftState {
   _DriftState({required this.direction, required this.start});
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Individual car widget.
-// ─────────────────────────────────────────────────────────────────
 class _RaceCar extends StatelessWidget {
   final _PlayerSlot slot;
   final double trackWidth;

@@ -22,7 +22,7 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget build(BuildContext context) {
     return Drawer(
       child: FutureBuilder<DocumentSnapshot>(
-        future: _userFuture,
+        future: _userFuture,//fetches the user document from Firestore for the currently authenticated user. This is done asynchronously, and the FutureBuilder widget will rebuild its child widgets based on the state of this future (loading, completed, or error).
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
