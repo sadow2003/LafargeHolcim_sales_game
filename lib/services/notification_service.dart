@@ -171,16 +171,16 @@ class NotificationService {
         );
 
         //ios details to show alert,badge and sound when the notification is received
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+    // const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    //   presentAlert: true,
+    //   presentBadge: true,
+    //   presentSound: true,
+    // );
 
     //combine platform details into a single object
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,
-      iOS: iosDetails,
+      // iOS: iosDetails,
     );
 
     //show the notification using the plugin
