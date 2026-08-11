@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../firebase_options.dart';
 
@@ -57,6 +59,16 @@ class UserService {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
+      // App Check enforcement applies per FirebaseApp instance, so the
+      // secondary app needs its own activation or its Auth calls get
+      // rejected even though the default app is already attested.
+      await FirebaseAppCheck.instanceFor(app: secondaryApp).activate(
+        providerWeb: ReCaptchaV3Provider('6Lf7smctAAAAAEo9-4qhDYkDKU7RwSYsyLwPiN-s'),
+        providerAndroid: kDebugMode
+            ? const AndroidDebugProvider()
+            : const AndroidPlayIntegrityProvider(),
+      );
+
       final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
       final credential    = await secondaryAuth.createUserWithEmailAndPassword(
         email:    email,
@@ -82,8 +94,9 @@ class UserService {
       if (!context.mounted) return;
       snack('User "$firstName $lastName" created.', Colors.green);
     } on FirebaseAuthException catch (e) {
+      debugPrint('[UserService.createUser] FirebaseAuthException code=${e.code} message=${e.message}');
       if (!context.mounted) return;
-      snack(authError(e.code), Colors.red);
+      snack('${authError(e.code)} (${e.message ?? "no details"})', Colors.red);
     } catch (e) {
       if (!context.mounted) return;
       snack('Error: $e', Colors.red);

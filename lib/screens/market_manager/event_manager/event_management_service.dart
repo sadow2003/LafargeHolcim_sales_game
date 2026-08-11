@@ -211,6 +211,7 @@ class EventManagementService {
         'eventProductName': productName,
       'reactions':       {},
       'createdAt':       FieldValue.serverTimestamp(),
+      'expireAt':        Timestamp.fromDate(DateTime.now().add(const Duration(hours: 48))),
     });
   }
 

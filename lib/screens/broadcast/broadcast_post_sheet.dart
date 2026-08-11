@@ -55,6 +55,7 @@ class _PostBroadcastSheetState extends State<PostBroadcastSheet> {
       'rankAtTime': widget.currentRank > 0 ? widget.currentRank : null,
       'reactions': {},
       'createdAt': FieldValue.serverTimestamp(),
+      'expireAt': Timestamp.fromDate(DateTime.now().add(const Duration(hours: 48))),
     });
     // After posting, close the sheet
     if (mounted) Navigator.pop(context);

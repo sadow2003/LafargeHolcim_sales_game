@@ -20,6 +20,7 @@ class RankingService {
           .collection('users')
           .where('role', isEqualTo: 'salesperson')
           .orderBy('totalPoints', descending: true)
+          .limit(10)
           .snapshots();
 
   static Stream<DocumentSnapshot> get progressChallengeStream =>

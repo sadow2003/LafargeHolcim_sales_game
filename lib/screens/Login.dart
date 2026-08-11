@@ -111,6 +111,7 @@ class _LoginPageState extends State<LoginPage> {
 
       //Block login if email is not verified — disabled during testing
       if (!user.emailVerified) {
+        await NotificationService.instance.clearTokenForCurrentUser();
         await FirebaseAuth.instance.signOut();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -128,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                     password: _passwordController.text.trim(),
                   );
                   await cred.user!.sendEmailVerification();
+                  await NotificationService.instance.clearTokenForCurrentUser();
                   await FirebaseAuth.instance.signOut();
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -156,6 +158,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       //check if the user exists in the fire store, if not it deletes the user authentification
       if (!doc.exists) {
+        await NotificationService.instance.clearTokenForCurrentUser();
         await FirebaseAuth.instance.currentUser?.delete();
         await FirebaseAuth.instance.signOut();
         if (!mounted) return;
@@ -291,7 +294,7 @@ class _LoginPageState extends State<LoginPage> {
                 // ── Logo ─────────────────────────────────────────────
                 Center(
                   child: Image.asset(
-                    'assets/images/SalesQuest_Logo8.png',
+                    'assets/images/SalesQuest_logo22.png',
                     width: 500,
                   ),
                 ),

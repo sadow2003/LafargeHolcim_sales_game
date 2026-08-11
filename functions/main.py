@@ -1,20 +1,20 @@
 from firebase_functions import firestore_fn, https_fn
 from firebase_functions import scheduler_fn  # DISABLED
 from firebase_functions.options import set_global_options
-from firebase_functions.params import SecretParam
 import datetime
+import os
 import firebase_admin
 from firebase_admin import firestore as fb_firestore, messaging
 
 # Set global options for all functions in this module.
 set_global_options(max_instances=10)
 
-# Secrets are stored in Google Cloud Secret Manager (never in the client app).
-# Set them once with: firebase functions:secrets:set ADMIN_SECRET
-_ADMIN_SECRET          = SecretParam('ADMIN_SECRET')
-_MANAGER_SECRET        = SecretParam('MANAGER_SECRET')
-_MARKET_MANAGER_SECRET = SecretParam('MARKET_MANAGER_SECRET')
-_GROQ_API_KEY          = SecretParam('GROQ_API_KEY')
+# Secrets are read from environment variables, populated locally via functions/.env
+# (gitignored) and in deployed environments via the same .env file bundled at deploy time.
+_ADMIN_SECRET          = os.environ.get('ADMIN_SECRET', '')
+_MANAGER_SECRET        = os.environ.get('MANAGER_SECRET', '')
+_MARKET_MANAGER_SECRET = os.environ.get('MARKET_MANAGER_SECRET', '')
+_GROQ_API_KEY          = os.environ.get('GROQ_API_KEY', '')
 
 # Initialize Firebase Admin SDK eagerly at module load time.
 # The firebase-functions SDK validates auth tokens (via firebase_admin.auth.verify_id_token)
@@ -104,9 +104,8 @@ def notify_salesperson_on_sale_decision(event):
 
 
 # Validates the role secret server-side and writes the user profile document.
-# Secrets live in Cloud Secret Manager — never in the client app binary.
-# Deploy secrets once with: firebase functions:secrets:set ADMIN_SECRET
-@https_fn.on_call(secrets=[_ADMIN_SECRET, _MANAGER_SECRET, _MARKET_MANAGER_SECRET])
+# Secrets are read from environment variables (functions/.env) — never in the client app binary.
+@https_fn.on_call()
 def createUserProfile(req: https_fn.CallableRequest):
     if req.app is None:
         raise https_fn.HttpsError(
@@ -136,9 +135,9 @@ def createUserProfile(req: https_fn.CallableRequest):
 
     if role != "salesperson":
         expected = {
-            "admin":          _ADMIN_SECRET.value,
-            "sales-manager":  _MANAGER_SECRET.value,
-            "market-manager": _MARKET_MANAGER_SECRET.value,
+            "admin":          _ADMIN_SECRET,
+            "sales-manager":  _MANAGER_SECRET,
+            "market-manager": _MARKET_MANAGER_SECRET,
         }[role]
         if not expected or secret != expected:
             raise https_fn.HttpsError(
@@ -199,7 +198,7 @@ Language:
 
 
 
-@https_fn.on_call(secrets=[_GROQ_API_KEY])
+@https_fn.on_call()
 def getAiCoachReply(req: https_fn.CallableRequest):
     if req.app is None:
         raise https_fn.HttpsError(
@@ -221,7 +220,7 @@ def getAiCoachReply(req: https_fn.CallableRequest):
 
     try:
         from groq import Groq
-        client = Groq(api_key=_GROQ_API_KEY.value.strip())
+        client = Groq(api_key=_GROQ_API_KEY.strip())
         completion = client.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[{"role": "system", "content": _SYSTEM_PROMPT}] + messages,

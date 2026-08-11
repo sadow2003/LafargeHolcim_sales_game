@@ -244,7 +244,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Their Firestore data will be deleted. ',
+                      "The user's data will be permanently deleted. ",
                       style: TextStyle(fontSize: 12, color: Colors.orange),
                     ),
                   ),
